@@ -1,0 +1,106 @@
+0) Ovo je React TypeScript + .NET Core Finance projekat 
+   Pre ovoga, naucio sam sve iz ReactJS foldera 
+
+1) Kreiram "react_ts_and_aspnetcore_app" folder i vodim racuna da su sve mala slova, jer 
+velika slova ne moze za kreiranje react app od skoro. 
+
+2) U VSC otvorim taj folder. Pa otvorim CMD i kucam "npx create-react-app frontend --template typescript"
+i u "react_ts_and_aspnetcore_app" folderu dobijem "frontend" folder koji sadrzi sve kao i za React JS da sam pokrenuo.
+Kao i ReactJS, dobijem node_modules, public i src foldere + .gitignore, package-lock.json, package.json i tsconfig.json files.
+Za razliku od ReactApp, necu brisati nista iz src za sada.
+
+3) Bolje koristiti .tsx file, nego .ts file, jer nekad compiler kuka ako je .ts file i za obican .ts bez React.
+
+4) Instaliram VSC Extension "ES7+ React/Redux/React-Native snippets" from dsznajder publishera, da mogu da koristim u .tsx file
+"rafce" za JS ili "tsrafce" za TS kad pravim React components da ne kucam onaj pocetni kod svaki put. 
+
+5) U src folder dodam Components i Pages foldere. 
+   U Components stavljam sve React components naravno. U Components pravim Card folder gde pravim Card.css i Card.tsx files.
+
+6) Modifikujem App.tsx pocetni kod brisem iz return naredbe da dodam Card component
+
+7) Pokretanje ReactTS mora terminal biti u frontend folderu i kucam "npm start" 
+
+8) Brisem sve iz App.css i index.css, jer kucam svoje kasnije.
+
+9) U Components folder pravim CardList folder gde pravim CardList.tsx i CardList.css files
+
+10) U Components folder pravim Search folder gde pravim Search.tsx i Search.css
+
+11) U frontend folder, terminal kucam "npm install axios --save" i "npm install --save-dev @types/axios" jer ocu axios sa tipovima iako 
+ne mora u TS tj moze i obican axios kao u ReactJS. Pa kucam "npm install dotenv --save"
+
+12) U frontend folder dodam .env file, ali necu pisati API KEY za onaj sajt u njega, jer to je u api.tsx stavljeno 
+
+13) u src folder dodam api.tsx file i company.d.ts file jer gadjam API sa nekog sajta dok u company.d.ts stavljam sve moguce tipove od tog API get
+.d.ts je TS Declaration file koji govori axios biblioteci u kom formatu ce biti podaci koje dohvata/salje i u .d.ts file se ne stavlja logika, vec 
+samo tipovi.
+
+14) U frontend folder "npm install --save-dev @types/uuid"
+
+15) U Components folder dodam Portfolio folder gde dodam  AddPortfolio folder gde dodam AddPortofolio.tsx i AddPortfolio.css
+    Dodao i jos ove Portfolio foldere
+
+16) U frontend folderu kucam "npm install -D tailwindcss@^3.4.1", a onda "npx tailwindcss init" sto ce da nam napravi tailwind.config.js koji nam treba
+
+17) u Components dodam Navbar (Navbar.tsx/css) and Hero folder (Hero.tsx/css) koje sa tailwindcss kodiram 
+
+18) Dodajem React Router da napravim zeljene stranice unutar app. U terminal "npm install -save react-router-dom", pa "npm install --save @types/react-router-dom" i pravim Routes folder i Pages folder
+u Terminal kucam "npm install react-router-dom@latest" da moze createBrowserRouter from "react-router-dom"
+
+19) U Pages folder dodam zeljene foldere gde svaki prestavlja stranicu
+
+20) u Components create Sidebar folder 
+
+21) U terminal "npm install react-icons"
+
+22) U Components kreiranje CompanyProfile i IncomeStatement 
+
+23) U Pages folder kreiranje DesignGuide page
+
+24) U Components folder kreiranje Table koju koristim u DesignGuide page
+
+25) U Components folder kreiranje RatioList koji koristim u DesignGuide
+
+26) U Components folder kreiranje BalanceSheet 
+
+27) U terminalu "npm i react-spinners" (cd frontend pre toga) for loading 
+
+28) U Components folde kreiranje Spinner
+
+29) U Components folder kreiranje TenK
+
+// Sada pravim .NET backend 
+// Napravio sam .NET backend i nastavljam dalje ovde u frontend 
+
+30) Npm istanll react-toastify u frontend folder
+
+31) Kreiram Services folder za AuthService
+
+31) Kreiram ErrorHandler folder za AuthService.tsx gde ima LoginAPi i RegisterAPI da gadjaju u .NET backendu corresponding apis
+
+31) Kreiram Models folder za UserProfileToken
+
+32) Kreiram Context folder za global states koje koriste sve Components inside UserProvider (za likom Login i Register )
+
+33) Install "npm install react-hook-form yup @hookform/resolvers" u frontend folder jer Yup sluzi za validaciju u formi
+
+34) LoginPage folder kreiranje
+
+35) RegisterPage kreiranje
+
+36) U Routes folder kreiram ProtectedRoute.tsx 
+
+37) StockComment kreiram koga dodajem u CompanyProfile
+
+38) CommentService kreiram u Services folder
+
+39) U Models kreiram CommentPost za prihvatanje return polja iz backend endpoint 
+
+40) Create StockCommentList
+
+41) U Models, Create CommentGetFromBackend za StockCommentList
+
+42) PortfolioService kreiram
+
+43) Kreiram u Models PortfolioGetFromBackend za PortfolioService
