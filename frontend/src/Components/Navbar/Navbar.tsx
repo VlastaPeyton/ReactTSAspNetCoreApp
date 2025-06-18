@@ -5,10 +5,10 @@ import { useAuth } from '../../Context/useAuthContext';
 
 type Props = {}
 
-// Svaki Component kodiram pomocu tailwindcss. Navbar, zbog prisustva u App.tsx i ne prisustva u Routes.tsx , bice prisutan na svakoj stranici. 
+// Svaki Component kodiram pomocu tailwindcss. Navbar, zbog prisustva u App.tsx (i ne prisustva u Routes.tsx jer path:"" ima za <App>) , bice prisutan na svakoj stranici. 
 const Navbar = (props: Props) => {
     const {isLoggedIn, user, logout} = useAuth();  // Moze da pristupi Context, jer u App.tsx je children route of <App> tj u <Outlet>, a <outlet> je unutar <UserProvider> u App.tsx
-
+    // <Link to> sadrzi absolute path jer ima "/" na pocetku imena route (npr /search", a ne "search") + u Routes.tsx sam definsao koju component renderuje taj path.
   return (
     <nav className="relative container mx-auto p-6">
         <div className="flex items-center justify-between">

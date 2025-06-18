@@ -1,10 +1,10 @@
-/* Ovo je .d.ts file u koji ne ide logika, vec samo tipovi koje axios treba da ocekuje.
-Ovo koristim u api.tsx file. */
+/* Ovo je .d.ts file u koji ne ide logika, vec samo tipovi koje axios treba da ocekuje ako sve bude kako treba u request.
+Ovo koristim u Axios folder tj u api.tsx file . */
 
-// Ovako export kada imam vise od 1 stvari za export 
-// Moze umesto interface biti type jer je isto
+// Ovako export mora kada imam vise od 1 stvari za export.
+// Moze umesto interface biti type, jer je isto.
 
-// Sve ove tipove sam video na financialmodelingprep.com jer tamo stoji tip elementa niza koji dobijam za svaki API
+// Sve ove tipove sam video na financialmodelingprep.com jer tamo stoji tip elementa niza koji dobijam za svaki API njihov koji gadjam.
 
 export interface CompanySearch { 
     currency: string;
@@ -13,7 +13,6 @@ export interface CompanySearch {
     stockExchange: string;
     symbol: string
 }
-
 
 export interface CompanyProfile {
     symbol: string;
@@ -51,8 +50,8 @@ export interface CompanyProfile {
     isActivelyTrading: boolean;
     isAdr: boolean;
     isFund: boolean;
-}
-  
+} 
+
 export interface CompanyKeyRatios {
     dividendYielTTM: number;
     dividendYielPercentageTTM: number;
@@ -112,8 +111,8 @@ export interface CompanyKeyRatios {
     enterpriseValueMultipleTTM: number;
     priceFairValueTTM: number;
     dividendPerShareTTM: number;
-}
-  
+} 
+
 export interface CompanyIncomeStatement {
     date: string;
     symbol: string;

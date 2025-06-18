@@ -1,4 +1,3 @@
-import React from 'react'
 import { CommentGetFromBackend } from '../../Models/CommentGetFromBackend'
 
 type Props = {

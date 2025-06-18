@@ -40,7 +40,7 @@ export const TestDataCompany = [
     },
   ];
   
-  // Samo za "AAPL" podaci
+  // Samo za "AAPL" podaci. Ovo koristim u DesignGuide.tsx umesto api.tsx
   export const testIncomeStatementData = [
     {
       date: "2022-09-24",

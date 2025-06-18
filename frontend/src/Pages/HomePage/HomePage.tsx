@@ -1,5 +1,3 @@
-import exp from 'constants'
-import React from 'react'
 import Hero from '../../Components/Hero/Hero'
 
 type Props = {}

@@ -1,12 +1,13 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom'; // Isto kao u App.tsx gde sam import from 'react-router'
 
 type Props = {
-  children: React.ReactNode; // Da bi Tile.tsx moglo da se prosledi
-  ticker: string;
+  children: React.ReactNode; /*Da bih mogo 0, 1 ili vise Components (tj Tile.tsx) staviti izmedju <CompanyDashboard> i </CompanyDashboard>
+                             Moze i <CompanyDashboard children={<Component/>}...> ali to se ne radi nikad. */
+  ticker: string; 
 }
 
-// Zbog ovoga ce u CompanyPage.tsx da imamo <CompanyDashboard ticker={ticker!}> <Tile...> ...</CompanyDashboard>, a ticker! mora jer nije ticker: string | undefined u Props
+// Zbog ovakog Props ce u CompanyPage.tsx da imamo <CompanyDashboard ticker={ticker!}> <Tile...> <TenK><CompanyDashboard>, a ticker! mora jer nije ticker: string | undefined u Props
 // Moram imati built-in <Outlet /> koji omogucava nested routes tj children (Tile.tswx) i zato ne prosledjujem Tile kao Prop !
 const Dashboard = ({children, ticker}: Props) => {
   return (
@@ -14,8 +15,8 @@ const Dashboard = ({children, ticker}: Props) => {
       <div className="relative pt-20 pb-32 bg-lightBlue-500">
         <div className="px-4 md:px-6 mx-auto w-full">
           <div>
-            <div className="flex flex-wrap">{children}</div> {/* children je Tile.tsx */}
-            <div className="flex flex-wrap">{<Outlet context={ticker}/>}</div> {/* Mora <Outlet> zbog children: React.ReactNode + u Routes.tsx je definsano children za  */}
+            <div className="flex flex-wrap">{children}</div> {/* U mom slucaju, children je Tile.tsx i TenK.tsx, koji su u CompanyPage napisan izmedju <CompanyDashboard> i </CompanyDashboard> */}
+            <div className="flex flex-wrap">{<Outlet context={ticker}/>}</div> {/* Kao u App.tsx sluzi da renderuje zeljenu child route of CompanyPage according to Routes.tsx */}
           </div>
         </div>
       </div>

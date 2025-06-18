@@ -1,7 +1,5 @@
-import React from 'react'
 import * as Yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useAuth } from '../../../Context/useAuthContext';
 import {useForm} from "react-hook-form";
 
 type Props = {
@@ -14,27 +12,32 @@ type CommentFormInput = {
   content: string;
 }
 
+// Yup je za validaciju
 const validation = Yup.object().shape({
-  title: Yup.string().required("Title is requeired"),
+  title: Yup.string().required("Title is requeired"), // Yup.string() - jer title je string in CommentFormInput
   content: Yup.string().required("Content is required")
-  // Mora title i conntent zbog CommentInputForm 
+  // Mora ista imena i redosled polja kao u CommentInputForm 
 })
 
 const StockCommentForm = ({symbol, handleComment}: Props) => {
 
   const {
-    register,
-    handleSubmit,
-    reset, // Da se isprazne Title i Content polja after comment has been submitted
-    formState: {errors}
-  } = useForm<CommentFormInput>({resolver: yupResolver(validation)})
+    // Ova 4 useForm vraca i mora ovako da se zovu jer su im to built-in imena.
+    register,     // Zbog register("title/content") u HTML mi je potrebno ovo. Objasnjeno u LoginPage.
+    handleSubmit, /* Zbog onSubmit={handleSubmit(onSubmit)} mi je potrebno ovo. Prevents default automatski. Uzme sve iz forme u obliku CommentFormInput i prosledi u onSubmit.
+                  Takodje, validira formu using yurResolver. Ako invalid forma, napravi formState.errors. Ako valid, napravi CommentInputForm objekat sa poljima iz forme i pozove onSubmit.*/
+    reset,        // Da se isprazne Title i Content polja after comment has been submitted
+    formState: {errors} // Destruktuira formState koji sadrzi vise polja, pa mi samo treba errors objekat koji sadrzi title i content polje. Ovo je isto kao formState.errors. Moze errors.title/content.message
+  } = useForm<CommentFormInput>({resolver: yupResolver(validation)}) // Koristim yupResolver za validaciju of React Hook Form 
 
   const onSubmit = (data: CommentFormInput) => {
     handleComment(data); 
     reset();
   }
+
+  // <label htmlFor="comment"..> povezano sa <textarea id="comment"...>
   return (
-    <form className="mt-4 ml-4" onSubmit={handleSubmit(onSubmit)}> {/* Ne treba (e) => handleSubmit jer on sam ima prevent default u sebi + sam izdvoji sve iz handlelogin */}
+    <form className="mt-4 ml-4" onSubmit={handleSubmit(onSubmit)}> {/* Ne treba (e) => handleSubmit jer on sam ima prevent default u sebi + sam izdvoji sve iz forme i prosledi u onSubmit */}
       <input
         type="text"
         id="title"
@@ -54,7 +57,8 @@ const StockCommentForm = ({symbol, handleComment}: Props) => {
           className="px-0 w-full text-sm text-gray-900 border-0 focus:ring-0 focus:outline-none dark:text-white dark:placeholder-gray-400 dark:bg-gray-800"
           placeholder="Write a comment..."
           {...register("content")}
-        ></textarea>
+        >
+        </textarea>
       </div>
       <button
         type="submit"
@@ -65,5 +69,6 @@ const StockCommentForm = ({symbol, handleComment}: Props) => {
     </form>
   )
 }
+//<button type=submit > => Kliknuti na Post comment aktivira handleSubmit gore naveden u onSubmit u zaglavlju <form...> */}
 
 export default StockCommentForm;

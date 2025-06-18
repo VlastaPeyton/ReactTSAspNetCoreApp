@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { CommentGetFromBackend } from '../../Models/CommentGetFromBackend';
 import StockCommentListItem from './StockCommentListItem';
 
@@ -8,10 +8,10 @@ type Props = {
 
 const StockCommentList = ({comments}: Props) => {
   return (
-    // .map zahteva key (iako StockCommentListItem nema taj prop) kao i uvek i prosledicu index najlakse mi da bi HTML pratio elemente liste
+    // .map pravi listu i zahteva unique key (iako StockCommentListItem nema taj prop), da bi HTML pratio elemente liste, kao i uvek i prosledicu index jer znam da je unique i najlakse mi je njega
+    // Obzirom da i tokom initial redner of StockComment, kada loading=undefined i comments=[] i tada renderujemo StockCommentList with comments=[] ne treba mi ternary ovde vise 
     <>
-    {comments ? comments.map((comment, index) => {return <StockCommentListItem key={index} comment={comment} />}) 
-              : "" }
+    {comments.map((comment : CommentGetFromBackend, index: number) => {return <StockCommentListItem key={index} comment={comment} />})}
     </>
   )
 }

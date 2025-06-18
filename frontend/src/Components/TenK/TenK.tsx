@@ -1,32 +1,40 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CompanyTenK } from '../../company';
 import { getTenK } from '../../Axios/api';
 import TenKItem from './TenKItem';
 import Spinner from '../Spinner/Spinner';
+import { toast } from 'react-toastify';
 
 type Props = {
     ticker: string;
 }
 
 const TenK = ({ticker}: Props) => {
-    const [companyData, setCompanyData] = useState<CompanyTenK[]>();
+
+    const [companyData, setCompanyData] = useState<CompanyTenK[]>(); // Default value is undefined 
+
     useEffect(() => {
+        // Dobra praksa je staviti definiciju ove metode izvan useEffect. 
         const fetchTenK = async () => {
-            const result = await getTenK(ticker);
-            // result je niz od CompanyTenK elemenata i zato Table moze da renderuje sve, jer polja iz result niza postoje u tableConfig render funkcijama
-            setCompanyData(result?.data); // getTenK from api.tsx moze da vrati i null, pa zato ? mora 
-            // companyData je definisano kao niz of CompanyTenK elemenata i zato result?.data, plus Table definisan da obradi niz
+            // Then-catch je isto kao da sam pisao try-catch. Catch mora ako dodje go greske u getTenK koji je Frontend.
+            await getTenK(ticker).then((result) => {
+                // Ako backend posalje StatusCode=2XX to getTenk onda result.data je niz CompanyTenk[] jer smo u try usli 
+                // Ako backend posalje StatusCode!=2XX (error) to getTenK onda result=undefined i result.data ne moze jer smo u catch block 
+                setCompanyData(result?.data); // Mora result? jer result moze biti i undefined,a nema if(result) pa da moze bez upitnika. React re-renders this component when company is set. 
+            }).catch((err) => toast.warn(err)); // Pop-up window ako se desi greska u getTenK frontend
         }
+
         fetchTenK();
 
     }, [ticker]);
 
+    // companyData ? jer brze propagira kod iz poziva fetchTenK dovde gde renderuje nego sto se izvrsi ta async metoda i onda inicijalno companyData=undefined i render prikaze spiner, ali onda async metoda kad zavrsi setCompanyData re-renders opet with company!=undefined
     return (
         <div className="inline-flex rounded-md shadow-sm m-4">
-            {companyData ? (companyData.slice(0, 5).map((tenK, index) => {return <TenKItem key={index} tenK={tenK}/> })) : (<Spinner />)} 
+            {companyData ? (companyData.slice(0, 5).map((tenK : CompanyTenK, index: number) => {return <TenKItem key={index} tenK={tenK}/> })) : (<Spinner />)} 
         </div>
     )
-    // Mora key, iako TenKItem neka key, jer .map zahteva to da bi HTML znao da prati elemente liste. Stavio index, jer CompanyTenK type nema nista unique field
+    // Mora key, iako TenKItem neka key, jer .map zahteva to da bi HTML znao da prati elemente liste. Stavio key={index} jer mi najlakse, a mogo sam i symbol polje iz CompanyTenK
 }
 
 export default TenK;

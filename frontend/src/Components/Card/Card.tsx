@@ -7,11 +7,12 @@ import { Link } from 'react-router-dom';
 // Umesto type moze interface, jer za .tsx je isto 
 type Props = {
   id: string; 
-  searchResult: CompanySearch; // Mogu pristupiti svakom polju ovog interface   
+  searchResult: CompanySearch; // Mogu pristupiti svakom polju iz CompanySearch 
   onPortfolioCreate: (e: SyntheticEvent) => void;
 } 
-/* Card je svaka kompanija koja se pojavi kad ukucam zeljeni ticker. Npr za "tsla" ticker, pojavi se Tesla,Inc(TSLA) | USD | NASDAQ - NASDAQ Global Select | Add 
-gde Add dugme dodato iz AddPortfolio.tsx */
+/* Card je svaka kompanija koja se pojavi kad ukucam zeljeni ticker u search. Npr za "tsla" ticker, pojavi se Tesla,Inc(TSLA) | USD | NASDAQ - NASDAQ Global Select | Add 
+gde Add dugme dodato iz AddPortfolio.tsx
+   Link to sadrzi absolute route jer ima "/company..", a ne "company..." */
 const Card= ({id, searchResult, onPortfolioCreate}: Props) => {
   return (
     <div className="flex flex-col items-center justify-between w-full p-6 bg-slate-100 rounded-lg md:flex-row"

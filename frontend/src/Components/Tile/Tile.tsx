@@ -5,7 +5,7 @@ type Props = {
     subTitle: string | number; // Pogledaj CompanyPage i videces zasto ovo 
 }
 
-// Children for CompanyDashboard.tsx 
+// Child for CompanyDashboard.tsx 
 const Tile = ({title, subTitle}: Props) => {
   return (
     <div className="w-full lg:w-6/12 xl:w-3/12 px-4">

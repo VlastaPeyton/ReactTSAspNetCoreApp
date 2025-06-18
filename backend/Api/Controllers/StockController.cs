@@ -21,10 +21,17 @@ namespace Api.Controllers
             _stockRepository = repository;
         }
 
-        // Za Read from DB koristim StockDTO klase, nikad Stock. 
+        // Za Read from DB koristim StockDTO klase, nikad Stock, jer Stock namenjeno za Repository.
         // Za Write to DB koristim prvo Create/UpdateStockReqeustDTO, pa onda Stock u Repository. 
 
-        // Svaki Endpoint bice tipa IActionResult jer on omogucava return of HTTP Status + Data 
+        /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
+           
+           Svaki Endpoint, salje to Frontend, Response koji ima polja Status Line, Headers i Body. 
+        Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
+        Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
+           
+         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u ReactTS.
+        */
 
         // Get All Stocks Endpoint
         [HttpGet] // https://localhost:port/api/stock/
@@ -34,7 +41,8 @@ namespace Api.Controllers
             var stocks = await _stockRepository.GetAllAsync(query); 
             var stockDTOs = stocks.Select(s => s.ToStockDTO()).ToList(); // Nema async, jer stocks nije u bazi, vec in-memory jer smo ga vec dohvatili iz baze
 
-            return Ok(stockDTOs); // 200OK + list of StockDTO elements
+            return Ok(stockDTOs); 
+            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stockDTOs u Response Body.
         }
 
         // Get Stock Endpoint
@@ -45,8 +53,10 @@ namespace Api.Controllers
             var stock = await _stockRepository.GetByIdAsync(id);
             if (stock == null)
                 return NotFound(); 
+                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body je prazan.
 
-            return Ok(stock.ToStockDTO()); // 200OK + StockDTO 
+            return Ok(stock.ToStockDTO()); 
+            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stock.ToStockDTO (tj StockDTO objekat) u Response Body.
         }
 
         // Post Stock Endpoint
@@ -58,15 +68,19 @@ namespace Api.Controllers
             // Pokrece Data Validation in CreateStockRequestDTO 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
 
             var stock = createStockRequestDTO.ToStockFromCreateStockRequestDTO();
             await _stockRepository.CreateAsync(stock);
             
             // Vraca route/Endpoint (https://localhost:port/api/stock/{id}) sa "id" argumentom, jer baza automatski generisala Id za novi stock koji je upisan i novi stock u StockDTO obliku 
             return CreatedAtAction(nameof(GetById), new { id = stock.Id }, stock.ToStockDTO());
-            // Iz nekog razloga id ne prati redosled, ali radi. 
+            // Iz nekog razloga id ne prati redosled, ali radi.  
+            /* Prva 2 su route i route argument, jer GetById zahteva id argument.
+               Frontendu ce biti poslato comment.ToStockDTO() (tj StockDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/stock/{id} u Response Header.
+            */
         }
-         
+
         // Update entire Stock Endpoint i zato PUT, a ne PATCH
         [HttpPut("{id:int}")] // https://localhost:port/api/stock/{id}
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDTO updateStockRequestDTO)
@@ -75,13 +89,16 @@ namespace Api.Controllers
             // Pokrece Data Validation in UpdateStockRequestDTO 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
 
             var stock = await _stockRepository.UpdateAsync(id, updateStockRequestDTO.ToStockFromUpdateStockRequestDTO());
 
             if (stock is null)
                 return NotFound();
+                // Frontendu ce biti poslato StatusCode=404 u Response Sttus Line, a Response Body prazan.
 
             return Ok(stock.ToStockDTO());
+            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stock.ToStockDTO (tj StockDTO object) u Response Body.
         }
 
         // Delete Stock Endpoint 
@@ -93,8 +110,10 @@ namespace Api.Controllers
 
             if (stock is null)
                 return NotFound();
+                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body prazan.
 
             return NoContent();
+            // Frontendu ce biti poslato StatusCode=204 u Response Status Line, a Response Body prazan.
         }
     }
 

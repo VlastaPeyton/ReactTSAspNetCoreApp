@@ -1,34 +1,41 @@
-0) Ovo je React TypeScript + .NET Core Finance projekat 
-   Pre ovoga, naucio sam sve iz ReactJS foldera 
+-1) Kada se ovaj projekat pull-uje from Github, moram da u terminal navigiram to "frontend" folder i ukucam "npm install" kako bi instalirao sve packages from package.json 
+jer sam njih u koracima 0-43 instalirao dok sam pravio frontend deo tj u node_modules, ali u .gitignore node_modules ne ide jer veliki, vec sve je u package.json zapisano
+sta moram putem "npm install" da uradim.
 
-1) Kreiram "react_ts_and_aspnetcore_app" folder i vodim racuna da su sve mala slova, jer 
-velika slova ne moze za kreiranje react app od skoro. 
+0) Ovo je React TypeScript + .NET Core Finance projekat. Pored mog backend, koristim free FinancialModelingPrep API.
+   Pre ovoga, naucio sam sve iz ReactJS foldera.
+
+1) Kreiram "react_ts_and_aspnetcore_app" folder i vodim racuna da su sve mala slova, jer, zbog npm and package.json, ne moze da se kreira React App velikim slovima.
 
 2) U VSC otvorim taj folder. Pa otvorim CMD i kucam "npx create-react-app frontend --template typescript"
-i u "react_ts_and_aspnetcore_app" folderu dobijem "frontend" folder koji sadrzi sve kao i za React JS da sam pokrenuo.
+i u "react_ts_and_aspnetcore_app" folderu dobijem "frontend" folder koji sadrzi sve kao i za React JS app da sam kreirao. 
 Kao i ReactJS, dobijem node_modules, public i src foldere + .gitignore, package-lock.json, package.json i tsconfig.json files.
-Za razliku od ReactApp, necu brisati nista iz src za sada.
+Za razliku od ReactApp, necu brisati nista iz src za sada. 
+Kad push ovaj frontend folder na github, it wont push "node_modules" folder as normal behaviour, because it is too large and everything is written in package.json
 
-3) Bolje koristiti .tsx file, nego .ts file, jer nekad compiler kuka ako je .ts file i za obican .ts bez React.
+3) Bolje koristiti .tsx file, nego .ts file, jer nekad compiler kuka ako je .ts file i za obican .ts file koji nema React component.
 
-4) Instaliram VSC Extension "ES7+ React/Redux/React-Native snippets" from dsznajder publishera, da mogu da koristim u .tsx file
+4) Instaliram VSC Extension "ES7+ React/Redux/React-Native snippets" from dsznajder publisher, da mogu da koristim u .tsx file
 "rafce" za JS ili "tsrafce" za TS kad pravim React components da ne kucam onaj pocetni kod svaki put. 
 
 5) U src folder dodam Components i Pages foldere. 
-   U Components stavljam sve React components naravno. U Components pravim Card folder gde pravim Card.css i Card.tsx files.
+   U Components stavljam sve React components, dok u Pages stavljam web pages koje sadrze pojedine Components. 
+   Za svaki Component imacu .tsx i .css file istog imena. U .tsx kucam sve, dok u .css samo CSS styling. Medjutim, koristicu Tailwind CSS, pa mi .css i ne treba.
+   U Components pravim Card folder gde pravim Card.css i Card.tsx files.
+   
+6) Modifikujem App.tsx: built-in kod brisem iz return naredbe i dodam Card component.
 
-6) Modifikujem App.tsx pocetni kod brisem iz return naredbe da dodam Card component
+7) Pokretanje ReactTS: mora terminal biti u "frontend" folderu i kucam "npm start" da otvori u Chrome applikaciju.
 
-7) Pokretanje ReactTS mora terminal biti u frontend folderu i kucam "npm start" 
+8) Brisem sve iz App.css i index.css, jer kucacu svoje kasnije za Tailwind. 
 
-8) Brisem sve iz App.css i index.css, jer kucam svoje kasnije.
+9) U Components folder pravim CardList folder with CardList.tsx i CardList.css files.
 
-9) U Components folder pravim CardList folder gde pravim CardList.tsx i CardList.css files
+10) U Components folder pravim Search folder with Search.tsx i Search.css files.
 
-10) U Components folder pravim Search folder gde pravim Search.tsx i Search.css
-
-11) U frontend folder, terminal kucam "npm install axios --save" i "npm install --save-dev @types/axios" jer ocu axios sa tipovima iako 
-ne mora u TS tj moze i obican axios kao u ReactJS. Pa kucam "npm install dotenv --save"
+11) Terminal navigiram u "frontend" folder i kucam "npm install axios --save" i "npm install --save-dev @types/axios" jer ocu axios sa tipovima (iako 
+ne mora u TS tj moze i obican axios kao u ReactJS jer axios version > 0.14.x podrzava TS). Pa kucam "npm install dotenv --save" jer kad napravim .env file (u root lavel as package.json), 
+moram imati ovo instalirano da bih mogo u ReactTS ocitati varijable iz .env file. Svaka .env variable mora imati "REACT_APP_" prefix.
 
 12) U frontend folder dodam .env file, ali necu pisati API KEY za onaj sajt u njega, jer to je u api.tsx stavljeno 
 
@@ -45,14 +52,14 @@ samo tipovi.
 
 17) u Components dodam Navbar (Navbar.tsx/css) and Hero folder (Hero.tsx/css) koje sa tailwindcss kodiram 
 
-18) Dodajem React Router da napravim zeljene stranice unutar app. U terminal "npm install -save react-router-dom", pa "npm install --save @types/react-router-dom" i pravim Routes folder i Pages folder
-u Terminal kucam "npm install react-router-dom@latest" da moze createBrowserRouter from "react-router-dom"
+18) Dodajem React Router Dom da napravim zeljene stranice unutar app. U terminal navigiram "frontend" folder i kucam "npm install -save react-router-dom", pa "npm install --save @types/react-router-dom" 
+i pravim Routes folder i Pages folder. U terminal kucam "npm install react-router-dom@latest" da moze createBrowserRouter from "react-router-dom".
 
-19) U Pages folder dodam zeljene foldere gde svaki prestavlja stranicu
+19) U Pages folder dodam zeljene foldere gde svaki prestavlja stranicu neku.
 
 20) u Components create Sidebar folder 
 
-21) U terminal "npm install react-icons"
+21) U terminal navigiram u "frontend" folder i kucam "npm install react-icons"
 
 22) U Components kreiranje CompanyProfile i IncomeStatement 
 
@@ -71,9 +78,9 @@ u Terminal kucam "npm install react-router-dom@latest" da moze createBrowserRout
 29) U Components folder kreiranje TenK
 
 // Sada pravim .NET backend 
-// Napravio sam .NET backend i nastavljam dalje ovde u frontend 
+// Napravio sam .NET backend (pogledaj "backend" folder) i nastavljam dalje ovde u frontend 
 
-30) Npm istanll react-toastify u frontend folder
+30) Terminal navigiram u "frontend" folder i kucam "npm install react-toastify"
 
 31) Kreiram Services folder za AuthService
 
@@ -83,7 +90,7 @@ u Terminal kucam "npm install react-router-dom@latest" da moze createBrowserRout
 
 32) Kreiram Context folder za global states koje koriste sve Components inside UserProvider (za likom Login i Register )
 
-33) Install "npm install react-hook-form yup @hookform/resolvers" u frontend folder jer Yup sluzi za validaciju u formi
+33) Terminal navigiram u "frontend" folder i kucam  "npm install react-hook-form yup @hookform/resolvers", jer Yup sluzi za validaciju u formi
 
 34) LoginPage folder kreiranje
 

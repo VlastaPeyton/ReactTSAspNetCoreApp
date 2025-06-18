@@ -3,4 +3,5 @@ export type UserProfileToken = {
     emailAddress: string;
     token: string; // JWT
 }
-// Register i Login method u Backend vraca objekat sa UserName, Email, Token parametrima, ali ga automatski mapira na ove nase jer su imena "ista"
+/* Uspesan AccountController Register/Login Endpoint u .NET salje Frontendu Response oblika: StatusCode=200, a Body = NewUserDTO objekat sa UserName, Email, Token poljima, 
+a meni trebaju sva 3 polja, pa ih zato UserProfileToken ima. Mapiranje se automatski radi, jer ova polja i u NewUserDTO imaju "ista" imena. */
