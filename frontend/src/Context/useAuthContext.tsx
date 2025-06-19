@@ -75,8 +75,9 @@ export const UserProvider = ({children} : Props) => {
                 }
 
                 localStorage.setItem("user", JSON.stringify(user)); // Moram UserProfile da pretvorim u string, jer localStorage samo string prihvata.
-                setToken(result.data.token);  
-                setUser(user);                
+                setToken(result.data.token);  // FE uvek mora da sacuva JWT from BE kako bi u Authorization Header ga slao to BE za Endpoints koji zahtevaju to. React re-renders this component zbog set.
+                setUser(user);    // React re-renders this component zbog set.
+                // Posto su ovde 2 uzastopna set, react odradi oba, pa tek re-renders component.
                 toast.success("Register successfull"); // Prikaze mali pop-up u gornji desni ugao ekrana 
                 navigate("/search"); // Baca nas na SearcPage, jer u Routes.tsx definisano da SearchPage je u /search route.
             }
@@ -110,8 +111,9 @@ export const UserProvider = ({children} : Props) => {
                     emailAddress: result.data.emailAddress
                 }
                 localStorage.setItem("user", JSON.stringify(user)); // Jer localStorage radi samo sa JSON
-                setToken(result.data.token);
-                setUser(user);
+                setToken(result.data.token); // FE uvek mora da sacuva JWT from BE kako bi u Authorization Header ga slao to BE za Endpoints koji zahtevaju to. React re-renders this component zbog set.
+                setUser(user); // React re-renders this component zbog set
+                // Posto su ovde 2 uzastopna set, react odradi oba, pa tek re-renders component.
                 toast.success("Login successfull");
                 navigate("/search"); // Baca nas na SearchPage.
             }

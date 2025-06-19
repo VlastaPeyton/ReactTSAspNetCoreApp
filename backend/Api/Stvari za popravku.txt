@@ -1,13 +1,15 @@
-﻿Staviti sve u Clean architecture -> Dodaj IApplicationDbContext. Pogledaj u MicroservicesApp kako da razdvojis po layerima ovo.
+﻿1) Staviti sve u Clean architecture -> Dodaj IApplicationDbContext. Pogledaj u MicroservicesApp kako da razdvojis po layerima ovo.
+	=> Probao, ali nije lako staviti, jer trenutni kod nije prilagodljiv tom tipu arhitekture. 
 
-Napravi StockId i CommentId posebno da budu klase sa Value poljem kao u MicroservicesApp
+2) Napravi StockId i CommentId posebno da budu klase sa Value poljem kao u MicroservicesApp
 
-Da li mi treba uopste Circular reference tj u Comment.cs da imam Stock polje 
+3) Da li mi treba uopste Circular reference tj u Comment.cs da imam Stock polje 
 
-Route atributi (id ili stockId) da budu GUID, a ne int
+4) Route atributi (id ili stockId) da budu GUID, a ne int
 
-U DTO klasama, Data Validation napravi kao u MicroservicesApp
+5) U DTO klasama, Data Validation napravi kao u MicroservicesApp
 
-Stock-Comment PK-FK napravi kao u MicroserviceApp tj definisi relacije u OnModelCreating u ApplicationDbContext, jer onda necu morati u StockController Include da pisem ja msm
+6) Stock-Comment PK-FK napravi kao u MicroserviceApp tj definisi relacije u OnModelCreating u ApplicationDbContext, jer onda necu morati u StockController Include da pisem ja msm
 
-Da l moze Comments polje u Stock.cs da bude kao u Microservices onako zaguljeno sa readonly pa asReadonly kao kod Ordering sto sam imao events
+7) Da l moze Comments polje u Stock.cs da bude kao u Microservices onako zaguljeno sa readonly pa asReadonly kao kod Ordering sto sam imao events
+	=> Msm da ne, jer to je drugi tip arhitekture

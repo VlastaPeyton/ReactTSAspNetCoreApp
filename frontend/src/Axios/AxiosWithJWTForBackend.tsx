@@ -12,7 +12,7 @@ bez da rucno to radim */
 apiBackendWithJWT.interceptors.request.use(
     // Arrow function called before Request is sent
     (config) => {
-        const token = localStorage.getItem("token"); // U Context sam ga setovao.
+        const token = localStorage.getItem("token"); // U Context loginUser/registerUser funkciji sam ga setovao.
         if (token){
             config.headers.Authorization = `Bearer ${token}`; // Mora sa Bearer zbog .NET ja msm
         }
