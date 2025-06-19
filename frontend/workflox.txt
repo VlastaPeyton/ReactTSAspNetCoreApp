@@ -115,5 +115,4 @@ i pravim Routes folder i Pages folder. U terminal kucam "npm install react-route
 44) U terminal "npm install react-error-boundary" kako bih napravio ErrorBoundary component koja ce obmotati <App> jer sam sve BE i FE greske pohvatao u kodu bez ErrorBoundary.
 ErrorBoundary se inace stavlja oko Component koja mzoe da erroruje pa da ne pukne app, nego da prikaze zeljenu poruku na ekranu.
 
-45) u terminal "npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks" 
-jer Eslint pomaze da vidim greske u kodu bez da pokrecem kod. 
+45)

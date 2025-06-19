@@ -12,6 +12,7 @@ import LoginPage from "../Pages/LoginPage/LoginPage";
 import RegisterPage from "../Pages/RegisterPage/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
 
+// Ovo se koristi u index.tsx 
 // createBrowserRouter je noviji nacin umesto u App.tsx da stavim <Routes> <Route path="/" element={<HomePage />} /> .... </Routes> kao u ReactApp projektu sto sam uradio.
 // Components, koje nisu navedene ovde, a jesu u App.tsx, bice prisutne na svakoj stranici ovde navedenoj.
 // Sve ove children routes nekog parent route (elementa) ( <App /> ili <CompanyPage>) moraju biti inside <Outlet /> u definicije parenta (tj App / CompanyPage). 

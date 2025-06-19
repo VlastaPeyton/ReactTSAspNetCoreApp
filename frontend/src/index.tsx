@@ -6,7 +6,8 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './Routes/Routes'; // createBrowserRouter from "react-router-dom"
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement // Ovo je  <div id="root"></div>
+  document.getElementById('root') as HTMLElement // Ovo je =  <div id="root"></div> jer React je SPA.
+                                                 // MPA (poput .NET MVC) ima .html za svaki route a ja ovde imam gomilu route na 1 .html file
 );
 
 root.render(
