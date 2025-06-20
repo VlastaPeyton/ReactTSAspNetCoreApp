@@ -10,7 +10,7 @@ type LoginFormInputs = {
     password: string;
 }
 
-// Yup je za validaciju
+// Yup je za validaciju. Za ovo postoji validacija i u BE, jer to je prava validacija koja je najbitnija za login.
 const validation = Yup.object().shape({
     userName: Yup.string().required("Username is required"), // Yup.string() - jer userName:string in LoginFormInputs
     password: Yup.string().required("Password is required")

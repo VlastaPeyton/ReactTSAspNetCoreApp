@@ -1,0 +1,24 @@
+﻿												
+				      Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims tabele
+
+1) Napravi AppUser:IdentityUser koja predstavlja AspNetUsers tabelu
+
+2) Napravi ApplicationDbContext: IdentityDbContext<AppUser> 
+
+3) U Program.cs
+    // Add DbContext
+	builder.Services.AddDbContext<ApplicaitonDbContext>(options => {
+	   options.UseSqlServer(builder.Configuration.GetConnectionstring("Database"));
+	})
+
+	// Add IdentityDbContext + def password 
+	builder.Services.AddIdentity<AppUser, IdentityRole>(options => {
+		options.Password.RequireDigit = true;
+		options.Password.RequireUppercase = true;
+		options.Password.RequireLowercase = true;
+		options.Password.RequireNonAlphanumeric = true;
+		options.Password.RequiredLength = 12;
+		options.User.RequireUniqueEmail = true;
+	}).AddEntityFrameworkStores<ApplicaitonDbContext>(); 
+
+4) Pokreni Migracije i Update database sa one 2 komande poznate svima

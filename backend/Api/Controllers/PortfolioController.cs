@@ -23,7 +23,7 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene.
+        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene tj za EF namenjene.
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
            
@@ -31,7 +31,7 @@ namespace Api.Controllers
         Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
           
-         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u ReactTS.
+         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined najcesce u FE.
         */
 
         [HttpGet]

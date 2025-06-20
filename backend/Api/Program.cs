@@ -1,4 +1,4 @@
-using Api.Data;
+using Api.Data;      
 using Api.Interfaces;
 using Api.Models;
 using Api.Repository;
@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Controllers 
+// Add Controllers classes. Ovo prepoznaje sve iz Controllers foldera.
 builder.Services.AddControllers();
 
 // Add Swagger services
@@ -51,19 +51,21 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"));
 });
-// Nakon ovoga, u Package Manager Console kucam "Add-Migration CreateTables", pa "Update-Database" da se naprave Stocks i Comments tabele
+// Nakon ovoga, u Package Manager Console kucam "Add-Migration CreateTables", pa "Update-Database" da se naprave Stocks, Comments i Portfolios tabele iz ApplicaitonDBContext.cs
 
-// Add IdentityDbContext da definisem password kog oblika mora biti i skladistim ga u istu bazu kao Stocks i Comments, stoga mora AddEntityFrameworkStores
+// Add IdentityDbContext da bih definisao password kog oblika mora biti i skladistim ga u istu bazu sa Stocks i Comments, stoga mora AddEntityFrameworkStores
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{
+{   // IdentityRole je AspNetRoles tabela
     options.Password.RequireDigit = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 12;
-    options.User.RequireUniqueEmail = true; // Da ne mogu dva usera da imaju isti Email
+    options.User.RequireUniqueEmail = true; // Da ne mogu dva usera da imaju isti Email prilikom njihovog dodavanja u AspNetUsers tabelu u Register endpoint
 
-}).AddEntityFrameworkStores<ApplicationDBContext>();
+    // AddEntityFrameworkStores tells Identity to use EF to store Identity data (users, roles, tokens, etc.) in the database using your AppDbContext.
+}).AddEntityFrameworkStores<ApplicationDBContext>(); //.AddDefaultTokenProviders(); is needed for email confirmation, password reset, etc.
+// Nakon ova 2 registrovanja iznad, u Package Manager Console kucam "Add-Migration Identity", pa "Update-Database", da sa naprave tabele AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims... 
 
 // JWT Authentication 
 builder.Services.AddAuthentication(options =>
@@ -87,7 +89,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))
     };
 });
-// Nakon ovoga, u Package Manager Console kucam "Add-Migration Identit", pa "Update-Database", da sa naprave AspNetRoleClaims/Roles/UserClaims/Users... tabele
 
 /* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock klasu i to je circular reference. Pa da ne dodje do problema. 
 Isto vazi i za Portfolio i AppUser/Stock. */
@@ -115,19 +116,19 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(); // Default UI at /swagger
 
-app.UseHttpsRedirection(); // Forces HTTP -> HTTPS ako frontend pozove http://localhsto:5110 umesto https://localhost:7045
+app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045
 
-// Enable CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
+// CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
 app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
-                 .AllowAnyMethod() // Allows GET,POST,PUT,DELETE...
-                 .AllowAnyHeader() // Allows custom headers, Authorization...
+                 .AllowAnyMethod() // Allows every Request method (GET,POST,PUT,DELETE...)
+                 .AllowAnyHeader() // Allows custom headers, Authorization headers za JWT...
                  .AllowCredentials());
 
 // Enable Authentication + Authorization
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
+app.UseAuthorization();  // Enforces access rules based on user identity
 
-// Controllers 
+// Activate Controllers routing.
 app.MapControllers();
 
 app.Run();

@@ -3,7 +3,6 @@ using Api.Interfaces;
 using Api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
@@ -13,9 +12,9 @@ namespace Api.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {   
-        private readonly UserManager<AppUser> _userManager; // AppUser je nasledio IdentityUser
-        private readonly SignInManager<AppUser> _signInManager; 
-        private readonly ITokenService _tokenService; // U Program definisali da prepozna ITokenService kao TokenService
+        private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
+        private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
+        private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService)
         {
             _userManager = userManager;
@@ -24,7 +23,7 @@ namespace Api.Controllers
 
         }
 
-        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene.
+        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene obzirom da models klase se koriste sa EF.
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
            
@@ -38,42 +37,41 @@ namespace Api.Controllers
         [HttpPost("register")] // // https://localhost:port/api/account/register
         // Ne ide [Authenticate] jer ovo je Register 
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
-        {   /* Pre ove metode , pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije (ako sam migrirao).
+        {   /* Pre ove metode , pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije (ako sam uradio migraciju uopste).
                
-               Kad novi User ukuca Email i Password, poziva se AspNetCoreIdentity da ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
-            pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da returnuje i podatke iz AspNetUserRoles i AspNetRoles i AspNetClaims tabela ako treba. 
-            Tek nakon ovoga, poziva se CreateToken metoda iz TokenService da se JWT generise, jer JWT treba kako ne bi, za svaki API request, app gledao u DB kao prilikom user Registering sto uradi.  
+               Kad novi User ukuca Email i Password, AspNetCoreIdentity ga upise u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
+            pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz AspNetUserRoles i AspNetRoles i AspNetClaims tabela ako treba. 
+            Tek nakon ovoga, poziva se CreateToken metoda iz TokenService da se JWT generise, jer JWT treba kako ne bi, za svaki API request made in FE, BE gledao u DB da proveri usera (ovo prilikom user Registering radi,a nakon toga ne zelimo). 
             
-               Kad gadjam iz ReactTS Frontenda ovaj Endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta. Zbog [FromBody] moram u body of Request ih staviti.
+               Kad gadjam iz ReactTS Frontenda ovaj Endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
              */
 
-
-            // Try-Catch, jer cesto se desava server error when using UserManager
+            // Try-Catch, jer cesto se desava server error when using UserManager, a to je runtime error, obzirom da nista u try ne baca gresku cak ni implicitno.
             try
             {   
-                // Pokrene Data Validaiton iz RegisterDTO
-                if(!ModelState.IsValid)
+                // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu onih annotation iznad polja koje stoje
+                if(!ModelState.IsValid) 
                     return BadRequest(ModelState); 
-                    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
+                    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) 
 
                 var appUser = new AppUser
-                {
+                {   
                     UserName = registerDTO.UserName,
                     Email = registerDTO.EmailAddress
                 };
 
-                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password);
+                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password); // Dodaje novog usera u AspNetUsers tabelu 
                 // Dodaje AppUser polja (UserName i Email) i register.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
-                // CreateAsync sprecava 2 usera sa istim UserName ili Email(Za email sam morao u Program da definisem rucno)
+                // CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program da definisem rucno u AddIdentity)
 
                 if (createdUser.Succeeded)
                 {
-                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogo sam samo User ili Admin upisati, jer samo te vrednosti su Seedovane Migracijom kroz OnModelCreating u AspNetRoles tabelu
-                    // Dodaje u AspNetUserRoles tabelu koja automatski ima RoleId FK koji gadja Id u AspNetRoles tabeli koja je popunjena prilikom Migracije
+                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogo sam samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom kroz OnModelCreating u AspNetRoles tabelu
+                    // Dodaje u AspNetUserRoles tabelu koja automatski ima RoleId FK koji gadja Id u AspNetRoles i UserId FK koji gadja Id u AspNetUsers tabeli 
 
                     if (roleResult.Succeeded)
                         return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser)});
-                        // Zbog OK, Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
+                        // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
 
                     else
                         return StatusCode(500, roleResult.Errors);
@@ -86,7 +84,8 @@ namespace Api.Controllers
                 }
 
             } catch (Exception ex)
-            {
+            {   // Iako nigde u try block nema throw, niti autoatski throw, catch block sluzi zbog runtime unexpected errors.
+
                 return StatusCode(500, ex);
                 // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
             }
@@ -95,27 +94,27 @@ namespace Api.Controllers
         [HttpPost("login")] // https://localhost:port/api/account/login
         // Ne ide [Authorize] jer je ovo Login
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
-        {   /* Kad existing User ukuca Email i Password, poziva se AspNetCoreIdentity da ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
-            pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da returnuje i podatke iz AspNetUserRoles i AspNetRoles i AspNetClaims tabela ako treba. 
+        {   /* Kad existing User ukuca Email i Password, AspNetCoreIdentity ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
+            pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz AspNetUserRoles i AspNetRoles i AspNetClaims tabela ako treba. 
             Tek nakon ovoga, poziva se CreateToken metoda iz TokenService da se JWT generise, jer JWT treba kako ne bi, za svaki API request, app gledao u DB kao prilikom user login sto uradi.
             
             Kad gadjam iz ReactTS Frontenda ovaj Endpoint, moram polja da nazovem i prosledim redosledom kao u LoginDTO jer LoginDTO je tip input argumenta. Zbog [FromBody] moram u body of Request ih staviti.
             */
 
-            // Pokrene Data Validaiton iz LoginDTO
+            // ModelState pokrene validaiton iz LoginDTO tj za zeljea LoginDTO polja proverava na osnovu onih annotation iznad polja koje stoje
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) 
 
             //var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDTO.UserName.ToLower()); // Moze i FindAsync jer je brze 
             // _userManager.Users odnsosi se na AspNetUsers tabelu
-            var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego linija iznad i takodje pretrazuje AspNetUsers tabelu
+            var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
 
             if (appUser is null)
                 return Unauthorized("Invalid UserName");
                 // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a  "Invalid UserName" u Response Body.
 
-            // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers 
+            // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash
             var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false); 
 
             if (!result.Succeeded)

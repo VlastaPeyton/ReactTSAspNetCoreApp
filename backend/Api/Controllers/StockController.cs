@@ -21,7 +21,7 @@ namespace Api.Controllers
             _stockRepository = repository;
         }
 
-        // Za Read from DB koristim StockDTO klase, nikad Stock, jer Stock namenjeno za Repository.
+        // Za Read from DB koristim StockDTO klase, nikad Stock, jer Stock namenjeno za Repository tj za EF.
         // Za Write to DB koristim prvo Create/UpdateStockReqeustDTO, pa onda Stock u Repository. 
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
@@ -30,14 +30,15 @@ namespace Api.Controllers
         Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
            
-         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u ReactTS.
+         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda result=undefined najcesce u FE.
         */
 
         // Get All Stocks Endpoint
         [HttpGet] // https://localhost:port/api/stock/
-        [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login da bih mogo da pokrenem ovaj Endpoint
+        [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query) // Pogledaj QueryObject i bice jasno 
-        {
+        {   // Mora [FromQuery], jer GET Axios Request u ReactTS  ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Header, moram proslediti vrednosti za svako polje iz QueryObject (iako su neka default value) redosledom i imenom iz QueryObject
+
             var stocks = await _stockRepository.GetAllAsync(query); 
             var stockDTOs = stocks.Select(s => s.ToStockDTO()).ToList(); // Nema async, jer stocks nije u bazi, vec in-memory jer smo ga vec dohvatili iz baze
 

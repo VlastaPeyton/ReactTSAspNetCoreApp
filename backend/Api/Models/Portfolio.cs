@@ -9,13 +9,12 @@ namespace Api.Models
     [Table("Portfolios")]
     public class Portfolio // U principu, 1 Portfolio je 1 Stock za zeljenog AppUser-a
     {   
-        // U ApplicationDbContext OnModelCreating definisacu PK kao kombinaciju AppUserId i StockId
-        public string AppUserId { get; set; } // FK za AppUser koji automatski gadjda AppUser.Id PK ali moram definisati vezu u OnModelCreating. AppUserId je string, jer AppUser.Id tj IdentityUser.Id je GUID(String).
-        public int StockId { get; set; }   // FK za Stock koji automatski gadja Stock.Id ali moram definisati vezu u OnModelCreating
-        // AppUserId i StockId su zajedno PK jer Portfolio ima i AppUser i Stock 
-        public AppUser AppUser { get; set; } // AppUser can have many portfolios (AppUser ima List<Portfolio> polje) ali moram definisati relaciju u OnModelCreating
-        public Stock Stock { get; set; }   // Stock can have many Portfolios (Stock ima List<Portfolio> polje) ali moram definisati relaciju u OnModelCreating
-        
+        // U ApplicationDbContext OnModelCreating definisacu PK kao kombinaciju AppUserId i StockId, jer to ovde ne moze.
+        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id tj IdentityUser.Id je GUID(String).
+        public int StockId { get; set; }   // StockId je int, jer u Stock Id je int. 
+        public AppUser AppUser { get; set; } // Ovo je 1-to-Many relationship jer Portfolio ima AppUser/Stock polje, pa EF zna da 1 AppUser/Stock moze imati/pripadati vise Portfolio
+        public Stock Stock { get; set; } // Ovo je 1-to-Many relationship jer Portfolio ima AppUser/Stock polje, pa EF zna da 1 AppUser/Stock moze imati/pripadati vise Portfolio
+
         // Stock i AppUser su Circular reference, ali samo u Program to ugasio da ne izbaca gresku (pomocu JSON Serializer) jer mi treba bas ovako.
     }
     // Kad namestim sve za Portfolio -> Package Manager Console -> Migration da se pojavi ova tabela u bazi i onda rucno unesem kroz SQL Management jedan Portfolio na osnovu postojecih AppUsers i Stock

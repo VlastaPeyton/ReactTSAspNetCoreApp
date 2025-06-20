@@ -1,6 +1,6 @@
 ﻿namespace Api.Helpers
 {   
-    // Ovo koristim u Swagger za sada dok app ne bude gotova
+    // Koristi se za [FromQuery] jer Axios GET Request u ReactTS moze poslati samo Request Header, a ne i Body, u GET Axios
     public class QueryObject
     {
         // Zbog https://localhost:port/api/stock/?symbol=tsla 

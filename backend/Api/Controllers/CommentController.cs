@@ -29,7 +29,7 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Za Read from DB koristim CommentDTO klase kad gadjam Endpoint iz Frontend, nikad Comment jer ona je rezervisana za Repository. 
+        // Za Read from DB koristim CommentDTO klase kad gadjam Endpoint iz Frontend, nikad Comment jer ona je rezervisana za Repository tj za EF.
         // Za Write to DB koristim Create/UpdateCommentRequestDTO kad gadjam Endpoint iz Frontend, pa tek onda Comment koristim u Repository. 
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
@@ -38,15 +38,16 @@ namespace Api.Controllers
         Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
 
-         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u ReactTS.
+         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u FE.
         */
 
         // Get All Comments Endpoint 
         [HttpGet]   // https://localhost:port/api/comment
         [Authorize] // Moram se login i uneti JWT u Authorize dugme u Swagger da bi mogo da pokrenem ovaj Endpoint, a u Frontend moram poslati JWT u request header kad gadjam ovaj Endpoint.
         public async Task<IActionResult> GetAll([FromQuery]CommentQueryObject commentQueryObject)
-        {   /* Mora [FromQuery], a ne [FromBody], jer GET Request u ReactTS ne moze imati Body, vec samo Header.
-             
+        {   /* Mora [FromQuery], a ne [FromBody], jer Axios GET Request u ReactTS ne moze imati Body, vec samo Header.
+             U FE ovu metodu gadjam u commentGetAPI funkciji i, kroz Header, moram proslediti vrednosti za svako polje iz CommentQueryObject (iako su neka default value) redosledom i imenom iz CommentQueryObject
+
                U ReactTS Frontend, zbog ovog [Authorize], moram proslediti i JWT (kroz header), a kroz Request body redom i imenom polja iz CommentQueryObject moram navesti. 
             */
             var comments = await _commentRepository.GetAllAsync(commentQueryObject); 

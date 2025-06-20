@@ -11,7 +11,7 @@ type RegisterFormInputs = {
     password: string
 }
 
-// Yup za validation
+// Yup za validation. Za ovo postoji validacija i u BE, jer to je prava validacija bitna za register.
 const validation = Yup.object().shape({
     userName: Yup.string().required("Username is required"), // Yup.string() - jer userName:string in RegisterFormInputs
     email: Yup.string().required("Email is required"),

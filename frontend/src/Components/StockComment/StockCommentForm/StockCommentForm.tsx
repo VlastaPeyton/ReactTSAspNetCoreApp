@@ -12,7 +12,7 @@ type CommentFormInput = {
   content: string;
 }
 
-// Yup je za validaciju
+// Yup je za validaciju. Za ovo nema validacija u BE, vec samo ovde.
 const validation = Yup.object().shape({
   title: Yup.string().required("Title is requeired"), // Yup.string() - jer title je string in CommentFormInput
   content: Yup.string().required("Content is required")
