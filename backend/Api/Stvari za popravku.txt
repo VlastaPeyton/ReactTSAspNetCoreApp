@@ -1,15 +1,8 @@
-﻿1) Staviti sve u Clean architecture -> Dodaj IApplicationDbContext. Pogledaj u MicroservicesApp kako da razdvojis po layerima ovo.
-	=> Probao, ali nije lako staviti, jer trenutni kod nije prilagodljiv tom tipu arhitekture. 
-
-2) Napravi StockId i CommentId posebno da budu klase sa Value poljem kao u MicroservicesApp
-
-3) Da li mi treba uopste Circular reference tj u Comment.cs da imam Stock polje 
+﻿
+2) Napravi StockId i CommentId posebno da budu klase sa Value poljem kao u Microservices
 
 4) Route atributi (id ili stockId) da budu GUID, a ne int
 
-5) U DTO klasama, Data Validation napravi kao u MicroservicesApp
-
-7) Da l moze Comments polje u Stock.cs da bude kao u Microservices onako zaguljeno sa readonly pa asReadonly kao kod Ordering sto sam imao events
-	=> Msm da ne, jer to je drugi tip arhitekture
+5) U DTO klasama, Data Validation napravi kao u Microservices ali i ne mora, jer vec imam ModelState 
 
 PRENESI SVE STO MOZES IZ EShopMicroservices OVDE, JER OVO ZA SAD JE SAMO OSNOVNI .NET KOJI RADI ali MORAM DA NABUDZIM DA BUDE STATE OF ART
