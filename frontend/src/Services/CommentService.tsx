@@ -64,7 +64,7 @@ export const commentsGetAPI = async (symbol: string) => {
         // )
 
         const response = await apiBackendWithJWT.get<CommentGetFromBackend[]>(apiEndpoint + `?Symbol=${symbol}&IsDescending=true`,
-            // U Axios GET Request, samo Header moze, a Body ne moze i zato ovaj Endpoint u .NET ima [FromQuery], a ne [FromBody]. Kroz header Header prosledjujem i moram pisati imena i redosled polja kao u CommentQueryObject klasi u BE.
+            // U Axios GET Request, samo Header moze, a Body ne moze i zato ovaj Endpoint u .NET ima [FromQuery], a ne [FromBody]. Kroz Query Parameters (posle ? in URL) prosledjujem i moram pisati imena i redosled polja kao u CommentQueryObject klasi u BE.
             // Header of request jer " GET https://locahost:7045/api/comment/" u .NET ima ili [Authenticate] ili/i User.GetUserName(), pa zahteva JWT koji automatski je ubacen putem apiBackendWithJWT
         )
 

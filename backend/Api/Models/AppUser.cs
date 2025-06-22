@@ -3,25 +3,31 @@
 namespace Api.Models
 {   
     // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 
-    // Zbog logovanja na App kroz AddIdentity u Program.cs
+
+    // Zbog logovanja na App kroz AddIdentity u Program.cs mi treba ova klasa.
     public class AppUser : IdentityUser // AspNetUsers tabela koja se automatski kreira u bazi i odnosice se na AppUser.
     {    
         /* AppUser nasledio sva polja iz IdentityUser, gde najvise nas zanima Id, UserName, Email i Password polje. 
          Ako dodam custom field u AppUser (ali da nije Navigation attribute of reference type), to polje ce biti dodatna kolona u AspNetUsers table
         */
 
-        // U ApplicationDbContext OnModelCreating definisem PK(AppUser.Id) vezu sa FK iz Porftolio.cs (AppUserId)
-        public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Navigation property needs default value da ne bude NULL reference error jer necemo prosledjivati nikad ovo polje prilikom kreiranja ove klase obzirom da ne moze postojati ova kolona u tabeli
-        /* Obzirom da AppUser moze imati vise Stocks, nije dobra prkasa da AppUser ima polje List<Stock> Stocks, vec svaki taj Stock od AppUser predstavljam kao Portfolio, a sve Stocks predstavlja kao List<Portfolio>.
+        // U ApplicationDbContext OnModelCreating definisem PK(AppUser.Id) vezu sa FK iz Porftolio.cs (AppUserId) mada to bi EF i sam znao 
+        public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Collection navigation property. Dobra praksa da ima default value. Uz PK-FK za AppUser-Portfolio, omogucava koriscenje Include sto olaksava LINQ.
+
+        /* Obzirom da AppUser moze imati vise Stocks, nije dobra prkasa da AppUser ima polje List<Stock> Stocks, vec svaki taj Stock od AppUser predstavljam kao Portfolio (npr Portfolio1 = {AppUserId1, StockId1, AppUser1, Stock1}), a sve Stocks od AppUser predstavlja kao List<Portfolio>.
          
-           Nece postojati kolona Portfolios u AspNetUsers tabeli, jer nije Primary type lista. Obzirom da je Portfolios lista, moram imati FK-PK relaciju za AppUser-Portfolio tj u Portfolio.cs
-        imam AppUserId polje koje je FK za ovaj PK ovde (Id polje iz IdentityUser). U OnModelCreating, za Portfolios tabelu, sam definisao relacije izmedju Portfolio-AppUser.
-           
-           Navigation property : - Je polje u Entity klasi (AppUser je entity jer zbog njega se kreira AspNetUsers tabela) koje je tipa druge Entity klase (Portfolio.cs u ovom slucaju).  
-                                gde Portfolio.cs mora imati AppUserId FK za koje ce, u OnModelCreating, da se definise veza sa Id iz AppUser.   
-                                -  Kad radim GET request tj gadjam GET Endpoint, trebace mi Include ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
-            
-           Portfolio.cs ima AppUser polje i zato EF zna da je ovo 1-to-many (1 AppUser can have Many Portfolios), ali ovaj List<Portfolio> stoji kako bih lakse dohvaito i Portfolio preko AspNetUsers tabele tj da mogu koristit INCLUDE u LINQ
+           Navigation property : - Moze biti tipa druge Entity klase ili List<DrugaEntityKlasa>. Ako je List, onda dobra praksa dodati mu default value da compiler ne kuka.
+                                 - Ako je tipa druge Entity klase, a ta klasa ima navigation property tipa ove klase, mora u Program.cs se napisati ona JSON fora da gasi circular reference
+                                 - U OnModelCreating obavezno PK-FK definicija (ili EF na osnovu imena PK/FK polja i Navigation property moze to i sam na osnovu imena polja)
+                                 - Kad FE gadja GET Endpoint, trebace mi Include ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
+                                 - Olaksava LINQ, jer uz definisanu FK-PK relaciju, mogu koristiti Include u LINQ da kroz ovu klasu dohvatim njen navigation property 
+                                 - Ne postoji kao kolona u tabeli jer ne moze kolona biti non primary typa 
+                                 - Kada writing to DB, from FE ne saljemo nikad ovo polje, jer ono, uz PK i FK polja, sluzi da poveze 2 tabele. I zato cesto mora imati default vrednost 
+
+          Ovo je 1-to-many AppUser-Portfolio veza, jer AppUser ima List<Portfolio> dok Portfolio ima AppUser i AppUserId polje, ali EF NECE zakljucit ovu vezu sam, jer u Portfolio neam Id polje, vec ga pravim od AppUserId+StockId, pa zato u OnModelCreating definisem taj composite PK i ovu vezu.
+          Da je Portfolio.cs imao List<AppUser> AppUsers polje, ovo bi bilo many-to-many veza.
+         
+          Nece postojati kolona Portfolios u AspNetUsers tabeli, jer nije Primary type lista. 
          */
     }
 }

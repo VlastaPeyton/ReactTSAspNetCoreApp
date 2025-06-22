@@ -10,13 +10,15 @@ namespace Api.Interfaces
        Ne korisitm StockDTO, vec Stock, jer Repository direkt sa bazom komunicira. */
     public interface IStockRepository
     {
-        // Task, jer u StockRepository bice definisane kao async + ce u StockController Endpoint mozda da ih poziva pomocu await
+        // Task, jer u StockRepository metode bice definisane kao async + ce u StockController Endpoint mozda da ih poziva pomocu await
+        // Metoda koja ima Stock?, zato sto compiler warning prikaze ako method's return moze biti null jer FirstOrDefault/FindAsync moze i null da vrati 
+
         Task<List<Stock>> GetAllAsync(QueryObject query); 
-        Task<Stock?> GetByIdAsync(int id); // FirstOrDefaultAsync can be NULL i zato Stock?
+        Task<Stock?> GetByIdAsync(int id); 
         Task<Stock> CreateAsync(Stock stock); 
-        Task<Stock?> UpdateAsync(int id, Stock stock); // FindAsync can be NULL i zato Stock?
-        Task<Stock?> DeleteAsync(int id); // FirstOrDefaultAsync can be NULL i zato Stock?
+        Task<Stock?> UpdateAsync(int id, Stock stock); 
+        Task<Stock?> DeleteAsync(int id); 
         Task<bool> StockExists(int id);
-        Task<Stock?> GetBySymbolAsync(string symbol);
+        Task<Stock?> GetBySymbolAsync(string symbol); 
     }
 }

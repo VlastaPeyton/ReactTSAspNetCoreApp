@@ -4,7 +4,9 @@ using Api.DTOs.CommentDTOs;
 using Api.Models;
 
 namespace Api.Mapper
-{
+{   
+    // Da napravim Comment Entity klasu od DTO klasa kada pokrecem Repository metode.
+    // Da napravim DTO klasu od Comment Entity klasa kada saljem data to FE in Endpoint
     public static class CommentMapper
     {   
         // Extension method za Comment, without calling parameters
@@ -12,12 +14,14 @@ namespace Api.Mapper
         {
             return new CommentDTO
             {
-                Id = comment.Id, // Id mapiram jer mapiram iz Comment to DTO
+                Id = comment.Id, // Id mapiram jer mapiram iz Comment to CommentDTO
                 Title = comment.Title,
                 Content = comment.Content,
                 CreatedOn = comment.CreatedOn,
                 StockId = comment.StockId,
                 CreatedBy = comment.AppUser.UserName
+                /* Ne mapiram AppUser,AppUserId,Stock,StockId polja, jer nisu prisutna u CommentDTO, dok AppUser/Stock su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
+                 da EF (ili ja u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };
         }
 
@@ -30,9 +34,9 @@ namespace Api.Mapper
                 Title = createCommentRequestDTO.Title,
                 Content = createCommentRequestDTO.Content,
                 StockId = stockId,
-                // Stock polje nisam mapirao, jer ne postoji u CreateCommentRequestDTO, pa bice NULL by default
                 // CreatedOn polje nisam mapirao, jer ne postoji u CreateCommentRequestDTO, pa bice DateTime.Now by default 
-                // CreatedBy polje nisam mapirao, jer ne postoji u CreateCommentRequestDTO, pa bice default null
+                /* Ne mapiram AppUser i Stock polja, jer nisu prisutna u CreateCommentRequestDTO, jer su u Comment to navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
+                 da EF (ili ja u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };
         }
 
@@ -43,6 +47,9 @@ namespace Api.Mapper
             {
                 Title = updateCommentRequestDTO.Title,
                 Content = updateCommentRequestDTO.Content,
+                // Ostala non navigational property ili Id polja nisam mapirao jer to ne treba za ovaj slucaj  + UpdateCommentRequestDTO samo ova 2 polja ima
+                /* Ne mapiram AppUser i Stock polja, jer nisu prisutna u UpdateCommentRequestDTO, jer su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
+                 da EF (ili ja u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };
         }
     }

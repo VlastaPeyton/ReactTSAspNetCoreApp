@@ -9,7 +9,7 @@
 
 5) U DTO klasama, Data Validation napravi kao u MicroservicesApp
 
-6) Stock-Comment PK-FK napravi kao u MicroserviceApp tj definisi relacije u OnModelCreating u ApplicationDbContext, jer onda necu morati u StockController Include da pisem ja msm
-
 7) Da l moze Comments polje u Stock.cs da bude kao u Microservices onako zaguljeno sa readonly pa asReadonly kao kod Ordering sto sam imao events
 	=> Msm da ne, jer to je drugi tip arhitekture
+
+PRENESI SVE STO MOZES IZ EShopMicroservices OVDE, JER OVO ZA SAD JE SAMO OSNOVNI .NET KOJI RADI ali MORAM DA NABUDZIM DA BUDE STATE OF ART

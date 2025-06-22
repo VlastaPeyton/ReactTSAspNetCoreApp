@@ -15,7 +15,7 @@ export const portfolioAddApi = async (symbol: string) => {
         // Odgovor u AddPortfolio Endpoint je Created() i to fakticki bez oblika ali mora stojati neki oblik kao return type
         const response = await axios.post<PortfolioAddDelete>(apiEndpoint + `?symbol=${symbol}`, {}, 
             {
-            // Nema body zbog Endpoint definicije, ali header mora zbog JWT, mogo sam i bez {} za body, vecs samo da preskocim taj argument
+            // Nema body zbog Endpoint definicije, ali header mora zbog JWT. Mogo sam i bez {} za body, vec samo da preskocim taj argument.
             headers:{
                 Authorization: `Bearer ${token}`
                 }
@@ -62,7 +62,7 @@ export const portfolioGetApi = async () => {
         //         }
         // }); 
         // Ne koristim rucni unos Authorization Headera jer bolja praksa je ovako 
-        const result = await apiBackendWithJWT.get<PortfolioGetFromBackend[]>(apiEndpoint);
+        const result = await apiBackendWithJWT.get<PortfolioGetFromBackend[]>(apiEndpoint); 
         return result; 
         
     } catch (error){

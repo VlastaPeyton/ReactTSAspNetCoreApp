@@ -26,6 +26,7 @@ namespace Api.Service
             {   
                 new Claim(JwtRegisteredClaimNames.Email, appUser.Email),
                 new Claim(JwtRegisteredClaimNames.GivenName, appUser.UserName)
+                // U ClaimsExtension.cs samo mogu dohvatiti Email ili GivenName jer samo sam njih ovde setovao
             };
 
             // Signing credentials  = type of Encryption

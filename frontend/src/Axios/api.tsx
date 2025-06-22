@@ -13,6 +13,9 @@ import { SearchResponse } from "../Models/SearchResponse";
 // Obzirom da ovde gadjam FinancialModelingPrep API koji je public na netu tj nisam ga ja pravio, u catch bloku ne koristim handleError jer je ta funkcija pravljena za moj licni backend.
 
 // For SearchPage.tsx
+/*Kada u search ukucam npr "aap" dobijem sve firme koje u imenu ticker imaju "aap", ali firma moze biti Stock ili ETF. Ovaj API ne garantuje da je Stock. 
+zato ako ne mogu da dodam npr AAPU u my portfolio jer Endpoint, koga portfolioAddApi funkcija gadja, koristi drugaciji FMP API koji samo Stock pretrazuje. Sto znaci
+da AAPU nije Stock nego ETF pa necemo moci da ga dodamo u portfolio.*/
 export const searchCompanies = async (query: string) => {
     // try-catch zbog axios. Try se izvrsi ako StatusCode=2XX from backend. Catch se izvrsi ako StatusCode!=2XX from backend.
     try{

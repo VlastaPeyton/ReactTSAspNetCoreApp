@@ -3,24 +3,12 @@
   "WorkspaceRootPath": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\portfoliocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\portfoliocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\models\\appuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\models\\appuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\repository\\portfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\repository\\portfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,45 +18,32 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "launchSettings.json",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Properties\\launchSettings.json",
-              "RelativeDocumentMoniker": "Api\\Properties\\launchSettings.json",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Properties\\launchSettings.json",
-              "RelativeToolTip": "Api\\Properties\\launchSettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-06-20T15:54:15.569Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\appsettings.json",
-              "RelativeDocumentMoniker": "Api\\appsettings.json",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\appsettings.json",
-              "RelativeToolTip": "Api\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-06-20T15:51:57.84Z",
+              "Title": "PortfolioController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\PortfolioController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\PortfolioController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\PortfolioController.cs",
+              "RelativeToolTip": "Api\\Controllers\\PortfolioController.cs",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAYwEAAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-22T13:28:34.225Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "AppUser.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Models\\AppUser.cs",
-              "RelativeDocumentMoniker": "Api\\Models\\AppUser.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Models\\AppUser.cs",
-              "RelativeToolTip": "Api\\Models\\AppUser.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAABvAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "PortfolioRepository.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Repository\\PortfolioRepository.cs",
+              "RelativeDocumentMoniker": "Api\\Repository\\PortfolioRepository.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Repository\\PortfolioRepository.cs",
+              "RelativeToolTip": "Api\\Repository\\PortfolioRepository.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-20T15:51:04.455Z",
+              "WhenOpened": "2025-06-22T13:32:57.614Z",
               "EditorCaption": ""
             },
             {
@@ -78,32 +53,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Program.cs",
-              "RelativeDocumentMoniker": "Api\\Program.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Program.cs",
-              "RelativeToolTip": "Api\\Program.cs",
-              "ViewState": "AgIAACoAAAAAAAAAAAAAAHUAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-20T15:49:23.404Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "Api\\Controllers\\AccountController.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "Api\\Controllers\\AccountController.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAA8AAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-20T15:40:27.254Z",
-              "EditorCaption": ""
             }
           ]
         }

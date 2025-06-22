@@ -1,4 +1,5 @@
-﻿using Api.Models;
+﻿using System.Runtime.ConstrainedExecution;
+using Api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,10 @@ namespace Api.Data
 
             // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
             builder.Entity<Portfolio>(x => x.HasKey(p => new { p.AppUserId, p.StockId }));
-            
+            // Zbog ovoga, moram prvo dodati AppUser u bazu i Stock, kako bi tokom AddAsync(portfolio) u PortfolioRepository mogao da doda ga u bazu, jer composite PK ne moze baza da popuni sama kao obican Id PK, vec to moram da osiguram prethodno
+
+            // Zbog explicitno defisanja PK za Portfolio, moram definisati 1-to-many AppUser/Stock-Portfolio veze
+
             builder.Entity<Portfolio>().HasOne(u => u.AppUser) // 1 Portfolio belongs to 1 AppUser (Portfolio ima AppUser polje)
                                        .WithMany(u => u.Portfolios) // 1 AppUser has many Portfolios (AppUser ima List<Portfolio> Portfolios polje) 
                                        .HasForeignKey(p => p.AppUserId); // FK in Portfolio is AppUserId koji automatski gadja AppUser.Id (na osnovu imena EF ih mapira ), jer Porftolio ima AppUserId polje
@@ -33,9 +37,9 @@ namespace Api.Data
             builder.Entity<Portfolio>().HasOne(u => u.Stock) // 1 Portfolio bolongs to 1 Stock (Porftolio ima Stock polje)
                                        .WithMany(u => u.Portfolios) // 1 Stock can belong to many Portfolios (Stock ima list<Portoflio> Portfolios polje)
                                        .HasForeignKey(p => p.StockId); // FK in Porftolio is StockId koji automatski gadaj Stock.Id (na osnovu imena EF ih mapira), jer Portfolio ima StockId polje
-            
-            // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio
 
+            // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio
+            
             /* Objasnjene: Neka postoji AppUser1, AppUser2, Stock1, Stock2 i Stock3. 
                             AppUser1 ima Stock1 i Stock2. 
                             AppUser2 ima Stock1.
@@ -54,7 +58,6 @@ namespace Api.Data
             
                Nisam setovao kao iznad relationship za PK-FK for AppUser-Comment iako Comment ima AppUserId i AppUser polja, jer EF zakljuci da 1 AppUser can have Many Comments. EF  zna automatski, zbog imena polja, da mapira AppUserId u Comment sa Id u AppUser.
                 
-               Nisam ni morao napisati ona 2 iznad za Portfolio-AppUser/Comment relatioship, jer na osnovu imena polja, EF bi sam to napravio obzriom da je jednostavna veza.
              */
 
             // IdentityRole moze imati proizvoljno name of Role

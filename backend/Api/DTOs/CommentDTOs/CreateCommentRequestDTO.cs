@@ -2,15 +2,15 @@
 
 namespace Api.DTOs.CommentDTOs
 {   
-    // Samo ova polja iz Comment sam uzeo, a mogo sam i ostala mada imaju default vrednosti, pa nisam
+    // Objasnjeno u StockDTO cemu sluzi DTO. 
 
-    // Objasnjeno u CommentDTO cemu DTO sluzi.
+    // Mora imati annotations jer ovu klasu koristim za writing to DB Endpoint pa da ModelState moze da validira polja.
+
     public class CreateCommentRequestDTO
     {   
         [Required]
         [MinLength(5,ErrorMessage = "Title must be at least 5 chars")]
         [MaxLength(200, ErrorMessage = "Title cannot be over 200 chars")]
-        // Ove 3 linije iznad su Data Validation za Title kolonu
         public string Title { get; set; } = string.Empty;
 
         [Required]

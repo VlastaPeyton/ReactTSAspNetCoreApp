@@ -10,27 +10,26 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    // Postman/Swagger gadja Endpoints ovde definisane
+    // Postman/Swagger/FE gadja Endpoints ovde definisane
 
     [Route("api/comment")] // https://localhost:port/api/comment
     [ApiController]
     public class CommentController : ControllerBase
     {
-        private readonly ICommentRepository _commentRepository; // U Program, definisano da ICommentRepository se odnosi na CommentRepository
-        private readonly IStockRepository _stockRepository;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly ICommentRepository _commentRepository; 
+        private readonly IStockRepository _stockRepository; // Interaction with DB is made inside Repository
+        private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
 
         public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository, UserManager<AppUser> userManager, IFinacialModelingPrepService finacialModelingPrepService)
-        {   // U Program.cs napisano da prepozna ICommentRepositor/IStockRepository kao CommentRepository/StockRepository
+        {   // U Program.cs registrovan da prepozna ICommentRepositor/IStockRepository/IFinacialModelingPrepService kao CommentRepository/StockRepository/FinacialModelingPrepService
             _commentRepository = commentRepository;
             _stockRepository = stockRepository;
             _userManager = userManager;
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Za Read from DB koristim CommentDTO klase kad gadjam Endpoint iz Frontend, nikad Comment jer ona je rezervisana za Repository tj za EF.
-        // Za Write to DB koristim Create/UpdateCommentRequestDTO kad gadjam Endpoint iz Frontend, pa tek onda Comment koristim u Repository. 
+        // Za Endpoint argument koristim DTO klase i za return object to FE, nikad Comment tj Models klase, jer Models klase namenjene za Repository tj za EF.
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
            
@@ -39,30 +38,33 @@ namespace Api.Controllers
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
 
          Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u FE.
-        */
+         
+         ModelState se koristi za writing to DB da proveri annotaded polja u object argumentu of Endpoint
+         
+         Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
 
-        // Get All Comments Endpoint 
+         Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.
+         */
+
+        // Get All Comments for desired Stock Endpoint 
         [HttpGet]   // https://localhost:port/api/comment
-        [Authorize] // Moram se login i uneti JWT u Authorize dugme u Swagger da bi mogo da pokrenem ovaj Endpoint, a u Frontend moram poslati JWT u request header kad gadjam ovaj Endpoint.
+        [Authorize] // Moram se login i uneti JWT u Authorize dugme u Swagger da bi mogo da pokrenem ovaj Endpoint
         public async Task<IActionResult> GetAll([FromQuery]CommentQueryObject commentQueryObject)
-        {   /* Mora [FromQuery], a ne [FromBody], jer Axios GET Request u ReactTS ne moze imati Body, vec samo Header.
-             U FE ovu metodu gadjam u commentGetAPI funkciji i, kroz Header, moram proslediti vrednosti za svako polje iz CommentQueryObject (iako su neka default value) redosledom i imenom iz CommentQueryObject
-
-               U ReactTS Frontend, zbog ovog [Authorize], moram proslediti i JWT (kroz header), a kroz Request body redom i imenom polja iz CommentQueryObject moram navesti. 
+        {   /* Mora [FromQuery], jer GET Axios Request u ReactTS ne moze imati Body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL), moram proslediti vrednosti za svako polje iz CommentQueryObject (iako neka imaju default value) redosledom i imenom iz CommentQueryObject
+               U ReactTS Frontend, zbog [Authorize], moram proslediti i JWT kroz Header u commentsGetAPI funkciji.
             */
             var comments = await _commentRepository.GetAllAsync(commentQueryObject); 
             var commentDTOs = comments.Select(x => x.ToCommentDTO());
 
-            return Ok(commentDTOs); // 200OK + list of CommentDTO
-           // Frontendu ce biti poslato CommentDTO objekat u Response Body, a StatusCode=200 u Response Status Line.
+            return Ok(commentDTOs); 
+           // Frontendu ce biti poslato commentDTOs lista u Response Body, a StatusCode=200 u Response Status Line.
 
         }
 
         // Get Comment By Id Endpoint
         [HttpGet("{id:int}")] // https://localhost:port/api/comment/{id}
-        
         public async Task<IActionResult> GetById([FromRoute] int id)
-        // Objasnjeno u StockController 
+        // Mora bas "id" kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
             if (comment is null)
@@ -74,27 +76,23 @@ namespace Api.Controllers
         }
 
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
-        // [HttpPost("{symbol}")] - moze i ovo
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
-        //[Authorize] Necu staviti, jer User.GetUserName() svakako zahteva JWT, ali je dobra praksa imati [Authorize] u tom slucaju, da onaj ko cita kod, a ne zna dobro .NET, zna da mora JWT biti poslat.
+        // [Authorize] Necu staviti, jer User.GetUserName() svakako zahteva JWT, ali je dobra praksa imati [Authorize] u tom slucaju, da onaj ko cita kod, a ne zna dobro .NET, zna da mora JWT biti poslat from FE.
         public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentRequestDTO createCommentRequestDTO)
-        // Objasnjeno u StockController. Ako ne navedem [FromBody] to se podrazuvema da moram proslediti kroz Request Body taj parametar.
+        // U FE commentPostAPI funkciji, symbol kroz URL prosledim, a kroz Body saljem polja imenom i redosledom kao u CreateCommentRequestDTO (nisam stavio [FromBody] jer se to podrazumeva za complex type in POST request)
         {
-            /* U ReactTS Fronted Request body moram da prosledim imena i redosled polja kao u CreateCommentRequestDTO kako bih uspesno pokrenuo ovaj endpoint, a
-             dok symbol prosledim kroz URL zbgog [FromRoute].*/
-            
-            // Pokrece Data Validation in CreateCommentRequestDTO 
+            // ModelState pokrene validation za CreateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima
 
-
-            var stock = await _stockRepository.GetBySymbolAsync(symbol); // Await, jer obraca se bazi
-            // Ako nije naso Stock u bazi, skida ga sa neta pomocu FinancialModelingPrepService FindStockBySymbolAsync, pa ga ubaca u bazu, pa onda uzima ga iz baze 
-            if ( stock is null)
+            // U FE, zelim da ostavim komentar za neki stock, pa u search kucam npr "tsla" i onda on trazi "tsla" sve stocks koji pocinju na "tsla" u bazi pomocu GetBySymbolAsync
+            var stock = await _stockRepository.GetBySymbolAsync(symbol); // Nadje u bazy stock za koji ocu da napisem komentar 
+            // ako nije naso "tsla" stock u bazi, nadje ga na netu pomocu FinancialModelingPrepService, pa ga ubaca u bazu, pa onda uzima ga iz baze da bih mi se pojavio na ekranu i da mogu da udjem u njega da comment ostavim
+            if (stock is null)
             {
                 stock = await _finacialModelingPrepService.FindStockBySymbolAsync(symbol);
-                if (stock is null) // AKo nije ga naso na netu
+                if (stock is null) // Ako nije ga naso na netu, onda smo lose ukucali u search
                     return BadRequest("Nepostojeci stock symbol koji nema ni na netu");
                     // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Nepostojeci stock symbol koji nema ni na netu" u Response Body.
 
@@ -102,16 +100,15 @@ namespace Api.Controllers
                     await _stockRepository.CreateAsync(stock); 
             }
 
-            // I da ne stoji [Authorize] iznad, moram sa Frontend poslati JWT koji sam dobio zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName bio !=null
-            var userName = User.GetUserName();  // User i GetUserName come from ControllerBase Claims  i odnose se na current logged user
-            var appUser = await _userManager.FindByNameAsync(userName); 
+            // I da ne stoji [Authorize] iznad, moram sa FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName bio !=null
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
+            var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
 
             var comment = createCommentRequestDTO.ToCommentFromCreateCommentRequestDTO(stock.Id);
             comment.AppUserId = appUser.Id; 
 
-            await _commentRepository.CreateAsync(comment);
+            await _commentRepository.CreateAsync(comment); // Iako CreateAsync ima return, ne treba "var result = _commentRepository.CreateAsync(comment), jer comment je Reference type, stoga promena comment u CreateAsync uticace i ovde
 
-            // Objasnjeno u StockController
             return CreatedAtAction(nameof(GetById), new { id = comment.Id }, comment.ToCommentDTO());
             /* Prva 2 su route i route argument, jer GetById zahteva id argument.
                Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/comment/{id} u Response Header.
@@ -132,10 +129,12 @@ namespace Api.Controllers
 
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO updateCommentRequestDTO)
+        // U FE, id obicno saljem in URL, dok complex type kroz Body 
         {
-            // Pokrece Data Validation in UpdateCommentRequestDTO 
+            // ModelState pokrene validation za UpdateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat  biti poslat u Response Body sa UpdateCommentRequestDTO poljima
 
             var comment = await _commentRepository.UpdateAsync(id, updateCommentRequestDTO.ToCommentFromUpdateCommentRequestDTO());
             if (comment is null)

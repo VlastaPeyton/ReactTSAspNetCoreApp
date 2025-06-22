@@ -11,19 +11,19 @@ namespace Api.Controllers
     [ApiController]
     public class PortfolioController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly UserManager<AppUser> _userManager; // Moze jer AppUser:IdentityUser
         private readonly IStockRepository _stockRepository;
-        private readonly IPortfolioRepository _portfolioRepository; // U Program registrovan IPortfolioRepository kao PortfolioRepository
+        private readonly IPortfolioRepository _portfolioRepository;
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
         public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository, IFinacialModelingPrepService finacialModelingPrepService)
-        {
+        {   // U Program.cs registrovan IStockRepository/IPortfolioRepository/IFinancialModelingPreprService kao StockRepository/PortfolioRepository/FinancialModelingPreprService 
             _userManager = userManager;
             _stockRepository = stockRepository;
             _portfolioRepository = portfolioRepository;
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene tj za EF namenjene.
+        // Za Endpoint argument i return object koristim DTO objekat, nikad Portfolio tj Models klase, jer Models klase namenjene za Repository tj za EF.
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
            
@@ -32,15 +32,19 @@ namespace Api.Controllers
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
           
          Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined najcesce u FE.
+
+         ModelState se koristi za writing to DB da proveri polja u object argumentu of Endpoint. 
+         
+         Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima jedno bar, onda treba.
         */
 
         [HttpGet]
         [Authorize] // U Swagger Authorize dugme moram uneti JWT from Login kako bih mogo da pokrenem ovaj Endpoint
         public async Task<IActionResult> GetUserPortfolios()
         {   
-            // I da nisam stavio [Authorize], zbog User.GetUserName moral bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da ovo ne bude null
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims  i odnose se na current logged user
-            var appUser = await _userManager.FindByNameAsync(userName); // Built-in fora
+            // I da nisam stavio [Authorize], zbog User.GetUserName() mora JWT poslati sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da ovo ne bude null
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz Claims nego iz baze
+            var appUser = await _userManager.FindByNameAsync(userName); // Pretrazuje AspNetUsers tabelu da nadje AppUser 
 
             var userPortfolios = await _portfolioRepository.GetUserPortfoliosAsync(appUser);
             
@@ -50,30 +54,33 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize]
-        /* .NET ce da potrazi symbol argument i u Body, Query i URL ako nije explicitno navedeno nista od [FromBody]/[FromRoute]/[FromQuery]...
-        sto znaci da iz ReactTS Frontend mogu odakle god da posaljem ovaj argument. */
-        public async Task<IActionResult> AddPortfolio(string symbol)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
-        {   // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali stavim [Authorize] jer osigura da userName!=null, jer forsira Frontend da posalje JWT.
+        public async Task<IActionResult> AddPortfolio([FromQuery] string symbol)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
+        {   // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioAddApi u FE moram poslati symbol nakon ? in URL
+            // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali stavim [Authorize] jer osigura da userName!=null, jer forsira Frontend da posalje JWT.
             var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims 
             var appUser = await _userManager.FindByNameAsync(userName);
 
-            var stock = await _stockRepository.GetBySymbolAsync(symbol); // Obraca se bazi
-            // Ako ne postoji Stock u bazi, trazi ga na netu
+            // Kada u search ukucan npr "tsla" izadje mi 1 ili lista Stocks ili ETFs koji pocinju sa "tsla" i zelim kliknuti Add da dodam bilo koji stock u portfolio, pa prvo provera da li je zeljeni stock u bazi
+            var stock = await _stockRepository.GetBySymbolAsync(symbol); 
+            // ako ne postoji Stock u bazi, trazi ga na netu u FininacinalModelingPrep
             if (stock is null)
             { 
                 stock = await _finacialModelingPrepService.FindStockBySymbolAsync(symbol);
-                if (stock is null)
-                    return BadRequest("Nepostojeci stock symbol koji nema ni na netu");
+                /* FMP API u searchCompanies u FE prikazuje sve Stocks i ETFs koji sadrze "tsla",ipak necu moci dodati bilo koji, jer neki od njih su ETF (a ne Stock) zato sto FMP API in FindStockBySymbolAsync pretrazuje samo Stocks ! */
+                if (stock is null) 
+                    return BadRequest("Ovo sto pokusavas dodati nije Stock, vec ETF, iako ga vidis u listu kad search uradis u FE. Jer FMP API u BE pretrazuje samo Stocks (ne i ETFs). Dok SearchCompanies u FE pretrazuje drugaciji FMP API koji prikazuje firme a one mogu biti Stock ili ETF.  ");
                     // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Nepostojeci stock symbol koji nema ni na netu" u Response Body.
                 else 
-                    await _stockRepository.CreateAsync(stock);  
+                    await _stockRepository.CreateAsync(stock); // stock je azuriran sa Id poljem, jer u CreateAsync EF tracking je to odradio. Sad stock je azuriran i ovde jer je reference type 
             }
 
-            var userPortfolios = await _portfolioRepository.GetUserPortfoliosAsync(appUser); // Svi Stock koje appUser ima vec 
-            if (userPortfolios.Any(e => e.Symbol.ToLower() == symbol.ToLower()))
+            // Ako izabrani symbol nije Stock, vec ETF, iznad izlazimo iz ove metode zbog return. Ali ako je to Stock, onda proveravam da li on vec postoji u listi stocks of current appUser
+            var userStocks = await _portfolioRepository.GetUserPortfoliosAsync(appUser); // Lista svih Stocks koje appUser ima 
+            if (userStocks.Any(e => e.Symbol.ToLower() == symbol.ToLower())) 
                 return BadRequest("Cannot add same stock to portfolio as this user has already this stock in portfolio");
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Cannot add same stock to portfolio as this user has already this stock in portfolio" u Response Body.
 
+            // Ako izabrani stock postoji, nebitno da l u bazi ili u FMP API, dodajemo ga u listu stockova za appUser
             var portfolio = new Portfolio // Jer Stock je jedan Portfolio
             {
                 StockId = stock.Id,
@@ -82,7 +89,7 @@ namespace Api.Controllers
                 AppUser = appUser,
             };
 
-            await _portfolioRepository.CreateAsync(portfolio);
+            await _portfolioRepository.CreateAsync(portfolio); // ne treba mi da dohvatim povratnu vrednost iz CreateAsync, jer portfolio je reference type pa je njegova promena u CreateAsync applied i ovde odma
 
             if (portfolio is null)
                 return StatusCode(500, "Could not create Portfolio");
@@ -94,17 +101,18 @@ namespace Api.Controllers
 
         [HttpDelete]
         [Authorize]
-        /* .NET ce da potrazi symbol argument i u Body, Query i URL ako nije explicitno navedeno nista od [FromBody]/[FromRoute]/[FromQuery]...
-        sto znaci da iz ReactTS Frontend mogu odakle god da posaljem ovaj argument. */
-        public async Task<IActionResult> DeletePortfolio(string symbol) // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
+        public async Task<IActionResult> DeletePortfolio([FromQuery] string symbol) // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
         {   // I da nisam stavio [Authorize], zbog User.GetUserName moral bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
+            // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioDeleteApi u FE moram poslati symbol nakon ? in URL
+            
             var userName = User.GetUserName();
             var appUser = await _userManager.FindByNameAsync(userName);
 
-            var portfolios = await _portfolioRepository.GetUserPortfoliosAsync(appUser); // Portfolio list of Stock elements 
+            var userStocks = await _portfolioRepository.GetUserPortfoliosAsync(appUser); 
             
-            var stockInPortfolios = portfolios.Where(s => s.Symbol.ToLower() == symbol.ToLower()).ToList(); // Nema treba async, jer ne pretrazujem u bazu, vec in-memory varijablu
+            var stockInPortfolios = userStocks.Where(s => s.Symbol.ToLower() == symbol.ToLower()).ToList(); // Nema treba async, jer ne pretrazujem u bazu, vec in-memory userStocks varijablu
 
+            // Ovaj if-else je dobra praksa za ne daj boze, ali sam vec u AddPortfolio obezbedio da moze samo 1 isti stock biti u listi
             if (stockInPortfolios.Count() == 1) // is not null jer samo 1 Stock unique stock moze biti u portfolios list, jer AddPortfolio metoda iznad to ogranicila
                 await _portfolioRepository.DeletePortfolio(appUser, symbol);
 

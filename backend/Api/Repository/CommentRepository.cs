@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repository
 {
-    /* Repository pattern kako bi, umesto u CommentController, u COmmentRepository definisali tela Endpoint metoda + DB calls u Repository se stavljaju i zato
-    ovde moze ne ide CommentDTO, vec samo Comment. 
-       Moze u UpdateAsync, umesto Comment da bude UpdateCommentRequestDTO, ali sam u CommentkMapper napravio Extension Method "ToCommentFromUpdateCommentRequestDTO", jer 
-    Repository interaguje sa bazom i ne zelim da imam DTO klase ovde.*/
+    /* Repository pattern kako bi, umesto u CommentController, u CommentRepository definisali tela Endpoint metoda + DB calls u Repository se stavljaju i zato
+    ovde moze ne ide CommentDTO, vec samo Comment jer Models Entity klase se koriste za EF Core.
+               
+       Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase i zato u Controller koristim mapper extensions da napravim Entity klasu from DTO klase */
     public class CommentRepository : ICommentRepository
     {   
         private readonly ApplicationDBContext _dbContext;
@@ -18,31 +18,40 @@ namespace Api.Repository
             _dbContext = context;
         }
 
+        // Sve metode su async, jer u StockController bice pozvace pomocu await. 
+        // Metoda koja ima Comment?, zato sto compiler warning prikaze ako method's return moze biti null jer FirstOrDefault/FindAsync moze i null da vrati
+
         public async Task<Comment> CreateAsync(Comment comment)
         {
-            await _dbContext.Comments.AddAsync(comment);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.Comments.AddAsync(comment); // EF start tracking comment object changes => Ako baza uradi nesto u vrsti koja predstavlja comment, EF to aplikuje u comment, i obratno 
+            // EF change tracker marks comment tracking state to Added 
+            await _dbContext.SaveChangesAsync(); // DB doda vrednost u Id column for row corresponding to comment object => EF updates Id field in comment object
             return comment;
         }
 
         public async Task<Comment?> DeleteAsync(int id)
         {
-            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>  c.Id == id);
+            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>  c.Id == id); // EF start tracking comment object, so every change made to comment will be applied to its corresponding row in Comment table after SaveChangesAsync
             if (comment is null)
                 return null;
 
-            _dbContext.Comments.Remove(comment); // Remove nema async
-            await _dbContext.SaveChangesAsync();
+            _dbContext.Comments.Remove(comment); // Remove nema async.  EF in Change Tracker marks comment tracking state to Deleted
+            await _dbContext.SaveChangesAsync(); // comment is no longer tracked by EF
 
             return comment;
         }
 
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject)
         {
-            var comments = _dbContext.Comments.Include(c => c.AppUser).AsQueryable(); // AsQueryable kako bi mogo da nastavim LINQ nad comments
+            var comments = _dbContext.Comments.Include(c => c.AppUser).AsQueryable(); 
+            // Comment ima AppUser polje i PK-FK vezu sa AppUser i zato moze Include
+            // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr comments.Where(...)
+            // Ovde nema EF tracking jer nisam izvuko 1 row iz Comments tabele, vec sve 
+
+            // In if statement no need to AsQueryable again
             if (!string.IsNullOrWhiteSpace(commentQueryObject.Symbol))
                 comments = comments.Where(s => s.Stock.Symbol == commentQueryObject.Symbol);
-            
+                
             if(commentQueryObject.IsDescending == true)
                 comments = comments.OrderByDescending(c => c.CreatedOn); 
 
@@ -50,8 +59,9 @@ namespace Api.Repository
         }
 
         public async Task<Comment?> GetByIdAsync(int id)
-        {
-            var existingComment = await _dbContext.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id); // FindAsync pretrazuje samo by Id, ali ne moze ovde jer ima Include
+        {   // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
+            var existingComment = await _dbContext.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id); 
+            // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam nista u objektu
             if (existingComment is null)
                 return null;
 
@@ -61,6 +71,7 @@ namespace Api.Repository
         public async Task<Comment?> UpdateAsync(int id, Comment comment)
         {
             var existingComment = await _dbContext.Comments.FindAsync(id); // Brze nego FirstOrDefaultAsync jer moze ovo
+            // EF starts tracking changes in existingComment object, so any changes made to existingComment will be applied to its corresponding row in DB after SaveChangesAsync
             if (existingComment is null)
                 return null;
 
@@ -68,7 +79,7 @@ namespace Api.Repository
             existingComment.Title = comment.Title;
             existingComment.Content = comment.Content;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(); // Apply changes in DB row
 
             return existingComment;
         }

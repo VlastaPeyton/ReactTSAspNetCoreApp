@@ -4,19 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Api.Models;
 
 namespace Api.DTOs.Stock
-{   
-    /* Sve isto kao Stock.cs, samo Id nema jer se on automatski dodeljuje u bazi i nema Comments, jer je to Navigation Property povezan preko PK-FK sa zeljenim vrstama
-     Comments tabele, pa se ne dodaje odavde. 
+{
+    /*  Objanjeno u StockDTO cemu DTO sluzi. 
+
+        Sve isto kao Stock.cs, samo Id nema jer se on automatski dodeljuje u bazi i nema Comments/Portfolios, jer je to Navigation Property povezan preko PK-FK sa zeljenim vrstama
+     Comments/Portfolios tabele, pa se ne pise ovde, jer to nikad ne saljem from FE, vec to je veza sa Comments/Portfolios tabelama.
        
-       Objanjeno u StockDTO cemu DTO sluzi. */
+        Mora imati annotations jer ovu klasu koristim za writing to DB  Endpoint argument pa da ModelState moze da validira polja. */
     public class CreateStockRequestDTO
     {
 
         [Required]
         [MinLength(5, ErrorMessage = "Symbol must be at least 3 chars")]
         [MaxLength(10, ErrorMessage = "Symbol cannot be over 10 chars")]
-        // Ove 3 linije iznad su Data Validation za Symbol kolonu
-        public string Symbol { get; set; } = string.Empty; // Ako ne unesem nista, u koloni Symbol bice prazan string 
+        public string Symbol { get; set; } = string.Empty; 
         
         [Required]
         [MinLength(5, ErrorMessage = "CompanyName must be at least 3 chars")]

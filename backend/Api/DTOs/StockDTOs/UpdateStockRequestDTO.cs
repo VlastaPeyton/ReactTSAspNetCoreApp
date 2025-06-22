@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs.Stock
-{   
-    // Nema Id jer se on nikad ne sme menjati. I nema Comments, jer je to Navigation Property koji je povezan preko FK-PK sa zeljenim vrstama Comments tabele.
+{
+    /* Nema Id jer se on nikad ne sme menjati. I nema Comments/Portfolios, jer je to Navigation Property koji je povezan preko FK-PK sa zeljenim vrstama Comments tabele, pa se nikad ne salje iz FE.
 
-    // Objasnjeno u StockDTO cemu DTO sluzi
+    Objasnjeno u StockDTO cemu DTO sluzi. 
+    Mora imati annotations jer ovu klasu koristim za writing to DB Endpoint argument pa da ModelState moze da validira anotated polja. */
     public class UpdateStockRequestDTO  
     {
         [Required]

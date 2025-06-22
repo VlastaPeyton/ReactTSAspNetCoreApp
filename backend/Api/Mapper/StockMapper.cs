@@ -4,7 +4,9 @@ using Api.DTOs.StockDTOs;
 using Api.Models;
 
 namespace Api.Mapper
-{   
+{
+    // Da napravim Stock Entity klasu od DTO klasa kada pokrecem Repository metode.
+    // Da napravim DTO klasu od Stock Entity klasa kada saljem data to FE in Endpoint
     public static class StockMapper
     {   
         // Extension method for Stock.cs, without calling parameters
@@ -34,7 +36,8 @@ namespace Api.Mapper
                 Dividend = createStockRequestDTO.Dividend,
                 Industry = createStockRequestDTO.Industry,
                 MarketCap = createStockRequestDTO.MarketCap,
-                // Ne mapiram Comments, jer je Navigation Attribute, pa je pomocu FK-PK povezan sa odgovorajucim vrstama iz Comments tabele
+                /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u CreateStockRequestDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
+                Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salju from FE. */
             };
         }
 
@@ -50,7 +53,9 @@ namespace Api.Mapper
                 Dividend = updateStockRequestDTO.Dividend,
                 Industry = updateStockRequestDTO.Industry,
                 MarketCap = updateStockRequestDTO.MarketCap,
-                // Ne mapiram Comments, jer taj atribut nema u UpdateStockRequestDTO posto je on Navigation Attribute u Stock i onda je povezan, pomocu PK-FK sa zeljenim Comments redovima
+                /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u UpdateStockRequestDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
+                 Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salje from FE.  */
+
             };
         }
 
@@ -65,7 +70,8 @@ namespace Api.Mapper
                 Dividend = financialModelingPrepStockDTO.lastDiv,
                 Industry = financialModelingPrepStockDTO.industry,
                 MarketCap = financialModelingPrepStockDTO.mktCap
-                // Comments i Portfolios are default values jer FinancialModelingPrepStockDTO nema ta polja niti nam trebaju jer to ubacamo mi kroz frontend 
+                /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u FinancialModelingPrepStockDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
+                 Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salju from FE. */
             };
         }
     }

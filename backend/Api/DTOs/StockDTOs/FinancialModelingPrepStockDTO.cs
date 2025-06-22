@@ -1,6 +1,6 @@
 ﻿namespace Api.DTOs.StockDTOs
 {
-    // Ova polja objekat ima kad u FindStockBySymbolAsync dohvatimo result 
+    // Ova polja objekat ima kad u FindStockBySymbolAsync dohvatimo result jer ovo su polja elementa iz niza koji vraca FinancialModelingPrep API
     public class FinancialModelingPrepStockDTO
     {
         public string symbol { get; set; }

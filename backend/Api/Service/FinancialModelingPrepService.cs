@@ -6,32 +6,31 @@ using Newtonsoft.Json;
 
 namespace Api.Service
 {   
-    // Prilikom dodavanja Stock u portfolio, ako Stock ne postoji u bazi, skini ga sa neta, stavi u bazu, pa dodaj u portfolio iz baze.
+    // U FE, zelim da ostavim komentar za npr "TSLA" stock, kada ukucam "TSLA" u search, prover ima li ga u bazi, ako nema, onda ga skida sa FinancialModelingPrep, stavi u bazu, pa onda mu okacim komentar
     public class FinancialModelingPrepService : IFinacialModelingPrepService
     {   
-        private HttpClient _httpClient; // Za citanje sa neta. U Program.cs sam registrovao ovo za FinancialModelingPrepService 
+        private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs sam registrovao ovo za FinancialModelingPrepService 
         private IConfiguration _configuration; // Dohvata appsettings.json
         public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration)
         {
-            _configuration = configuration;
-            _httpClient = httpClient;
+            _configuration = configuration;  
+            _httpClient = httpClient;     
         }
 
-        // Prilikom dodavanja Stock u portfolio, ako Stock ne postoji u bazi, skini ga sa neta, stavi u bazu, pa dodaj u portfolio iz baze.
-        public async Task<Stock> FindStockBySymbolAsync(string symbol)
+        public async Task<Stock?> FindStockBySymbolAsync(string symbol) 
+        // Stock?, a ne Stock, jer return null ima i onda da compiler ne kuka
         {   
-            // Mora try-catch, jer idem u Financial Modeling Prep website da uzmem podatke
+            // Mora try-catch zog HttpClient
             try
             {
                 var result = await _httpClient.GetAsync($"https://financialmodelingprep.com/api/v3/profile/{symbol}?apikey={_configuration["FMPApiKey"]}");
-                // result contains StatusCode, Headers, Payload (Content)...
+                // result contains StatusCode, Header, Body ...
                 if (result.IsSuccessStatusCode)
                 {
-                    var content = await result.Content.ReadAsStringAsync(); // Niz objekata jer tako ovaj sajt vraca 
+                    var content = await result.Content.ReadAsStringAsync(); // content = Response Body. Niz objekata jer tako ovaj sajt vraca 
                     var stocks = JsonConvert.DeserializeObject<FinancialModelingPrepStockDTO[]>(content);
-                    // Convert JSON to list of FinancialModelingPrepStock objects, jer FinancialModelingPrep vraca u obliku niza, ali nam samo prvi element treba 
-                    // Ovo sam imao u Frontend delu ista fora da FinancialModelingPrepStock ima polja kao objekat from result. 
-                    var stock = stocks[0]; // jer nam samo prvi elem treba 
+                    // Convert JSON to list of FinancialModelingPrepStock objects, jer FinancialModelingPrep vraca niz tipa FinancialModelingPrepStockDTO, ali nam samo prvi element treba jer 1 element ocemo
+                    var stock = stocks[0]; // jer nam samo prvi elem treba posto je to nas stock trazeni
                     if (stock is not null)
                         return stock.ToStockFromFinancialModelingPrepStockDTO();
                     else
@@ -44,7 +43,6 @@ namespace Api.Service
             {
                 return null;
             }
-            // Iako nije Stock?, moze da vrati null, ali imacu warning samo 
         }
     }
 }

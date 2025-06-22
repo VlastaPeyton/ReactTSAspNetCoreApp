@@ -16,14 +16,14 @@ namespace Api.Controllers
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService)
-        {
+        {   
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
 
         }
 
-        // Svaki Endpoint prima DTO klase kao argumente, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene obzirom da models klase se koriste sa EF.
+        // Svaki Endpoint koristi DTO kao argumente i DTO za slanje object to FE, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene obzirom da models klase se koriste sa EF.
 
         /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
            
@@ -32,10 +32,14 @@ namespace Api.Controllers
         Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
             
          Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u ReactTS.
-        */
+         
+         ModelState se koristi za writing to DB da proveri polja. 
+         
+         Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
+         */
 
-        [HttpPost("register")] // // https://localhost:port/api/account/register
-        // Ne ide [Authenticate] jer ovo je Register 
+        [HttpPost("register")] // https://localhost:port/api/account/register
+        // Ne ide [Authorize] jer ovo je Register 
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
         {   /* Pre ove metode , pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije (ako sam uradio migraciju uopste).
                
@@ -48,9 +52,9 @@ namespace Api.Controllers
 
             // Try-Catch, jer cesto se desava server error when using UserManager, a to je runtime error, obzirom da nista u try ne baca gresku cak ni implicitno.
             try
-            {   
-                // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu onih annotation iznad polja koje stoje
-                if(!ModelState.IsValid) 
+            {
+                // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu onih annotation iznad polja koje stoje. 
+                if (!ModelState.IsValid) 
                     return BadRequest(ModelState); 
                     // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) 
 
