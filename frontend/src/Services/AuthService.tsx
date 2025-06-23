@@ -6,6 +6,12 @@ import { UserProfileToken } from "../Models/UserProfileToken";
 // Koristim iz .env, jer bolja praksa nego da hardcodujem API u kodu.
 const apiEndpoint = process.env.REACT_APP_BASE_BACKEND_API;
 
+/* U BE Endpoints, koje gadjaju ove funkcije pomocu axios, postoji cancellationToken, ali bez =default. Kada sam na LoginPage, koja koristi ove funkcije, i dok kad pokrenem neki Endpoint kliktanjem 
+po njoj, ako user navigates away or closes app, BE ce autoamtski, zbog HTTP mehanizma, provaliti da sam prekinuo poziv, i prestace sa radom tako sto ce dodeliti RequestAborted vrednost za cancellationToken.
+Da sam u Endpoint imao cancellationToken = default, u slucaju kad user navigates away or closes the app, u axios moram proslediti "signal:controller.signal" ali to nije Header or Body i jos uraditi neki cudni return 
+koji ce aktivira controller.abort(). 
+ */
+
 // For useAuthContext.tsx
 export const loginAPI = async (username: string, password: string) => {
     // try-catch zbog axios. Try se izvrsi ako StatusCode=2XX from backend. Catch se izvrsi ako StatusCode!=2XX from backend.

@@ -36,6 +36,8 @@ namespace Api.Controllers
          ModelState se koristi za writing to DB da proveri polja. 
          
          Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
+         
+         Ne koristim CancellationToken jer neam async Endpoint, zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
          */
 
         [HttpPost("register")] // https://localhost:port/api/account/register
@@ -119,7 +121,7 @@ namespace Api.Controllers
                 // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a  "Invalid UserName" u Response Body.
 
             // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash
-            var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false); 
+            var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false);
 
             if (!result.Succeeded)
                 return Unauthorized("Invalid Password"); 

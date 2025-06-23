@@ -11,6 +11,7 @@ import { SearchResponse } from "../Models/SearchResponse";
 // Axios korisitm umesto Fetch, jer je bolji i more user-friendly than Fetch.
 
 // Obzirom da ovde gadjam FinancialModelingPrep API koji je public na netu tj nisam ga ja pravio, u catch bloku ne koristim handleError jer je ta funkcija pravljena za moj licni backend.
+// Ne znam u kom jeziko je FMP API pisan, ali svakako nema potrebe za slanjem controller.signal kao cancellationToken da sluzi - ovo je veci izazov za moje BE Endpoint pa tamo je detaljnije objasnjeno 
 
 // For SearchPage.tsx
 /*Kada u search ukucam npr "aap" dobijem sve firme koje u imenu ticker imaju "aap", ali firma moze biti Stock ili ETF. Ovaj API ne garantuje da je Stock. 
