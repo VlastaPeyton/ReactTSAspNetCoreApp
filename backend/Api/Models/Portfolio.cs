@@ -11,7 +11,7 @@ namespace Api.Models
     [Table("Portfolios")]
     public class Portfolio // U principu, 1 Portfolio je 1 Stock za zeljenog AppUser-a
     {   
-        // U ApplicationDbContext OnModelCreating definisacu PK kao kombinaciju AppUserId i StockId, jer to ovde ne moze.
+        // U ApplicationDbContext OnModelCreating definisacu PK (i automatski Index bice) kao kombinaciju AppUserId i StockId, jer to ovde ne moze.
         public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id (IdentityUser.Id) je GUID(String).
         public int StockId { get; set; }   // StockId je int, jer u Stock Id je int. 
         public AppUser AppUser { get; set; } // Navigation property

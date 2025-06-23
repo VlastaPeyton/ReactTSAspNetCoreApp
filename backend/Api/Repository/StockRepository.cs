@@ -35,6 +35,7 @@ namespace Api.Repository
         public async Task<Stock?> DeleteAsync(int id, CancellationToken cancellationToken)
         {   
             var stock = await _dbContext.Stocks.FirstOrDefaultAsync(x => x.Id == id, cancellationToken); // EF tracks stock object, so every change made to stock will be applied to its corresponding row in Stocks table after SaveChangesAsync
+            // As Id is PK for Stock, it is automatically also Index so this is fastest way for query
             if (stock is null)
                 return null;
 
@@ -78,6 +79,7 @@ namespace Api.Repository
         public async Task<Stock?> GetBySymbolAsync(string symbol, CancellationToken cancellationToken)
         {   // FirstOrDefaultAsync moze da vrati null i zato Stock? return type, da se compiler ne buni. 
             return await _dbContext.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol, cancellationToken); // Ne moze FindAsync, iako je brze, jer FindAsync pretrazuje po Id samo
+            // Iako ovaj Endpoit ne koristim cesto, jer retko pisem komentare za stock u FE, Stock.Symbol sam stavio u Index zbog DeletePortfolio, pa automatski i ovde brze ce da pretrazi
             // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti
         }
 

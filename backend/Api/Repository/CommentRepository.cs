@@ -35,6 +35,7 @@ namespace Api.Repository
         public async Task<Comment?> DeleteAsync(int id, CancellationToken cancellationToken)
         {
             var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>  c.Id == id, cancellationToken); // EF start tracking comment object, so every change made to comment will be applied to its corresponding row in Comment table after SaveChangesAsync
+            // Id je PK i Index by default tako da pretrazuje bas brzo
             if (comment is null)
                 return null;
 
@@ -53,7 +54,8 @@ namespace Api.Repository
 
             // In if statement no need to AsQueryable again
             if (!string.IsNullOrWhiteSpace(commentQueryObject.Symbol))
-                comments = comments.Where(s => s.Stock.Symbol == commentQueryObject.Symbol);
+                comments = comments.Where(s => s.Stock.Symbol == commentQueryObject.Symbol); 
+                // Ovaj Endpoint koristim cesto jer gledam Compani profile za zeljeni Stock, a ta stranica ocitava sve komentare za njega, pa Stock.Symbol sam stavio ko Index da brze ocitava - pogledaj OnModelCreating
                 
             if(commentQueryObject.IsDescending == true)
                 comments = comments.OrderByDescending(c => c.CreatedOn); 
@@ -64,6 +66,7 @@ namespace Api.Repository
         public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {   // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
             var existingComment = await _dbContext.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id, cancellationToken); 
+            // Id je PK i Index by default tako da pretrazuje bas brzo
             // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam nista u objektu
             if (existingComment is null)
                 return null;

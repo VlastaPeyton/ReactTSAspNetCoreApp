@@ -8,7 +8,7 @@ namespace Api.Models
     [Table("Comments")]
     public class Comment // Entity jer predstavlja tabelu u bazi
     {
-        public int Id { get; set; } // PK
+        public int Id { get; set; } // PK and Index by default
         public int? StockId { get; set; } // FK koji gadja Id u Stock klasi
         public Stock? Stock { get; set; } // Navigational property
         public string Title { get; set; } = string.Empty;

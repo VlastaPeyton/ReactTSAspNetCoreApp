@@ -40,7 +40,8 @@ namespace Api.Controllers
          Za async Endpoints, nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
         Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
-         */
+        CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
+        */
 
         // Get All Stocks Endpoint
         [HttpGet]   // https://localhost:port/api/stock/
