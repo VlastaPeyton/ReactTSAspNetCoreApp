@@ -4,6 +4,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './Routes/Routes'; // createBrowserRouter from "react-router-dom"
+import * as serviceWorkerRegistration from './serviceWorkerRegistration'; // Zbog pravljenja PWA
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement // Ovo je =  <div id="root"></div> jer React je SPA.
@@ -16,6 +17,8 @@ root.render(
   </React.StrictMode>
 );
 // StrictMode only runs in development - it's automatically removed in production builds. It doesn't render any visible UI, just adds extra checks.
+
+serviceWorkerRegistration.register(); // Zbog pravljenja PWA jer sam prethodno napravio serviceWorkerRegistration.ts file
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

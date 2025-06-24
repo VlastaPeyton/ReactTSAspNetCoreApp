@@ -93,8 +93,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-/* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock klasu i to je circular reference. Pa da ne dodje do problema. 
-Isto vazi i za Portfolio i AppUser/Stock. */
+/* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock  i to je circular reference. Pa da ne dodje do problema. 
+Isto vazi i za AppUser/Stock - Portfolio. */
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;

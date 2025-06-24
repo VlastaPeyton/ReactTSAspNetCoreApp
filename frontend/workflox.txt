@@ -115,4 +115,30 @@ i pravim Routes folder i Pages folder. U terminal kucam "npm install react-route
 44) U terminal "npm install react-error-boundary" kako bih napravio ErrorBoundary component koja ce obmotati <App> jer sam sve BE i FE greske pohvatao u kodu bez ErrorBoundary.
 ErrorBoundary se inace stavlja oko Component koja mzoe da erroruje pa da ne pukne app, nego da prikaze zeljenu poruku na ekranu.
 
-45)
+45) Want make this FE as PWA: 
+   PWA web app osobine:
+      1) Installable - can be added to desktop
+      1) No app store required - can install it from browser
+      2) Offline-capable - via caching works without internet collection but cannot make api request
+      3) Fast - loads fast even on slow network
+      4) Responsive - works on mobile, tablet and desktop
+      5) Secure - over HTTPS radi
+      6) Push notifications
+
+   Technologies behind PWA:
+      1) Service workers - ackground script that handles caching, offline mode, push notifications
+      2) Web App Manifest - JSON file defining app name, icon, theme, install behavior
+      3) HTTPS - security
+
+   As i made react app via Create React App it is partially PWA already.
+   I need to add serviceWorkerRegistration.ts in src folder sa kodom koji sam naso na netu. Moze se napravi da Create React App ne brise ovaj kod prilikom kreiranja. 
+   U src/index.tsx dodajem zeljeni kod sa neta da registrujem serviceWorkerRegistration.
+   U terminal kucam "npm run build" jer sam kao spreman da deploy my app to production. Svaki put kad azuriram app, moram da ukucam ovo da bi se azurirao i production app.
+   Nakon "npm run build " kucam "npm install serve" pa "npx serve -s build" da se ovo pokrene na serveru koji nije localhost da vidim kako production izgleda.
+
+   
+
+
+   
+
+
