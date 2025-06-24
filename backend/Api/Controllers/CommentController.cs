@@ -39,8 +39,14 @@ namespace Api.Controllers
 
          Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u FE.
          
-         ModelState se koristi za writing to DB da proveri annotaded polja u object argumentu of Endpoint
+         Data validation when writing to DB: 
+            Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
+            If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
+            Validation can be done using ModelState - u Write to DB Endpoint stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object iz tog Endpoint. ModelState ako ne zelim custom validation logic.
+            Validation can be done using FluentValidation - ako zelim custom validaiton logic.          
          
+         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi kod more complex. Koristim ModelState.
+
          Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
 
          Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.

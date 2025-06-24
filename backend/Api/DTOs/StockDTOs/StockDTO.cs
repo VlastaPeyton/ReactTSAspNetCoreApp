@@ -4,7 +4,8 @@ using Api.DTOs.CommentDTOs;
 namespace Api.DTOs.StockDTO
 {
     /* DTO sluzi za Read(Endpoint send data to FE) / Write to DB from Endpoint jer zelim da razdvojim sloj koji pristupa bazi od API sloja kome pristupa korisnik tj ne zelim da 
-    nikad direktno pristupam Entity klasi u API sloju (Endpoint). Takodje, DTO sluzi za Data Validation u slucaju writing to DB, jer se to ne radi u Entity klasi, posto mora pre Entity klase da se validira.
+    nikad direktno pristupam Entity klasi u API sloju (Endpoint). Takodje, DTO sluzi za Data Validation u slucaju writing to DB as Request object, jer se to ne radi u Entity klasi, 
+    posto mora pre Entity klase da se validira dok je jos na ulazu u Endpoint kao Request DTO object.
 
        Ne sadrzi Data Annotations jer StockDTO korisitm da Endpoint posalje podatke to FE. 
 
