@@ -47,6 +47,8 @@ namespace Api.Controllers
         Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
         CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
+        
+         Rate Limiter objasnjen u Program.cs
         */
 
         // Get All Stocks Endpoint

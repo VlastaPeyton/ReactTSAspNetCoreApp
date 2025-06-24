@@ -7,6 +7,7 @@ using Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
@@ -55,7 +56,9 @@ namespace Api.Controllers
         Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
         CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
-         */
+         
+         Rate Limiter objasnjen u Program.cs
+        */
 
         // Get All Comments for desired Stock Endpoint 
         [HttpGet]   // https://localhost:port/api/comment
@@ -86,6 +89,7 @@ namespace Api.Controllers
             // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, a StatusCode=200 u Response Status Line.
         }
 
+        [EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
         // [Authorize] Necu staviti, jer User.GetUserName() svakako zahteva JWT, ali je dobra praksa imati [Authorize] u tom slucaju, da onaj ko cita kod, a ne zna dobro .NET, zna da mora JWT biti poslat from FE.

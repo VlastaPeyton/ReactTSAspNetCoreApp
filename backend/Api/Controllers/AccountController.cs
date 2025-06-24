@@ -3,6 +3,7 @@ using Api.Interfaces;
 using Api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
@@ -44,8 +45,10 @@ namespace Api.Controllers
          Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
          
          Ne koristim CancellationToken jer neam async Endpoint, zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
+         
+         Rate Limiter objasnjen u Program.cs
          */
-
+        [EnableRateLimiting("fast")]
         [HttpPost("register")] // https://localhost:port/api/account/register
         // Ne ide [Authorize] jer ovo je Register 
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)

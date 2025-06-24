@@ -1,10 +1,13 @@
+using System.Threading.RateLimiting;
 using Api.Data;      
 using Api.Interfaces;
 using Api.Models;
 using Api.Repository;
 using Api.Service;
+using Azure.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
@@ -110,6 +113,26 @@ builder.Services.AddScoped<IFinacialModelingPrepService, FinancialModelingPrepSe
 // Add HttpClient for FinancialModelingPrepService
 builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>();
 
+// Add Rate Limiter 
+builder.Services.AddRateLimiter(options =>
+{   // Nema globalni default rate limiter => Endpoints koji nemaju [EnableRateLimiting("slow/fast")] nece imati nikakav 
+    options.AddFixedWindowLimiter("slow", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit = 5; // 2 Request per 1min . During 1min, if other requests comes after first 5, they will be put in queue, of size QueueuLimit, to wait in QueueProcessingOrder order. Others will be rejected.
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 3;  
+    });
+
+    options.AddFixedWindowLimiter("fast", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 7;
+    });
+});
+
 var app = builder.Build();
 
 // Enable Swagger middleware both for Dev and Prod env
@@ -130,5 +153,8 @@ app.UseAuthorization();  // Enforces access rules based on user identity
 
 // Activate Controllers routing.
 app.MapControllers();
+
+// Use Rate Limiter on desired Endpoints 
+app.UseRateLimiter(); 
 
 app.Run();

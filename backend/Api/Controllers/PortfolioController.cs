@@ -4,6 +4,7 @@ using Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
@@ -50,7 +51,9 @@ namespace Api.Controllers
         Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
         CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
-        */
+         
+         Rate Limiter objasnjen u Program.cs
+         */
 
         [HttpGet]
         [Authorize] // U Swagger Authorize dugme moram uneti JWT from Login kako bih mogo da pokrenem ovaj Endpoint
@@ -67,6 +70,7 @@ namespace Api.Controllers
             // Frontendu ce biti poslato StatusCode=200 u Response StatusLine, a userPortfolios u Response Body.
         }
 
+        [EnableRateLimiting("fast")] // Jer cesto koristim ovu metodu
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
