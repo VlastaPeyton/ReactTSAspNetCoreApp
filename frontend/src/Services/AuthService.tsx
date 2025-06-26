@@ -1,6 +1,7 @@
 import axios from "axios";
 import { handleError } from "../ErrorHandler/ErrorHandler";
 import { UserProfileToken } from "../Models/UserProfileToken";
+import { toast } from "react-toastify";
 
 // const apiEndpoint = "https://localhost:7045/api/"; // Mogo sam i HTTP, jer u .NET Program.cs ima onaj HttpsRedirection, pa ako gadjam http://localhost:5110/api/ da odma prebaci na https.
 // Koristim iz .env, jer bolja praksa nego da hardcodujem API u kodu.
@@ -10,7 +11,9 @@ const apiEndpoint = process.env.REACT_APP_BASE_BACKEND_API;
 po njoj, ako user navigates away or closes app, BE ce autoamtski, zbog HTTP mehanizma, provaliti da sam prekinuo poziv, i prestace sa radom tako sto ce dodeliti RequestAborted vrednost za cancellationToken.
 Da sam u Endpoint imao cancellationToken = default, u slucaju kad user navigates away or closes the app, u axios moram proslediti "signal:controller.signal" ali to nije Header or Body i jos uraditi neki cudni return 
 koji ce aktivira controller.abort(). 
- */
+
+Ovde ne koristim axiosWithJWTBackend, jer loginAPI, registerAPI i forgotPasswordAPI se rade pre nego sto se user login/register i onda ne mogu ni da imam JWT jer backend salje JWT once user is logged/registered.
+*/
 
 // For useAuthContext.tsx
 export const loginAPI = async (username: string, password: string) => {
@@ -56,6 +59,27 @@ export const registerAPI = async (email: string, username: string, password: str
     }
     // Nema return u catch, pa ako error bude, response=undefined i zato u registerUser radim onaj veliki if (ili proverim sa ?). U api.tsx metodama isti slucaj je ko ovde, ali u npr CompanyProfile.tsx ne radim veliki if, vec result?. 
 
+}
+
+// For useAuthContext.tsx  - objasnjenje isto kao iznad 
+export const forgotPasswordAPI = async(email: string) =>{
+    try{
+        // Nije potreban JWT poslati u BE ForgotPassword method, jer ovo se radi kad se jos nismo ni login.
+        // Moram navesti <string> kao POTENCIJALNI return ako BE ne vrati error (ako nadje email u bazi), jer uspesan ForgotPassword method u AccountController u .NET vraca Ok("uspesno") 
+        const response = await axios.post<string>(apiEndpoint + "account/forgotpassword", {
+            // Najbolje slati email u Request Body, a ne as Query parameter of URL => AccountController ForgotPassword method zahtva [FromBody]
+            // Body of Request
+            EmailAddress: email
+            // Ovo je redosled i imena argumenata za ForgotPasswordDTO u ForgotPassword Endpoint i moram ovode da ispratim to
+        });
+        
+        return response; // type= AxiosResponse<string> ili undefined ako je neocekivana greska, jer ForgotPassword method i u slucaju wrong email nece vrati gresku vec, zbog sigurnosti bice return OK("Reset password link is sent to email") 
+                         // Zbog full response ovako, u useAuthContext moracu result.data da bih dohvatio payload.    
+
+    } catch (error) {    // ForgotPassword ne moze da vrati gresku jer zbog sigurnosti i da je neisprvan email BE vrca Ok("Rest password link is sent to email"), ali mozda bude neka neocekivana greska pa ce catch da se izvrsi
+        handleError(error);
+    }
+    // Nema return u catch, pa ako error bude, response = undefinded i zato u forgotPassowr radim if (ili proverim sa ?).
 }
 
 // Poredi ovo sa api.tsx jer tamo Request saljem na Public API sa neta i drugacije je malo.

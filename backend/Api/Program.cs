@@ -11,8 +11,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
+using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load(); // loads ".env" from project root, pre svega ostalog jer mnogo toga zavisi od Env.GetString(...) pa ne moze se napravi ako ovo nije omoguceno
 
 // Add Controllers classes. Ovo prepoznaje sve iz Controllers foldera.
 builder.Services.AddControllers();
@@ -67,7 +70,9 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.User.RequireUniqueEmail = true; // Da ne mogu dva usera da imaju isti Email prilikom njihovog dodavanja u AspNetUsers tabelu u Register endpoint
 
     // AddEntityFrameworkStores tells Identity to use EF to store Identity data (users, roles, tokens, etc.) in the database using your AppDbContext.
-}).AddEntityFrameworkStores<ApplicationDBContext>(); //.AddDefaultTokenProviders(); is needed for email confirmation, password reset, etc.
+}).AddEntityFrameworkStores<ApplicationDBContext>()
+.AddDefaultTokenProviders();//  is needed for email confirmation, password reset, etc for ForgotPassword 
+
 // Nakon ova 2 registrovanja iznad, u Package Manager Console kucam "Add-Migration Identity", pa "Update-Database", da sa naprave tabele AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims... 
 
 // JWT Authentication 
@@ -112,6 +117,8 @@ builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 builder.Services.AddScoped<IFinacialModelingPrepService, FinancialModelingPrepService>();
 // Add HttpClient for FinancialModelingPrepService
 builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>();
+// Add EmailService as IEmailSender after Env.Load()
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add Rate Limiter 
 builder.Services.AddRateLimiter(options =>

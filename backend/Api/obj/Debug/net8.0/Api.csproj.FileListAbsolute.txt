@@ -365,3 +365,5 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\Api.pdb
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\Api.genruntimeconfig.cache
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\ref\Api.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\DotNetEnv.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Sprache.dll

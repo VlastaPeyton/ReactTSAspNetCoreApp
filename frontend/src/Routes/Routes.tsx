@@ -11,13 +11,14 @@ import Cashflow from "../Components/Cashflow/Cashflow";
 import LoginPage from "../Pages/LoginPage/LoginPage";
 import RegisterPage from "../Pages/RegisterPage/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
+import ForgotPasswordPage from "../Pages/ResetPasswordPage/ForgotPasswordPage";
 
 // Ovo se koristi u index.tsx 
 // createBrowserRouter je noviji nacin umesto u App.tsx da stavim <Routes> <Route path="/" element={<HomePage />} /> .... </Routes> kao u ReactApp projektu sto sam uradio.
 // Components, koje nisu navedene ovde, a jesu u App.tsx, bice prisutne na svakoj stranici ovde navedenoj.
 // Sve ove children routes nekog parent route (elementa) ( <App /> ili <CompanyPage>) moraju biti inside <Outlet /> u definicije parenta (tj App / CompanyPage). 
-/* Nijedna route se ne pise sa / na pocetku,a razlog pogledaj u Sidebar.tsx - zato sto u <Link> ako kucam "/route" onda je to apsolutna ruta pod uslovom da je definisana ovde kao parent ili child 
- dok ako kucam "childRoute" to je relativna route koja se nadoveze na current route pod uslovom da je ta relativna child of parent u kom smo u trenutku poziv <Link to="childRoute"> */
+/* Nijedna route se ne pise sa / na pocetku,a razlog pogledaj u Sidebar.tsx - zato sto u <Link to> ako kucam "/route" onda je to apsolutna ruta pod uslovom da je definisana ovde kao parent ili child 
+ dok ako kucam "childRoute" to je relativna route koja se nadoveze na current route pod uslovom da je ta relativna route child of current route <Link to="childRoute"> */
 // CompanyPage je ProtectedRoute, pa treba login da bih joj pristupio + i svi njeni children routes su protected automatski. 
 export const router = createBrowserRouter([
     {   
@@ -28,7 +29,8 @@ export const router = createBrowserRouter([
             {path: "search", element:<ProtectedRoute><SearchPage /></ProtectedRoute>}, // http://localhost:3000/search
             {path: "design-guide", element: <DesignGuide />},                          // http://localhost:3000/design-guide
             {path: "login", element: <LoginPage />},                                   // http://localhost:3000/login
-            {path: "register", element: <RegisterPage />},                             // http://localhost:300/register
+            {path: "register", element: <RegisterPage />},                             // http://localhost:3000/register
+            {path: "forgot-password", element: <ForgotPasswordPage />},                  // http://localhost:3000/forgot-password
             {path: "company/:ticker",                   
              element:  <ProtectedRoute><CompanyPage /></ProtectedRoute>,               // http://localhost:3000/company/:ticker
              children: [{path:"company-profile", element: <CompanyProfile />},         // http://localhost:3000/company/:ticker/company-profile

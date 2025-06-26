@@ -87,7 +87,7 @@ namespace Api.Controllers
             // ModelState pokrene validation za CreateStockRequestDTO tj za zeljena CreateStockRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa CreateStockRequestDTO poljima
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa CreateStockRequestDTO poljima u "errors" delu of Response
 
             var stock = createStockRequestDTO.ToStockFromCreateStockRequestDTO(); // Bez vrednosti u Id polju za sada 
             await _stockRepository.CreateAsync(stock, cancellationToken); // Iako CreateAsync ima return, ne treba "var result = _stockRepository.CreateAsync(stock), jer stock je Reference type, stoga promena stock u CreateAsync uticace i ovde
@@ -107,7 +107,7 @@ namespace Api.Controllers
             // ModelState pokrene validation za UpdateStockRequestDTO tj za zeljena UpdateStockRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje.ModelState se koristi za writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body.
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body u "errors" delu.
 
             var stock = await _stockRepository.UpdateAsync(id, updateStockRequestDTO.ToStockFromUpdateStockRequestDTO(), cancellationToken);
 

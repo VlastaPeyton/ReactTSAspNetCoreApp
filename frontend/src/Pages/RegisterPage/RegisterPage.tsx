@@ -26,7 +26,7 @@ const RegisterPage = (props: Props) => {
     const {
         // Ova 3 objekta useForm vraca i zato moraju ovako da se zovu, jer su im to built-in imena.
         register,      // Zbog ...register(userName/password) u html mi je potrebno ovo
-        handleSubmit,  /* Zbog onSubmit={handleSubmit(handleLogin)} u html mi je potrebno ovo. Prevents default automatski. Uzme sve iz forme u obliku RegisterFormInput i prosledi u handleRegister.
+        handleSubmit,  /* Zbog onSubmit={handleSubmit(handleRegister)} u html mi je potrebno ovo. Prevents default automatski. Uzme sve iz forme u obliku RegisterFormInput i prosledi u handleRegister.
                       Takodje, validira formu using yurResolver. Ako invalid forma, napravi formState.errors. Ako valid, napravi RegisterFormInputs objekat sa poljima iz forme i pozove handleRegister.*/
         formState: {errors}, // Destruktuira formState koji sadrzi vise polja, pa mi samo treba errors objekat sa poljima userName i password. Ovo je isto kao formState.errors, pa moze errors.userName/password.message
     } = useForm<RegisterFormInputs>({resolver: yupResolver(validation)}); // Koristim yupResolver za validaciju forme

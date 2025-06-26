@@ -99,7 +99,7 @@ namespace Api.Controllers
             // ModelState pokrene validation za CreateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima u "errors" delu of Response
 
             // U FE, zelim da ostavim komentar za neki stock, pa u search kucam npr "tsla" i onda on trazi "tsla" sve stocks koji pocinju na "tsla" u bazi pomocu GetBySymbolAsync
             var stock = await _stockRepository.GetBySymbolAsync(symbol, cancellationToken); // Nadje u bazy stock za koji ocu da napisem komentar 
@@ -150,8 +150,7 @@ namespace Api.Controllers
             // ModelState pokrene validation za UpdateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat  biti poslat u Response Body sa UpdateCommentRequestDTO poljima
-
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat  biti poslat u Response Body sa UpdateCommentRequestDTO poljima u "errors" delu of Response
             var comment = await _commentRepository.UpdateAsync(id, updateCommentRequestDTO.ToCommentFromUpdateCommentRequestDTO(), cancellationToken);
             if (comment is null)
                 return NotFound("Comment not found");

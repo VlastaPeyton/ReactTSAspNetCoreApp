@@ -1,10 +1,15 @@
-﻿using Api.DTOs.Account;
+﻿using System.Text;
+using System.Text.Encodings.Web;
+using Api.DTOs.Account;
 using Api.Interfaces;
 using Api.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-
+using Microsoft.AspNetCore.WebUtilities;
+using Newtonsoft.Json.Linq;
+using DotNetEnv;
 namespace Api.Controllers
 {
     // Postman/Swagger gadja Endpoints ovde definisane
@@ -12,15 +17,17 @@ namespace Api.Controllers
     [Route("api/account")] // https://localhost:port/api/account
     [ApiController]
     public class AccountController : ControllerBase
-    {   
+    {
         private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService)
-        {   
+        private readonly IEmailService _emailSender; // U Program.cs definisan da poveze IEmailSender kao EmailService
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService)
+        {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _emailSender = emailService;
 
         }
 
@@ -40,7 +47,7 @@ namespace Api.Controllers
             Validation can be done using ModelState - u Write to DB Endpoint stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object iz tog Endpoint. ModelState ako ne zelim custom validation logic.
             Validation can be done using FluentValidation - ako zelim custom validaiton logic. 
          
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi kod more complex. Koristim ModelState.
+         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi kod more complex. Koristim ModelState. 
 
          Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
          
@@ -48,7 +55,7 @@ namespace Api.Controllers
          
          Rate Limiter objasnjen u Program.cs
          */
-        [EnableRateLimiting("fast")]
+        //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
         [HttpPost("register")] // https://localhost:port/api/account/register
         // Ne ide [Authorize] jer ovo je Register 
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
@@ -65,12 +72,12 @@ namespace Api.Controllers
             try
             {
                 // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu onih annotation iznad polja koje stoje. 
-                if (!ModelState.IsValid) 
-                    return BadRequest(ModelState); 
-                    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) 
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu of Response
 
                 var appUser = new AppUser
-                {   
+                {
                     UserName = registerDTO.UserName,
                     Email = registerDTO.EmailAddress
                 };
@@ -85,12 +92,12 @@ namespace Api.Controllers
                     // Dodaje u AspNetUserRoles tabelu koja automatski ima RoleId FK koji gadja Id u AspNetRoles i UserId FK koji gadja Id u AspNetUsers tabeli 
 
                     if (roleResult.Succeeded)
-                        return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser)});
-                        // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
+                        return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser) });
+                    // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
 
                     else
                         return StatusCode(500, roleResult.Errors);
-                        // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
+                    // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
                 }
                 else // Ako vec postoji user sa istim EmailAddres ili UserName
                 {
@@ -119,7 +126,7 @@ namespace Api.Controllers
             // ModelState pokrene validaiton iz LoginDTO tj za zeljea LoginDTO polja proverava na osnovu onih annotation iznad polja koje stoje
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) 
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) u "errors" delu poruke
 
             //var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDTO.UserName.ToLower()); // Moze i FindAsync jer je brze 
             // _userManager.Users odnsosi se na AspNetUsers tabelu
@@ -127,17 +134,46 @@ namespace Api.Controllers
 
             if (appUser is null)
                 return Unauthorized("Invalid UserName");
-                // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a  "Invalid UserName" u Response Body.
+            // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a  "Invalid UserName" u Response Body.
 
             // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash
             var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false);
 
             if (!result.Succeeded)
-                return Unauthorized("Invalid Password"); 
-                // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid Password" u Response Body.
+                return Unauthorized("Invalid Password");
+            // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid Password" u Response Body.
 
-            return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser)});
+            return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser) });
             // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a NewUserDTO u Response Body.
+        }
+
+        [HttpPost("forgotpassword")] 
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        // Email se obicno salje u Request Body from FE, moze i FromQuery, ali nije dobra praksa
+        {   
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ForgotPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
+
+            // Ako user namerno unese email koji nije u bazi, BE vraca OK("Reset password link is sent to your email") zbog sigurnosti jer onda je user napadac i da ne provali da taj mejl ne postoji pa da ne predje na drugi
+            
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDTO.EmailAddress);
+            // If email is not found, just send "success" mesage to FE da zavaramo trag napadacima
+            if (user is null)
+                return Ok("Reset password link is sent to your email");
+
+            // If email found, generate a secure & time-limited (by default to 1day) reset token, send email and success message to FE
+            var passwordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            // Encode token to safely include in URL
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(passwordResetToken));
+            // Create frontend reset-password url 
+            string frontendBaseUrl = Env.GetString("frontendBaseURL"); // U Program.cs sam Env.Load() i zato ovo moze
+            var resetUrl = $"{frontendBaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={encodedToken}";
+            // Send email to user.Email containing "Reset Password" subject and message containing reset-password url 
+            await _emailSender.SendEmailAsync(user.Email, "Reset Password",$"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password.");
+            // Send success message to FE 
+            return Ok("Reset password link is sent to your email"); 
         }
 
     }

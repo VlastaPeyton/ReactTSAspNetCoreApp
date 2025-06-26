@@ -2,6 +2,7 @@ import * as Yup from "yup";
 import { useAuth } from '../../Context/useAuthContext';
 import { useForm } from 'react-hook-form';
 import { yupResolver} from "@hookform/resolvers/yup";
+import { Link } from "react-router-dom";
 
 type Props = {}
 
@@ -83,12 +84,12 @@ const LoginPage = (props: Props) => {
               </div>
 
               <div className="flex items-center justify-between">
-                <a
-                  href="#"
+                <Link
+                  to="/forgot-password"
                   className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* type=submit => Kliknuti na Sign in aktivira handleLogin gore naveden u onSubmit u zaglavlju <form...> */}
@@ -101,12 +102,10 @@ const LoginPage = (props: Props) => {
 
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Don’t have an account yet?{" "}
-                <a
-                  href="#"
-                  className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                <Link to="/register" className="font-medium text-primary-600 hover:underline dark:text-primary-500"
                 >
                   Sign up
-                </a>
+                </Link>
               </p>
 
             </form>
@@ -119,6 +118,7 @@ const LoginPage = (props: Props) => {
 }
 
 export default LoginPage;
+// "/forgot-password", jer to je route za ForgotPasswordPage, koja nije child route of current route http://localhost:3000/login (LoginPage) 
 
 /* U Hero.tsx sam objasnio da <section> mora id imati, ali i nije moranje ako nemam <a href>...
   <section className="bg-gray-50 dark:bg-gray-900"> : 

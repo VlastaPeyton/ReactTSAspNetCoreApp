@@ -1,6 +1,22 @@
 [
   {
     "ContainingType": "Api.Controllers.AccountController",
+    "Method": "ForgotPassword",
+    "RelativePath": "api/account/forgotpassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "forgotPasswordDTO",
+        "Type": "Api.DTOs.Account.ForgotPasswordDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Api.Controllers.AccountController",
     "Method": "Login",
     "RelativePath": "api/account/login",
     "HttpMethod": "POST",
