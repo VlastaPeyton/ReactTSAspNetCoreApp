@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 
 
 
-/* ResetPasswordPage mora biti posebna strana tj da ne bude u okviru LoginPage. Kada u LoginPage user klikne "Forgot password", otvori se ova
-stranica koja sadrzi input email form gde user unosi email za koji je zaboravio password. Ako je unet pogresan email, toast.warn ce da prikaze 
-"Ne postoji user sa ovom email adresom", a ako je unesen pogresan, toast.success ce da prikaze "Reset password link je poslat na email"
+/* ForgotPasswordPage mora biti posebna strana tj da ne bude u okviru LoginPage. Kada u LoginPage user klikne "Forgot password", otvori se ova
+stranica koja sadrzi input email form gde user unosi email za koji je zaboravio password. AKo napadac unese pogresnu email slucajno, stize poruka da je poruka na mejl poslata
+sa reset-password URL jer to je dobta praksa da on ne svali da email adresa nije u bazi. AKo je email adresa u bazi, svakako toast.success, ali i poruka na mejl.
 */
 type Props = {}
 
@@ -15,10 +15,10 @@ type ForgotPasswordForm = {
     email: string
 }
 
-// Yup za validation. Za ovo postoji validacija i u BE, jer to je prava validacija bitna za reset password.
+// Yup za validation. Za ovo postoji validacija i u BE, jer to je prava validacija bitna za forgot password.
 const validation = Yup.object().shape({
-    email: Yup.string().required("Email is required"), // Yup.string() - jer email:string u ResetPasswordForm
-    // Mora ista imena i redosled polja kao u RegisterFormInputs
+    email: Yup.string().required("Email is required"), // Yup.string() - jer email:string u ForgotPasswordForm
+    // Mora ista imena i redosled polja kao u ForgotPasswordForm
 });
 
 const ForgotPasswordPage = (props: Props) => {
@@ -32,7 +32,7 @@ const ForgotPasswordPage = (props: Props) => {
                           Takodje, validira formu using yurResolver. Ako invalid forma, napravi formState.errors. Ako valid, napravi ForgotPasswordForm objekat sa poljima iz forme i pozove handleForgotPassword.*/
             reset,     // Nakon unosa u formu da se isprazni polje 
             formState: {errors}, // Destruktuira formState koji sadrzi samo 1 polje, pa mi samo treba errors objekat sa poljima email. Ovo je isto kao formState.errors, pa moze errors.email
-        } = useForm<ForgotPasswordForm>({resolver: yupResolver(validation)}); // Koristim yupResolver za validaciju forme
+    } = useForm<ForgotPasswordForm>({resolver: yupResolver(validation)}); // Koristim yupResolver za validaciju forme
     
     const handleForgotPassword = (form: ForgotPasswordForm) => {
         forgotPassword(form.email); // forgotPassword zahteva ovaj argument

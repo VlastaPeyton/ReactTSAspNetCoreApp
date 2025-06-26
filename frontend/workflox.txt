@@ -136,8 +136,10 @@ ErrorBoundary se inace stavlja oko Component koja mzoe da erroruje pa da ne pukn
    U terminal kucam "npm run build" jer sam kao spreman da deploy my app to production. Svaki put kad azuriram app, moram da ukucam ovo da bi se azurirao i production app.
    Nakon "npm run build " kucam "npm install serve" pa "npx serve -s build" da se ovo pokrene na serveru koji nije localhost da vidim kako production izgleda.
 
-   
+46) U Pages napravim ForgotPasswordPage koju otvaram kad u LoginPage kliknem "Forgot Password". Zatim u .NET sam napravio ForgotPassword endpoint i namestio u Gamil smtp password da moze .NET da pristupa mom gmailu
+Na email stize link koji vodi u reset password page.
 
+47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password.
 
    
 

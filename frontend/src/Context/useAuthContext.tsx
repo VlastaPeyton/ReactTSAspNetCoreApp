@@ -2,7 +2,7 @@ import { createContext } from "react";
 import { UserProfile } from "../Models/UserProfile";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerAPI, loginAPI, forgotPasswordAPI } from "../Services/AuthService";
+import { registerAPI, loginAPI, forgotPasswordAPI, resetPasswordAPI } from "../Services/AuthService";
 import { toast } from "react-toastify";
 import React from "react";
 
@@ -16,6 +16,7 @@ type UserContextType = {
     logout: () => void;
     isLoggedIn: () => boolean;
     forgotPassword: (email: string) => void;
+    resetPassword: (newPassword: string, confirmPassword: string) => void;
     // Ova imena mora da se poklope sa imenima u UserProvider + kod metoda mora da se poklopi redosled argumenata kao u UserProvider.
     // Sve navedeno ovde, moram da posaljem kroz value u UserContext.Provider ispod na dnu koda.
 }
@@ -140,9 +141,18 @@ export const UserProvider = ({children} : Props) => {
     const forgotPassword = async (email: string) => {
         await forgotPasswordAPI(email).then((result) => {
             if (result && typeof result.data === 'string'){
-                toast.success("Email postoji u bazi, reset password link je poslat na vasu adresu"); // Ovo samo za Dev sluzi, dok za Prod brise jer necu da me odaje
+                toast.success("Email mozda postoji ili ne u bazi, reset password link je poslat na vasu adresu."); // Ovo samo za Dev sluzi, dok za Prod brise jer necu da me odaje
             }
         }).catch((err) => toast.warn("Frontend error in forgotPasswordAPI"));
+    }
+
+    // Objasnjenje kao iznad za ostale funkcije
+    const resetPassword = async (newPassword: string, resetPasswordToken: string) => {
+        await resetPasswordAPI(newPassword, resetPasswordToken).then((result) => {
+            if (result && typeof result.data === 'string'){
+                toast.success("Uspesno ste resetovali password. Bravo majmune");
+            }
+        }).catch((err) => toast.warn("Frontend error in resetPasswordAPI"));
     }
 
     return (
@@ -152,7 +162,7 @@ export const UserProvider = ({children} : Props) => {
          UserContext = createContext<UserContextType>, a UserContextType ima loginUser, user, token, logout, isLoggedIn, registerUser polja i zato moramo u value sve da ih navedem. 
          isReady ? children : null znaci da ako isReady=true renderovace u App.tsx children components unutar <UserProvider>, a children samo preko useAuth mogu da pristupe to loginUser, user, token, logout, isLoggedIn, registerUser, stoga 
         moram definisati, van UserProvider, useAuth custom Hook.  */
-        <UserContext.Provider value={{ loginUser, user, token, logout, isLoggedIn, registerUser, forgotPassword }}> {isReady ? children : null}</UserContext.Provider>
+        <UserContext.Provider value={{ loginUser, user, token, logout, isLoggedIn, registerUser, forgotPassword, resetPassword}}> {isReady ? children : null}</UserContext.Provider>
         /* Prosledim vrednosti za polja u UserContextType zbog UserContext = createContext<UserContextType> i onda mogu preko useAuth custom Hook da pristupim ovome bez ponavljanja koda u children componentama izmedju <UserProvider> i </UserProvider> u App.tsx
         {children} je isto kao da napisem  <Component1/> <Component2>... , jer children je React.ReactNode tj 0,1 ili vise Components 
         */

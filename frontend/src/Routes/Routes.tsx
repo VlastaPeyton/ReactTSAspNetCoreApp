@@ -11,7 +11,8 @@ import Cashflow from "../Components/Cashflow/Cashflow";
 import LoginPage from "../Pages/LoginPage/LoginPage";
 import RegisterPage from "../Pages/RegisterPage/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
-import ForgotPasswordPage from "../Pages/ResetPasswordPage/ForgotPasswordPage";
+import ForgotPasswordPage from "../Pages/ForgotPasswordPage/ForgotPasswordPage";
+import ResetPasswordPage from "../Pages/ResetPasswordPage/ResetPasswordPage";
 
 // Ovo se koristi u index.tsx 
 // createBrowserRouter je noviji nacin umesto u App.tsx da stavim <Routes> <Route path="/" element={<HomePage />} /> .... </Routes> kao u ReactApp projektu sto sam uradio.
@@ -30,7 +31,8 @@ export const router = createBrowserRouter([
             {path: "design-guide", element: <DesignGuide />},                          // http://localhost:3000/design-guide
             {path: "login", element: <LoginPage />},                                   // http://localhost:3000/login
             {path: "register", element: <RegisterPage />},                             // http://localhost:3000/register
-            {path: "forgot-password", element: <ForgotPasswordPage />},                  // http://localhost:3000/forgot-password
+            {path: "forgot-password", element: <ForgotPasswordPage />},                // http://localhost:3000/forgot-password
+            {path: "reset-password", element: <ResetPasswordPage />},                  // http://localhost:3000/reset-password
             {path: "company/:ticker",                   
              element:  <ProtectedRoute><CompanyPage /></ProtectedRoute>,               // http://localhost:3000/company/:ticker
              children: [{path:"company-profile", element: <CompanyProfile />},         // http://localhost:3000/company/:ticker/company-profile

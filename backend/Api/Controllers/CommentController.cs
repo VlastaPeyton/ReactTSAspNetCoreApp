@@ -89,7 +89,7 @@ namespace Api.Controllers
             // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, a StatusCode=200 u Response Status Line.
         }
 
-        [EnableRateLimiting("slow")]
+        //[EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
         // [Authorize] Necu staviti, jer User.GetUserName() svakako zahteva JWT, ali je dobra praksa imati [Authorize] u tom slucaju, da onaj ko cita kod, a ne zna dobro .NET, zna da mora JWT biti poslat from FE.

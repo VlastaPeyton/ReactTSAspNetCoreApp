@@ -63,9 +63,10 @@ export const registerAPI = async (email: string, username: string, password: str
 
 // For useAuthContext.tsx  - objasnjenje isto kao iznad 
 export const forgotPasswordAPI = async(email: string) =>{
+    // Try-catch zbog axios
     try{
         // Nije potreban JWT poslati u BE ForgotPassword method, jer ovo se radi kad se jos nismo ni login.
-        // Moram navesti <string> kao POTENCIJALNI return ako BE ne vrati error (ako nadje email u bazi), jer uspesan ForgotPassword method u AccountController u .NET vraca Ok("uspesno") 
+        // Moram navesti <string> kao POTENCIJALNI return ako BE ne vrati error (ako nadje email u bazi), jer uspesan ForgotPassword method u AccountController u .NET vraca Ok("Reset password link is sent to your email") 
         const response = await axios.post<string>(apiEndpoint + "account/forgotpassword", {
             // Najbolje slati email u Request Body, a ne as Query parameter of URL => AccountController ForgotPassword method zahtva [FromBody]
             // Body of Request
@@ -80,6 +81,26 @@ export const forgotPasswordAPI = async(email: string) =>{
         handleError(error);
     }
     // Nema return u catch, pa ako error bude, response = undefinded i zato u forgotPassowr radim if (ili proverim sa ?).
+}
+
+// For useAuthContext.tsx - objasnjeje kao iznad 
+export const resetPasswordAPI = async(newPassword: string, resetPasswordToken: string) =>{
+    try{
+        // Nije potreban JWT poslati u BE ResetPassword method, jer ovo se radi kad se nisam ni login jos
+        // Moram navesti <string> kao POTENCIJALNI return ako BE ne vrati error 
+        const response = await axios.post<string>(apiEndpoint + "account/resetpassword", {
+            // Najbolje slati password u Request Body, a ne u Query => ResetPassword metod zahteva [FromBody]
+            // Body of Request. 
+            NewPassword: newPassword,
+            ResetPasswordToken: resetPasswordToken
+            // Ovo je redosled i imena argumenata za ResetPasswordDTO u ResetPassword Endpoint i moram ovode da ispratim to
+        });
+
+        return response; 
+
+    } catch (error){
+        handleError(error); 
+    }
 }
 
 // Poredi ovo sa api.tsx jer tamo Request saljem na Public API sa neta i drugacije je malo.

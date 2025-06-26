@@ -70,7 +70,7 @@ namespace Api.Controllers
             // Frontendu ce biti poslato StatusCode=200 u Response StatusLine, a userPortfolios u Response Body.
         }
 
-        [EnableRateLimiting("fast")] // Jer cesto koristim ovu metodu
+        //[EnableRateLimiting("fast")] // Jer cesto koristim ovu metodu
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje

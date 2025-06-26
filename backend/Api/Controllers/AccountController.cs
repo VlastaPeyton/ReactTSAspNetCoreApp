@@ -169,11 +169,20 @@ namespace Api.Controllers
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(passwordResetToken));
             // Create frontend reset-password url 
             string frontendBaseUrl = Env.GetString("frontendBaseURL"); // U Program.cs sam Env.Load() i zato ovo moze
-            var resetUrl = $"{frontendBaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={encodedToken}";
+            var resetUrl = $"{frontendBaseUrl}/reset-password?token={encodedToken}"; // Ne treba email biit poslat, rizicno je !
             // Send email to user.Email containing "Reset Password" subject and message containing reset-password url 
             await _emailSender.SendEmailAsync(user.Email, "Reset Password",$"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password.");
+            
+            // URL je oblika http://localhost:port/reset-password?token=sad8282s9. Iako imam ovaj Query Parameter, ReactTS svakako otvara http://localhost:port/reset-password (ResetPasswordPage)
+)           
             // Send success message to FE 
             return Ok("Reset password link is sent to your email"); 
+        }
+
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
+        {
+            
         }
 
     }
