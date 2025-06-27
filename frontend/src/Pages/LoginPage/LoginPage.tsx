@@ -30,6 +30,7 @@ const LoginPage = (props: Props) => {
         formState: {errors}, // Destruktuira formState koji sadrzi vise polja, pa mi samo treba errors objekat koji sadrzi userName i password polja. Ovo je isto kao formState.errors. Moze errors.userName/password.message
     } = useForm<LoginFormInputs>({resolver: yupResolver(validation)}) // Koristim yupResolver za validaciju of React Hook Form 
 
+    // Ne treba await loginUser ovde jer logicki mi ne treba
     const handleLogin = (loginForm: LoginFormInputs) => {
         loginUser(loginForm.userName, loginForm.password); // loginUser zahteva ovaj redosled argumenata.
     }

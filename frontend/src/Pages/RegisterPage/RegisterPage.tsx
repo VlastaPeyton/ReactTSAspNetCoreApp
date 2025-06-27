@@ -31,6 +31,7 @@ const RegisterPage = (props: Props) => {
         formState: {errors}, // Destruktuira formState koji sadrzi vise polja, pa mi samo treba errors objekat sa poljima userName i password. Ovo je isto kao formState.errors, pa moze errors.userName/password.message
     } = useForm<RegisterFormInputs>({resolver: yupResolver(validation)}); // Koristim yupResolver za validaciju forme
 
+    // Ovde nema await reigsterUser jer nam ne treba
     const handleRegister = (form: RegisterFormInputs) => {
         registerUser(form.email, form.userName, form.password); // registerUser zahteva ovaj redosled argumenata.
     }

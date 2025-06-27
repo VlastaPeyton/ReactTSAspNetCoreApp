@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { registerAPI, loginAPI, forgotPasswordAPI, resetPasswordAPI } from "../Services/AuthService";
 import { toast } from "react-toastify";
 import React from "react";
+import { boolean } from "yup";
 
 // Context je global state which allows me to share data across components (inside <UserProvider> in App.tsx) without passing props manually to them 
 
@@ -16,7 +17,7 @@ type UserContextType = {
     logout: () => void;
     isLoggedIn: () => boolean;
     forgotPassword: (email: string) => void;
-    resetPassword: (newPassword: string, confirmPassword: string) => void;
+    resetPassword: (newPassword: string, confirmPassword: string, email: string) => Promise<boolean>;
     // Ova imena mora da se poklope sa imenima u UserProvider + kod metoda mora da se poklopi redosled argumenata kao u UserProvider.
     // Sve navedeno ovde, moram da posaljem kroz value u UserContext.Provider ispod na dnu koda.
 }
@@ -147,12 +148,19 @@ export const UserProvider = ({children} : Props) => {
     }
 
     // Objasnjenje kao iznad za ostale funkcije
-    const resetPassword = async (newPassword: string, resetPasswordToken: string) => {
-        await resetPasswordAPI(newPassword, resetPasswordToken).then((result) => {
-            if (result && typeof result.data === 'string'){
+    const resetPassword = async (newPassword: string, resetPasswordToken: string, email: string) => {
+        try{
+            const result = await resetPasswordAPI(newPassword, resetPasswordToken, email);
+            if (result && typeof result.data === 'string') {
                 toast.success("Uspesno ste resetovali password. Bravo majmune");
+                return true; // Success
             }
-        }).catch((err) => toast.warn("Frontend error in resetPasswordAPI"));
+            return false; // Failed (result= undefined in resetPasswordAPI)
+        } catch (err){
+            toast.warn("Frontend error in resetPasswordAPI");
+            return false;
+        }
+        
     }
 
     return (

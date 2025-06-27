@@ -48,6 +48,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Api.Controllers.AccountController",
+    "Method": "ResetPassword",
+    "RelativePath": "api/account/resetpassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "resetPasswordDTO",
+        "Type": "Api.DTOs.Account.ResetPasswordDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Api.Controllers.CommentController",
     "Method": "GetAll",
     "RelativePath": "api/comment",

@@ -62,7 +62,7 @@ export const registerAPI = async (email: string, username: string, password: str
 }
 
 // For useAuthContext.tsx  - objasnjenje isto kao iznad 
-export const forgotPasswordAPI = async(email: string) =>{
+export const forgotPasswordAPI = async (email: string) =>{
     // Try-catch zbog axios
     try{
         // Nije potreban JWT poslati u BE ForgotPassword method, jer ovo se radi kad se jos nismo ni login.
@@ -83,8 +83,8 @@ export const forgotPasswordAPI = async(email: string) =>{
     // Nema return u catch, pa ako error bude, response = undefinded i zato u forgotPassowr radim if (ili proverim sa ?).
 }
 
-// For useAuthContext.tsx - objasnjeje kao iznad 
-export const resetPasswordAPI = async(newPassword: string, resetPasswordToken: string) =>{
+// For useAuthContext.tsx - objasnjeje kao iznad
+export const resetPasswordAPI = async (newPassword: string, resetPasswordToken: string, email: string) =>{
     try{
         // Nije potreban JWT poslati u BE ResetPassword method, jer ovo se radi kad se nisam ni login jos
         // Moram navesti <string> kao POTENCIJALNI return ako BE ne vrati error 
@@ -92,13 +92,14 @@ export const resetPasswordAPI = async(newPassword: string, resetPasswordToken: s
             // Najbolje slati password u Request Body, a ne u Query => ResetPassword metod zahteva [FromBody]
             // Body of Request. 
             NewPassword: newPassword,
-            ResetPasswordToken: resetPasswordToken
+            ResetPasswordToken: resetPasswordToken,
+            EmailAddress: email
             // Ovo je redosled i imena argumenata za ResetPasswordDTO u ResetPassword Endpoint i moram ovode da ispratim to
         });
 
-        return response; 
+        return response;  // ResetPassword sends Ok("If the email exists in our system, the password has been reset."") i da je dobro i da je lose  pa response.status=200
 
-    } catch (error){
+    } catch (error){ // Samo ako ResetPassword endpoint vrati BadRequest response=undefined in try block
         handleError(error); 
     }
 }

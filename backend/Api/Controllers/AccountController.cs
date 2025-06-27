@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json.Linq;
 using DotNetEnv;
+using System.Net;
 namespace Api.Controllers
 {
     // Postman/Swagger gadja Endpoints ovde definisane
@@ -22,13 +23,14 @@ namespace Api.Controllers
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
         private readonly IEmailService _emailSender; // U Program.cs definisan da poveze IEmailSender kao EmailService
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService)
+        private readonly ILogger<AccountController> _logger;
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService, ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _emailSender = emailService;
-
+            _logger = logger;
         }
 
         // Svaki Endpoint koristi DTO kao argumente i DTO za slanje object to FE, jer to je dobra praksa da ne diram Models klase koje su za Repository namenjene obzirom da models klase se koriste sa EF.
@@ -147,34 +149,35 @@ namespace Api.Controllers
             // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a NewUserDTO u Response Body.
         }
 
-        [HttpPost("forgotpassword")] 
+        [HttpPost("forgotpassword")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
         // Email se obicno salje u Request Body from FE, moze i FromQuery, ali nije dobra praksa
-        {   
+        {
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ForgotPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
 
             // Ako user namerno unese email koji nije u bazi, BE vraca OK("Reset password link is sent to your email") zbog sigurnosti jer onda je user napadac i da ne provali da taj mejl ne postoji pa da ne predje na drugi
-            
+
             var user = await _userManager.FindByEmailAsync(forgotPasswordDTO.EmailAddress);
             // If email is not found, just send "success" mesage to FE da zavaramo trag napadacima
             if (user is null)
                 return Ok("Reset password link is sent to your email");
 
             // If email found, generate a secure & time-limited (by default to 1day) reset token, send email and success message to FE
-            var passwordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user); // token je samo za ovog usera validan i nije skladisten u bazi 
             // Encode token to safely include in URL
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(passwordResetToken));
+            var encodedToken = WebUtility.UrlEncode(passwordResetToken); // Encode before putting in URL
             // Create frontend reset-password url 
             string frontendBaseUrl = Env.GetString("frontendBaseURL"); // U Program.cs sam Env.Load() i zato ovo moze
-            var resetUrl = $"{frontendBaseUrl}/reset-password?token={encodedToken}"; // Ne treba email biit poslat, rizicno je !
+            var resetUrl = $"{frontendBaseUrl}/reset-password?token={encodedToken}&email={user.Email}"; // Ne treba email biit poslat, rizicno je !
             // Send email to user.Email containing "Reset Password" subject and message containing reset-password url 
-            await _emailSender.SendEmailAsync(user.Email, "Reset Password",$"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password.");
+            await _emailSender.SendEmailAsync(user.Email, "Reset Password", $"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password.");
+            // URL je oblika http://localhost:port/reset-password?token=sad8282s9&email=adresa@gmail.com. Iako imam ovaj Query Parameter, ReactTS svakako otvara http://localhost:port/reset-password (ResetPasswordPage)         
             
-            // URL je oblika http://localhost:port/reset-password?token=sad8282s9. Iako imam ovaj Query Parameter, ReactTS svakako otvara http://localhost:port/reset-password (ResetPasswordPage)
-)           
+            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda u ResetPasswrod FE posalje taj token ,ali .NET ima mehanizam, u ResetPasswordAsync, koji decodes token i vidi user credentials u tokenu
+            
             // Send success message to FE 
             return Ok("Reset password link is sent to your email"); 
         }
@@ -182,7 +185,40 @@ namespace Api.Controllers
         [HttpPost("resetpassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
         {
-            
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ResetPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
+
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.EmailAddress);
+
+            // Always return success to prevent email enumeration attack ! 
+            // But only actually reset if user exists
+            if (user is not null)
+            {
+                _logger.LogInformation("User found: {Email}", resetPasswordDTO.EmailAddress);
+                var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
+                /* ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword encodovao token.
+                 Prover i li je za ovaj user generisan resetPasswordToken u ForgotPassword i da li NewPassword se slaze sa zahtevima u Program.cs */
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("Password reset failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+
+                    return Ok("If the email exists in our system, the password has been reset"); // Iako nije uspeo, foliram da jeste da napadaca ometem.
+                }
+                else
+                {
+                    _logger.LogInformation("Password reset successful for {Email}", resetPasswordDTO.EmailAddress);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("User not found: {Email}", resetPasswordDTO.EmailAddress);
+            }
+
+            // Always return the same response regardless of whether user exists or reset succeeded
+            // This prevents timing attacks and email enumeration
+            return Ok("If the email exists in our system, the password has been reset.");
         }
 
     }
