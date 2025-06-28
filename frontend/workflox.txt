@@ -139,7 +139,9 @@ ErrorBoundary se inace stavlja oko Component koja mzoe da erroruje pa da ne pukn
 46) U Pages napravim ForgotPasswordPage koju otvaram kad u LoginPage kliknem "Forgot Password". Zatim u .NET sam napravio ForgotPassword endpoint i namestio u Gamil smtp password da moze .NET da pristupa mom gmailu
 Na email stize link koji vodi u reset password page.
 
-47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password.
+47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password. Onda u BE napravim ResetPassword endpoint koji ce obradjivati zahteve sa ove stranice
+
+48) Na Homepage zelim dodati Google mapu sa lokacijom zeljenom
 
    
 
