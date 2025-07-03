@@ -16,7 +16,7 @@ namespace Api.Controllers
     [Route("api/comment")] // https://localhost:port/api/comment
     [ApiController]
     public class CommentController : ControllerBase
-    {
+    {    // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly ICommentRepository _commentRepository; 
         private readonly IStockRepository _stockRepository; // Interaction with DB is made inside Repository
         private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 

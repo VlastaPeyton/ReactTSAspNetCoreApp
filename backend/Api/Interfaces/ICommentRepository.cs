@@ -8,6 +8,8 @@ namespace Api.Interfaces
        Ne koristim CommentDTO, vec Comment, jer Repository direktno sa bazom komunicira.
        
        Objasnjenje za CancellationToken pogledaj u CommentController. 
+
+       Za svaku klasu koja predstavlja Service pravim interface pomocu koga radim DI u Controller, dok u Program.cs pisem da prepozna interface kao zeljenu klasu
     */
     public interface ICommentRepository
     {

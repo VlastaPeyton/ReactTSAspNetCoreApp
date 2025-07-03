@@ -14,7 +14,7 @@ namespace Api.Controllers
     [Route("api/stock")] // https://localhost:port/api/stock
     [ApiController]
     public class StockController : ControllerBase
-    {   
+    {    // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly IStockRepository _stockRepository; // Interactions with DB are made inside Repository
         public StockController(IStockRepository repository)
         {   // U Program.cs registrovan IStockRepository kao StockRepository

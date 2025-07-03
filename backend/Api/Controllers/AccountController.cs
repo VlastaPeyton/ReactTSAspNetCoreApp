@@ -18,7 +18,7 @@ namespace Api.Controllers
     [Route("api/account")] // https://localhost:port/api/account
     [ApiController]
     public class AccountController : ControllerBase
-    {
+    {   // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService

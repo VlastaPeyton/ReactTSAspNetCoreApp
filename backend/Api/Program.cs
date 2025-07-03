@@ -158,7 +158,7 @@ app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od 
 app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
 app.UseAuthorization();  // Enforces access rules based on user identity
 
-// Activate Controllers routing.
+// Activate Controllers routing. Svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
 
 // Use Rate Limiter on desired Endpoints 

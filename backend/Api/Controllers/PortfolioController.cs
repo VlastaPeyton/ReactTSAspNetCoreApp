@@ -11,7 +11,7 @@ namespace Api.Controllers
     [Route("api/portfolio")]
     [ApiController]
     public class PortfolioController : ControllerBase
-    {
+    {    // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly UserManager<AppUser> _userManager; // Moze jer AppUser:IdentityUser
         private readonly IStockRepository _stockRepository;
         private readonly IPortfolioRepository _portfolioRepository;

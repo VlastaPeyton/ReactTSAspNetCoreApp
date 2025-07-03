@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 
 namespace Api.Extensions
-{
+{   // Mora uvek static kad extensiom method pravim
     public static class ClaimsExtensions
     {
         public static string GetUserName(this ClaimsPrincipal user)

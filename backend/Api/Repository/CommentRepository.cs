@@ -47,10 +47,10 @@ namespace Api.Repository
 
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
         {
-            var comments = _dbContext.Comments.Include(c => c.AppUser).AsQueryable(); 
+            var comments = _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).AsQueryable(); 
             // Comment ima AppUser polje i PK-FK vezu sa AppUser i zato moze Include
             // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr comments.Where(...)
-            // Ovde nema EF tracking jer nisam izvuko 1 row iz Comments tabele, vec sve 
+            // Ovde nema EF tracking jer sam stavio AsNoTracking posto necu da modifikujem comments nakon ocitavanja iz baze, pa da ne dodajem overhead and memory zbog tracking
 
             // In if statement no need to AsQueryable again
             if (!string.IsNullOrWhiteSpace(commentQueryObject.Symbol))
@@ -65,9 +65,9 @@ namespace Api.Repository
 
         public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {   // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
-            var existingComment = await _dbContext.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id, cancellationToken); 
+            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id, cancellationToken); 
             // Id je PK i Index by default tako da pretrazuje bas brzo
-            // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam nista u objektu
+            // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam nista u objektu pa sam dodao AsNoTracking jer tracking dodaje overhead and uses memory
             if (existingComment is null)
                 return null;
 

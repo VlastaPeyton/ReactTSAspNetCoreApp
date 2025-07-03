@@ -3,6 +3,42 @@
   "WorkspaceRootPath": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\itokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\itokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\istockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\istockrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\iportfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\iportfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\ifinacialmodelingprepservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\ifinacialmodelingprepservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\iemailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\interfaces\\icommentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\interfaces\\icommentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\stockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\stockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\portfoliocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\portfoliocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\commentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\commentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,8 +50,138 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ITokenService.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\ITokenService.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\ITokenService.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\ITokenService.cs",
+              "RelativeToolTip": "Api\\Interfaces\\ITokenService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:29:13.49Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IStockRepository.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IStockRepository.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\IStockRepository.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IStockRepository.cs",
+              "RelativeToolTip": "Api\\Interfaces\\IStockRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:29:04.226Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IPortfolioRepository.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IPortfolioRepository.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\IPortfolioRepository.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IPortfolioRepository.cs",
+              "RelativeToolTip": "Api\\Interfaces\\IPortfolioRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:28:53.713Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IFinacialModelingPrepService.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IFinacialModelingPrepService.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\IFinacialModelingPrepService.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IFinacialModelingPrepService.cs",
+              "RelativeToolTip": "Api\\Interfaces\\IFinacialModelingPrepService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:28:37.037Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IEmailService.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IEmailService.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\IEmailService.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\IEmailService.cs",
+              "RelativeToolTip": "Api\\Interfaces\\IEmailService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:28:26.096Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ICommentRepository.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\ICommentRepository.cs",
+              "RelativeDocumentMoniker": "Api\\Interfaces\\ICommentRepository.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Interfaces\\ICommentRepository.cs",
+              "RelativeToolTip": "Api\\Interfaces\\ICommentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:27:27.527Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "StockController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\StockController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\StockController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\StockController.cs",
+              "RelativeToolTip": "Api\\Controllers\\StockController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABAAAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:27:02.857Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PortfolioController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\PortfolioController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\PortfolioController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\PortfolioController.cs",
+              "RelativeToolTip": "Api\\Controllers\\PortfolioController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:26:57.108Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "CommentController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\CommentController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\CommentController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\CommentController.cs",
+              "RelativeToolTip": "Api\\Controllers\\CommentController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:26:51.54Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Api\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABQAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-02T16:25:08.491Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
@@ -27,19 +193,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "Api\\Controllers\\AccountController.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "Api\\Controllers\\AccountController.cs",
-              "ViewState": "AgIAAIUAAAAAAAAAAAAowLcAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T15:38:26.405Z",
-              "EditorCaption": ""
             }
           ]
         }

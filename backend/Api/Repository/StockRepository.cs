@@ -47,10 +47,10 @@ namespace Api.Repository
 
         public async Task<List<Stock>> GetAllAsync(QueryObject query, CancellationToken cancellationToken)
         {   
-            var stocks = _dbContext.Stocks.Include(c => c.Comments).ThenInclude(c => c.AppUser).AsQueryable(); // Dohvati sve stocks + njihove komentare + AppUser svakog komentara
+            var stocks = _dbContext.Stocks.AsNoTracking().Include(c => c.Comments).ThenInclude(c => c.AppUser).AsQueryable(); // Dohvati sve stocks + njihove komentare + AppUser svakog komentara
             // Stock ima List<Comment> polje i FK-PK vezu sa Comment i zato moze include. Bez tog polja, moralo bi kompleksiniji LINQ.
             // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr stocks.Where(...)
-            // Ovde nema EF change track jer nisam izvuko jedan row iz Stocks tabele vec sve
+            // Ovde nema EF change tracking jer AsNoTracking, obzirom da ne azuriram ono sto sam dohvatio, pa da neam bespotrebni overhead and memory zbog tracking
 
             // In if statement no need to AsQueryable again 
             if (!string.IsNullOrWhiteSpace(query.CompanyName))
@@ -72,15 +72,15 @@ namespace Api.Repository
         {  // Objasnjene za Include je u GetAllAsync
            // FirstOrDefaultAsync moze da vrati null ( i to bez if(stock is null)) i zato Stock? return type, da se compiler ne buni. 
            // FindAsync je brze od FirstOrDefaultAsync, ali nakon Include ne moze FindAsync.
-            return await _dbContext.Stocks.Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id, cancellationToken); // Dohvati zeljeni stock na osnovu Id polja + njegove komentare
-           // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti
+            return await _dbContext.Stocks.AsNoTracking().Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id, cancellationToken); // Dohvati zeljeni stock na osnovu Id polja + njegove komentare
+           // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti + AsNoTracking ima jer tracking ubaca overhead and memory bespotrebno ovde
         }
 
         public async Task<Stock?> GetBySymbolAsync(string symbol, CancellationToken cancellationToken)
         {   // FirstOrDefaultAsync moze da vrati null i zato Stock? return type, da se compiler ne buni. 
-            return await _dbContext.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol, cancellationToken); // Ne moze FindAsync, iako je brze, jer FindAsync pretrazuje po Id samo
+            return await _dbContext.Stocks.AsNoTracking().FirstOrDefaultAsync(s => s.Symbol == symbol, cancellationToken); // Ne moze FindAsync, iako je brze, jer FindAsync pretrazuje po Id samo
             // Iako ovaj Endpoit ne koristim cesto, jer retko pisem komentare za stock u FE, Stock.Symbol sam stavio u Index zbog DeletePortfolio, pa automatski i ovde brze ce da pretrazi
-            // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti
+            // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti + AsNoTracking ima jer tracking ubaca overhead and memory bespotrebno ovde
         }
 
         public async Task<bool> StockExists(int id, CancellationToken cancellationToken)
