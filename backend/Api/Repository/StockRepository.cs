@@ -34,7 +34,8 @@ namespace Api.Repository
 
         public async Task<Stock?> DeleteAsync(int id, CancellationToken cancellationToken)
         {   
-            var stock = await _dbContext.Stocks.FirstOrDefaultAsync(x => x.Id == id, cancellationToken); // EF tracks stock object, so every change made to stock will be applied to its corresponding row in Stocks table after SaveChangesAsync
+            var stock = await _dbContext.Stocks.FirstOrDefaultAsync(x => x.Id == id, cancellationToken); 
+            // EF tracks stock object, so every change made to stock will be applied to its corresponding row in Stocks table after SaveChangesAsync. Ne smem AsNoTracking jer Remove(stock) ne moze za untracked object.
             // As Id is PK for Stock, it is automatically also Index so this is fastest way for query
             if (stock is null)
                 return null;
@@ -91,7 +92,7 @@ namespace Api.Repository
         public async Task<Stock?> UpdateAsync(int id, Stock stock, CancellationToken cancellationToken)
         {   // FindAsync moze da vrati null i zato Stock? da compiler se ne buni 
             var existingStock = await _dbContext.Stocks.FindAsync(id, cancellationToken); // Brze nego FirstOrDefaultAsync, ali nema Include (jer ne trazim Comments/Portfolios pa mi ne treba), pa moze FindAsync 
-            // EF will track existingStock after FindAsync, so any change made to existingStock will apply to DB after SaveChangesAsync
+            // EF will track existingStock after FindAsync, so any change made to existingStock will apply to DB after SaveChangesAsync. Ne sme AsNoTracking, jer azuriram objekat u tabeli.
             // EF in Change Tracker marks existingStock tracking state to Unchanged jer ga je tek naso u bazi
             if (existingStock is null) // Mora da proverim, jer FindAsync vrati null ako nije nasla
                 return null;

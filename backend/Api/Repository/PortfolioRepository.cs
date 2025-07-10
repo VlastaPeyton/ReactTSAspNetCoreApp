@@ -31,7 +31,8 @@ namespace Api.Repository
 
         public async Task<Portfolio> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken)
         {
-            var portfolio = await _dbContext.Portfolios.FirstOrDefaultAsync(p => p.AppUserId == appUser.Id && p.Stock.Symbol.ToLower() == symbol.ToLower(), cancellationToken); // EF start tracking changes in portfolio object
+            var portfolio = await _dbContext.Portfolios.FirstOrDefaultAsync(p => p.AppUserId == appUser.Id && p.Stock.Symbol.ToLower() == symbol.ToLower(), cancellationToken); 
+            // EF start tracking changes in portfolio object. Ne smem AsNoTracking, jer Remove(portfolio) ne moze za untracked entity objects. 
             // U OnModelCreating objasnjeno zasto sam Stock.Symbol Indexirao.
             if (portfolio == null)
                 return null;
