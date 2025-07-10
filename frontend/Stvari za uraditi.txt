@@ -1,0 +1,8 @@
+ESlint dodaj
+Poboljsaj Protected Route "Dok user logout i click on some login-needed route, take user to login, and then take him back to that route.
+Storybook nauci
+useMemo, useCallback nauci
+Route level code splitting => Top level component u Route da bude . Valjda jeste ali proveri 
+Cypress za E2E testing
+Dodaj video 
+Dodaj EN/SR 

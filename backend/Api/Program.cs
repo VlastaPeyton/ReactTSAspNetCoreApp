@@ -146,7 +146,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(); // Default UI at /swagger
 
-app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045
+app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045 jer je sigurnije
 
 // CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
 app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
@@ -158,7 +158,7 @@ app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od 
 app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
 app.UseAuthorization();  // Enforces access rules based on user identity
 
-// Activate Controllers routing. Svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
+// Activate Controllers routing. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
 
 // Use Rate Limiter on desired Endpoints 

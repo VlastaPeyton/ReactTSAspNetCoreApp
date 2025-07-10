@@ -7,13 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data
 {   
-    // Definisem imena tabela u bazi
+    // DbContext sluzi za definisanje imena tabela i OnModelCreating u kom pravim PK-FK relacije i Seedujem tabelu (ako je potreban Seed)
     public class ApplicationDBContext : IdentityDbContext<AppUser>
     {   // Umesto DbContext, koristim IdentityDbContext zbog Login/Register of AppUser(IdentityUser). Kao i DbContext, takodje u Progrma.cs registrujem IdentityDbContext
 
-        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
-        {
-        }
+        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options) {}
 
         // Moraju tabele default! da Compiler moze da garantuje da nisu null tokom inicijalizacije njihove. 
         public DbSet<Stock> Stocks { get; set; } = default!;
