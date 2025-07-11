@@ -37,7 +37,7 @@ namespace Api.Data
                                        .WithMany(u => u.Portfolios) // 1 Stock can belong to many Portfolios (Stock ima list<Portoflio> Portfolios polje)
                                        .HasForeignKey(p => p.StockId); // FK in Porftolio is StockId koji automatski gadaj Stock.Id (na osnovu imena EF ih mapira), jer Portfolio ima StockId polje
 
-            // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio
+            // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio. Ovo se zove Eager loading kad Include radim.
 
             /* Objasnjene: Neka postoji AppUser1, AppUser2, Stock1, Stock2 i Stock3. 
                             AppUser1 ima Stock1 i Stock2. 

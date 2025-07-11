@@ -12,14 +12,14 @@ namespace Api.Models
         */
 
         // U ApplicationDbContext OnModelCreating definisem PK(AppUser.Id) vezu sa FK iz Porftolio.cs (AppUserId) mada to bi EF i sam znao 
-        public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Collection navigation property. Dobra praksa da ima default value. Uz PK-FK za AppUser-Portfolio, omogucava koriscenje Include sto olaksava LINQ.
+        public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Collection navigation property. Dobra praksa da ima default value. Uz PK-FK za AppUser-Portfolio, omogucava koriscenje Include sto olaksava LINQ (Eager loading).
 
         /* Obzirom da AppUser moze imati vise Stocks, nije dobra prkasa da AppUser ima polje List<Stock> Stocks, vec svaki taj Stock od AppUser predstavljam kao Portfolio (npr Portfolio1 = {AppUserId1, StockId1, AppUser1, Stock1}), a sve Stocks od AppUser predstavlja kao List<Portfolio>.
          
            Navigation property : - Moze biti tipa druge Entity klase ili List<DrugaEntityKlasa>. Ako je List, onda dobra praksa dodati mu default value da compiler ne kuka.
                                  - Ako je tipa druge Entity klase, a ta klasa ima navigation property tipa ove klase, mora u Program.cs se napisati ona JSON fora da gasi circular reference
                                  - U OnModelCreating obavezno PK-FK definicija (ili EF na osnovu imena PK/FK polja i Navigation property moze to i sam na osnovu imena polja)
-                                 - Kad FE gadja GET Endpoint, trebace mi Include ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
+                                 - Kad FE gadja GET Endpoint, trebace mi Include (Eager loading) ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
                                  - Olaksava LINQ, jer uz definisanu FK-PK relaciju, mogu koristiti Include u LINQ da kroz ovu klasu dohvatim njen navigation property 
                                  - Ne postoji kao kolona u tabeli jer ne moze kolona biti non primary typa 
                                  - Kada writing to DB, from FE ne saljemo nikad ovo polje, jer ono, uz PK i FK polja, sluzi da poveze 2 tabele. I zato cesto mora imati default vrednost 

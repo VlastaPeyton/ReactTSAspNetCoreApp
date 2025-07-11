@@ -50,7 +50,7 @@ namespace Api.Repository
 
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
         {
-            var comments = _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).AsQueryable(); 
+            var comments = _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).AsQueryable();  // Include is Eager loading
             // Comment ima AppUser polje i PK-FK vezu sa AppUser i zato moze Include
             // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr comments.Where(...)
             // Ovde nema EF tracking jer sam stavio AsNoTracking posto necu da modifikujem/brisem comments nakon ocitavanja iz baze, pa da ne dodajem overhead and memory zbog tracking
