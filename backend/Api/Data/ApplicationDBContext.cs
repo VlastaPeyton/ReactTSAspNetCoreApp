@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data
 {   
-    // DbContext sluzi za definisanje imena tabela, a u OnModelCreating pravim PK-FK relacije, Seedujem tabelu ako treba, definisem uslove za zeljene kolone tabele i Indexiranje tabele ako treba.
+    // DbContext sluzi za definisanje imena tabela, a u OnModelCreating pravim PK, FK, PK-FK relacije, Seedujem tabelu ako treba, definisem uslove za zeljene kolone tabele i Indexiranje tabele ako treba.
     public class ApplicationDBContext : IdentityDbContext<AppUser>
     {   // Umesto DbContext, koristim IdentityDbContext zbog Login/Register of AppUser(IdentityUser). Kao i DbContext, takodje u Progrma.cs registrujem IdentityDbContext
 
@@ -23,7 +23,8 @@ namespace Api.Data
         {
             base.OnModelCreating(builder);
 
-            // Nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK. 
+            /*Nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip.
+            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs koaj sadrzi Value polje, ctor i Of metodu - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK. */
 
             // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
             builder.Entity<Portfolio>(x => x.HasKey(p => new { p.AppUserId, p.StockId })); // Ovo je samo po sebi index za ovaj composite key
