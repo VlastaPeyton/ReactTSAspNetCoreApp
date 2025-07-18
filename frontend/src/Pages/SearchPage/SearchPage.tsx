@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useState } from 'react'
+import { SyntheticEvent, useEffect, useState, useCallback } from 'react'
 import { CompanySearch } from '../../company';
 import { searchCompanies } from '../../Axios/api';
 import Hero from '../../Components/Hero/Hero';
@@ -37,7 +37,8 @@ const SearchPage = (props: Props) => {
     getPortfoliosFromBackend();
   },[]); // On loading da ocita listu tj my portfolios sa svim cards dodatim prosli put kad sam bio u app
 
-  const getPortfoliosFromBackend = async () => {
+  // Mora useCallback jer je def u ovoj metodi kao i onPortfolioDelete koja je prop za ListPortfolio tj CardPortfolio koji ima React.memo - videti workflow.
+  const getPortfoliosFromBackend = useCallback(async () => {
     // Then-catch je isto kao da sam pisao try-catch. Catch mora ako dodje go greske u portfolioGetApi koji je Frontend.
     await portfolioGetApi().then((result)=>{
       // result.data je tipa PortfolioGetFromBackend[] ako backend vratio StatusCode=2XX jer onda u portfolioGetAPI izvrsio try block
@@ -46,18 +47,20 @@ const SearchPage = (props: Props) => {
         setPortfolioValues(result?.data); // Set triggers re-render of this component
       }
     }).catch((err)=> toast.warning("Couldnt get portfolios")); // Prikaze mali pop-up u gornji desni ugao ekrana ako bude frontend greska u portfolioGetApi (ne u backendu)
-  }
+  },[]);  // Nema dependency jer ne poziva funkciju def unutar ovog component niti ocitava nesto externo niti portfolioGetApi prima argument
 
   /* Ova metoda pokrece se iz Search.tsx preko onChange, a onChange ne trazi e.preventDefault() u funkciji koju referencira,
-  stoga ovde nema e.preventDefault() i zato sam prosledio direktno e.target.value (non Event type), a ne e (Event type). */
-  const handleSearchChange = (eTargetValue: string) : void => {
+  stoga ovde nema e.preventDefault() i zato sam prosledio direktno e.target.value (non Event type), a ne e (Event type).
+  Ova funkcija je prosledjena to child component (Search) koji ima React.memo, i zato mora useCallback - objasnjeno u workflow.txt */
+  const handleSearchChange = useCallback((eTargetValue: string) : void => {
     setSearch(eTargetValue); // search dobije vrednost koju sam uneo kroz formu in Search.tsx 
-  };
+  },[]); // Nema dependency jer ne poziva funkciju def unutar ovog component niti ocitava nesto externo 
 
   /* Moze SyntheticEvent koji hvata vecinu Eventa razlicitog tipa, a mogo je i neki konkretni Event type biti.
     Ova metoda se pokrece iz Search.tsx preko <form onSubmit> i zato mora da ima e.preventDefault() kako browser
-    ne bi reload ovu stranicu i da izgubim state variable serverError i searchresults, stoga argument je Event type. */
-  const onSearchSubmit = async (e: SyntheticEvent) => {
+    ne bi reload ovu stranicu i da izgubim state variable serverError i searchresults, stoga argument je Event type.
+      Ova funkcija je prosledjena to child component (Search) koji ima React.memo, i zato mora useCallback - objasnjeno u workflow.txt */
+  const onSearchSubmit = useCallback(async (e: SyntheticEvent) => {
     e.preventDefault(); 
     // Then-catch je isto kao da sam pisao try-catch. Catch mora ako dodje go greske u searchCompanies koji je Frontend.
     await searchCompanies(search).then((result) => {
@@ -70,12 +73,14 @@ const SearchPage = (props: Props) => {
         setSearchResults(result.data); // React re-renders this component when set is done
  
     }).catch((err) => toast.warn("Greska u searchCompanies frontend")) // Gore desno iskoci mali pop-up windows sa ovom porukom ako searchCompanies error in frontend
-  };
+  }, [search]); // Mora, jer onSearchSubmit zavisi od search obzirom da samo tu externu vrednost CITA. Ne zavisi od serverError/searchResult jer njih UPISUJE
 
   /* Ova metoda se pokrece iz AddPortfolio.tsx (preko CardList.tsx tj Card.tsx) preko <form onSubmit> i zato mora da ima e.preventDefault() kako browser
   ne bi reload ovu stranicu i da izgubim state variables serverError i searchresults. Jer onSubmit u formi zahteva da njegova funkcija ima e.preventDefault ako prima argument Event typa - objasnio u Search.tsx
-    Iako u AddPortfolio.tsx, pise SyntheticEvent za tip argumenta, ovde mora "e: any" (ne moze "e: SyntheticEvent"), jer ovo su slucajevi kad moram da iskljucim TS kako bi moglo e.target.elements.symbol.value  */
-  const onPortfolioCreate = (e: any) => {
+    Iako u AddPortfolio.tsx, pise SyntheticEvent za tip argumenta, ovde mora "e: any" (ne moze "e: SyntheticEvent"), jer ovo su slucajevi kad moram da iskljucim TS kako bi moglo e.target.elements.symbol.value
+    
+    useCallback jer Card je React.memo - pogledaj u workflow.txt objasnjenje*/
+  const onPortfolioCreate = useCallback((e: any) => {
     e.preventDefault(); // Prevent page reload when submitting a form in AddPortfolio.tsx
 
     // Ovo ispod markiram, jer vise ne citam sa sajta, vec iz baze 
@@ -104,7 +109,7 @@ const SearchPage = (props: Props) => {
         getPortfoliosFromBackend(); // Da ocita opet listu gde ima jedan vise portoflio nakon dodavanja
       }
     }).catch((err)=> toast.warning("Couldnt create portfolio")); // Gore desno iskoci mali pop-up window zbog greske u portfolioAddApi frontend
-  }; 
+  },[getPortfoliosFromBackend]);  // Jer getPortfoliosFromBackend def u ovoj component, dok symbol je def u funkciji pa zato ne moze biti dependency
 
   // const onPortfolioDelete = (indexToDelete: number) => {
   //   // filter pravi listu kao i map 
@@ -112,17 +117,18 @@ const SearchPage = (props: Props) => {
   //   setPortfolioValues(updated);
   // }; -ovo koristio sam dok sam sa neta imao portfolio a sad cu iz baze
 
-  const onPortfolioDelete = (symbol: string) => {
+  // Koristim useCallback jer je ovo props function for CardPortfolio a CardPortfolio uses React.memo- objasnjenje u workflox.txt
+  const onPortfolioDelete = useCallback(async (symbol: string) => {
     // Then-catch je isto try-catch. Catch mora ako dodje do greske u portfolioDeleteApi  frontend.
     portfolioDeleteApi(symbol).then((result) => {
       // result.data moze biti PortfolioAddDelete tipa ako backend vratio StatusCode=2XX jer odna portfolioDeleteApi u try block otiso
       // result moze biti undefined, pa ne moze result.data, ako backend vratio StatusCode!=2XX (error) jer onda portfolioDeleteApi u catch block otiso
       if(result?.status === 200){
         toast.success("Stock deleted from portfolios");
-        getPortfoliosFromBackend(); // Da ocita opet listu gde ima jedan manje nakon brisanja
+        getPortfoliosFromBackend(); // Da ocita opet listu gde ima jedan manje nakon brisanja. Obzirom da getPortfoliosFromBackend je def u ovom component, mora i ona biti useCallback i u dependnecy za onPortfolioDelete
       }
     }).catch((err) => toast.warn(err)); // Gore desno mali pop-up window zbog greske u portfolioDeleteApi frontend
-  }
+  },[getPortfoliosFromBackend]); // Zato sto getPortfoliosFromBackend je def u ovom component i pozivam je u onPortfolioDelete. Ne moze symbol jer ga ne cita externo jer je to argument funkcije
 
 
   return (

@@ -1,7 +1,7 @@
 import React from "react";
 import { ErrorBoundary as ReactErrorBoundary, FallbackProps } from "react-error-boundary";
 
-/*ErrorBoundary sluzi da dohvati sve rendering greske koje se mogu desiti kako nam ne bi applikacija crash, vec da prikaze neki UI tad. 
+/*ErrorBoundary sluzi da dohvati sve rendering greske (cak i lazy loading) koje se mogu desiti kako nam ne bi applikacija crash, vec da prikaze neki UI u tom trenutku. 
 Obzirom da sam pohvatao sve BE i FE greske, ErrorBoundary cu koristi kao wrapper za <App> u App.tsx. 
 */
 

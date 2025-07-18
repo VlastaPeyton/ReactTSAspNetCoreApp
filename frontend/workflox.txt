@@ -141,8 +141,49 @@ Na email stize link koji vodi u reset password page.
 
 47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password. Onda u BE napravim ResetPassword endpoint koji ce obradjivati zahteve sa ove stranice
 
-48) Na Homepage zelim dodati Google mapu sa lokacijom zeljenom
+48) Na Homepage dodam Google mapu sa lokacijom zeljenom
+
+49) Route level code splitting (Procitaj u Routes folderu sta je) dodajem u Routes.tsx 
+
+50) React.memo() for child component 
+      Do sada nisam koristio React.memo(), stoga kada parent component re-renders zbog promene varijable od koje zavisi, child component automatically re-renders iako se prop (koji mu parent poslao) of child komponent mozda i ne menja.
+   Zato, koristim React.memo() da se child component re-render samo ako mu se prop (koji mu je parent poslao) menja.
+      Use React.memo() only if: 0) child component have props
+                                1) child component DOESNT use context/state/Redux koje ga re-renderuju kad se zamene van tog component
+                                2) props(value or functions) passed to child component RARELY changes
+                                3) child component is expensive to load.
+      Za function props, pogledaj useCallback dole ispod objasnjen, jer value props ne diram u ovom slucaju
+      React.memo() adds small overhead, so use it only when really needed.
+      Konkurenti za memo su: HomePage:   1)Hero - nema props pa otpada.
+                                         2)GoogleMap - nema props pa otpada
+                             SearchPage: 1)Search - odlican kandidat 
+                                         2)ListPortfolio nema potrebe -> CardPortfolio moze -> DeletePortfolio nema potrebe jer prelagan je
+                                         3)CardList -> Card moze -> AddPortfolio mozda i moze ali me vise i mrzi nadalje da radim ovo
+                             CompanyPage: 1)Sidebar
+                                          2)ComapnyDashboard-> Tile 
+                                                             TenK
+                                          3)CompanyProfile-> RatioList 
+                                                           StockComment -> StockCommentList        
+                                                                           StockCommentForm
+                                          4)IncomeStatement -> Table
+                                          5)BalanceSheet -> RatioList 
+                                          6)Cahslflow -> Table 
+                              
+51) useCallback dodajem za function props of child component which is wrapped in React.memo()
+   When a React component re-renders, any functions defined inside it are recreated from scratch, so they get new references in memory, 
+ even if their logic is identical. useCallback prevents this recreation by caching the function.
+    useCallback koristim in useEffect samo ako je funkcija within useEffect dependency za useEffect ili ako je funckija def van useEffect i koriscenja u bar 2 useEffect - ovo kod mene za sad nema.
+    najcesce se koristi when passing functions to child components especially when children are optimized with React.memo()
+    dont use it for simple child components where re-rendering is cheap, only for expensive ones 
+   
+   expensive child component which depends on function props only (only re-render when prop changes) should use React.memo => use useCallback in parent for these functions !!!
+
+   dependency za useCallback je samo ona varijabla koja se CITA from outside of function wrapped in useCallback !!!
+   ako funkcija1, koja koristi useCallback, u sebi poziva funckija2 koja je def u istom component kao funckcija1, funkcija2 mora da koristi useCallback i da bude u dependency u funckija1 !!
+
+   Search/CardPortfolio/Card treba React.memo() => njegove props funkcije pravim da budu useCallback
 
    
+52) useMemo for expensive computation inside component ali msm da nigde to nemam
 
 

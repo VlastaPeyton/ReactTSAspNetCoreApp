@@ -1,8 +1,12 @@
-ESlint dodaj
 Poboljsaj Protected Route "Dok user logout i click on some login-needed route, take user to login, and then take him back to that route.
-Storybook nauci
-useMemo, useCallback nauci
-Route level code splitting => Top level component u Route da bude . Valjda jeste ali proveri 
-Cypress za E2E testing
 Dodaj video 
 Dodaj EN/SR 
+
+1) Provera koda before compiling: ESlint dodaj u VSC
+
+2) Testing:   Cypress za E2E testing nauci.
+                Cypress is a testing framework that validates your entire application works correctly by simulating real user interactions across your full app.
+              Storybook nauci
+                Storybook is a development and documentation tool for building UI components in isolation. 
+                It's about creating and showcasing individual components outside of your main application.
+

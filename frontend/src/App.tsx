@@ -19,7 +19,8 @@ function App() {
        <UserProvider> okruzuje <Navbar />, <ToastContainer /> i <Outlet /> (Outlet = sve children routes(components) za <App /> u Routes.tsx ), stoga u tim components mogu da pristupim direktno svemu iz Context 
       jer u UserProvider imam childer:React.ReactNode i renderovanje children. 
        ErrorBoundary sluzi da pokupi u <App> ili child route of <App> Rendering gresku (jer sam FE i BE greske pokupio rucno)
-       */
+       Components koje su ovde navedene, bice prisutne na svakoj stranici tj unutar Routes.tsx. 
+    */
     <>
     <ErrorBoundary>
       <UserProvider>

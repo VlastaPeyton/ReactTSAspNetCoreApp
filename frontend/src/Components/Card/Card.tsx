@@ -12,8 +12,10 @@ type Props = {
 } 
 /* Card je svaka kompanija koja se pojavi kad ukucam zeljeni ticker u search. Npr za "tsla" ticker, pojavi se Tesla,Inc(TSLA) | USD | NASDAQ - NASDAQ Global Select | Add 
 gde Add dugme dodato iz AddPortfolio.tsx
-   Link to sadrzi absolute route jer ima "/company..", a ne "company..." */
-const Card= ({id, searchResult, onPortfolioCreate}: Props) => {
+   Link to sadrzi absolute route jer ima "/company..", a ne "company..."
+
+Objasnjenje u workflow za React.memo i zasto je onPortfolioCreate useCallback.  */
+const Card= React.memo(({id, searchResult, onPortfolioCreate}: Props) => {
   return (
     <div className="flex flex-col items-center justify-between w-full p-6 bg-slate-100 rounded-lg md:flex-row"
          id={id}
@@ -27,6 +29,6 @@ const Card= ({id, searchResult, onPortfolioCreate}: Props) => {
       {/* onPortfolioCreate je samo prosledjena, i zato nema poziv ove metode u Card.tsx */}
     </div>         
   )
-};
+});
 
 export default Card; 

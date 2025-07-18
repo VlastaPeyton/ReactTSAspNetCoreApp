@@ -8,8 +8,11 @@ type Props = {
 }
 
 // Used in SearchPage
-const Search = ({onSearchSubmit, search, handleSearchChange}: Props) => {
-   
+const Search = React.memo(({onSearchSubmit, search, handleSearchChange}: Props) => {
+   /* React.memo koristim jer Search je child component of SearchPage, a SearchPage rendering logika podrzava React.memo ovde + imam funkcije kao props. 
+   Zbog React.memo(), props funkcije moraju biti definisane sa useCallback u SearchPage. 
+   Objasnjene je u workflow.txt 
+   */
     return (
         /* In <form>, onSubmit function (tj onSearchSubmit) mora imati e.preventDefault() in it's definition jer argument je Event type, 
          dok kod onChange ili onClick (u <form> ili van forme), skoro nikad nema e.preventDefault() jer argument is not Event type.
@@ -42,7 +45,7 @@ const Search = ({onSearchSubmit, search, handleSearchChange}: Props) => {
             </form>
        </div>
     )
-}
+});
 
 export default Search;
 /* 
