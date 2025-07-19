@@ -24,32 +24,37 @@ namespace Api.Data
         {
             base.OnModelCreating(builder);
 
-            /* Dok je Id iz Comment/Stock primary type, nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip, i prikom Create Comment/Stock EF Core ce automatski dodeliti vrednost to Id.
-            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK i HasConversion i potencijalno ValueGeneratedOnAdd ako zelim da automatski baza generise vrednost u Id obzirom da kod custom type EF Core ne generise automtaski novi Id.
-            Samo za Comment sam stavio custom type for Id da vidimo kako to izgleda, jer nema potrebe za sad i u Stock to raditi. */
-            builder.Entity<Comment>(builder =>
-            {
-                builder.Property(c => c.Id).HasConversion(
+            // Comment configuration stavljam u blok jer lakse je za pratiti 
+            builder.Entity<Comment>(entity =>
+            {   /* Dok je Id iz Comment/Stock primary type, nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip, i prikom Create Comment/Stock EF Core ce automatski dodeliti vrednost to Id.
+                Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK i HasConversion i potencijalno ValueGeneratedOnAdd ako zelim da automatski baza generise vrednost u Id obzirom da kod custom type EF Core ne generise automtaski novi Id.
+                Samo za Comment sam stavio custom type for Id da vidimo kako to izgleda, jer nema potrebe za sad i u Stock to raditi. */
+                entity.Property(c => c.Id).HasConversion(
                     id => id.Value,                 // Write to DB
                     value => CommentId.Of(value)    // Read from DB
                 ).ValueGeneratedOnAdd(); // U CommentRepository CreateComment metodi automatski se generise Id vrednost kao dok je Id of Comment bio int tipa.
             });
 
-            // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
-            builder.Entity<Portfolio>(x => x.HasKey(p => new { p.AppUserId, p.StockId })); // Ovo je samo po sebi index za ovaj composite key
-            // Zbog ovoga, moram prvo dodati AppUser u bazu i Stock, kako bi tokom AddAsync(portfolio) u PortfolioRepository mogao da doda ga u bazu, jer composite PK ne moze baza da popuni sama kao obican Id PK, vec to moram da osiguram prethodno
+            // Portfolio configuration stavljam u blok jer lakse je za pratiti
+            builder.Entity<Portfolio>(entity =>
+            {   // entity = builder.Entity<Portfolio>
 
-            // Zbog explicitno defisanja PK za Portfolio, moram definisati 1-to-many AppUser/Stock-Portfolio veze
+                // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen i jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
+                entity.HasKey(p => new { p.AppUserId, p.StockId }); // Ovo je samo po sebi index za ovaj composite PK
+                                                                    // Zbog ovoga, moram prvo dodati AppUser u bazu i Stock, kako bi tokom AddAsync(portfolio) u PortfolioRepository mogao da doda ga u bazu, jer composite PK ne moze baza da popuni sama kao obican Id PK, vec to moram da osiguram prethodno
 
-            builder.Entity<Portfolio>().HasOne(u => u.AppUser) // 1 Portfolio belongs to 1 AppUser (Portfolio ima AppUser polje)
-                                       .WithMany(u => u.Portfolios) // 1 AppUser has many Portfolios (AppUser ima List<Portfolio> Portfolios polje) 
-                                       .HasForeignKey(p => p.AppUserId); // FK in Portfolio is AppUserId koji automatski gadja AppUser.Id (na osnovu imena EF ih mapira ), jer Porftolio ima AppUserId polje
-            
-            builder.Entity<Portfolio>().HasOne(u => u.Stock) // 1 Portfolio bolongs to 1 Stock (Porftolio ima Stock polje)
-                                       .WithMany(u => u.Portfolios) // 1 Stock can belong to many Portfolios (Stock ima list<Portoflio> Portfolios polje)
-                                       .HasForeignKey(p => p.StockId); // FK in Porftolio is StockId koji automatski gadaj Stock.Id (na osnovu imena EF ih mapira), jer Portfolio ima StockId polje
+                // Zbog explicitno defisanja PK za Portfolio, moram definisati 1-to-many AppUser/Stock-Portfolio veze
 
-            // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio. Ovo se zove Eager loading kad Include radim.
+                entity.HasOne(u => u.AppUser) // 1 Portfolio belongs to 1 AppUser (Portfolio ima AppUser polje)
+                      .WithMany(u => u.Portfolios) // 1 AppUser has many Portfolios (AppUser ima List<Portfolio> Portfolios polje) 
+                      .HasForeignKey(p => p.AppUserId); // FK in Portfolio is AppUserId koji automatski gadja AppUser.Id (na osnovu imena EF ih mapira ), jer Porftolio ima AppUserId polje
+
+                entity.HasOne(u => u.Stock) // 1 Portfolio bolongs to 1 Stock (Porftolio ima Stock polje)
+                      .WithMany(u => u.Portfolios) // 1 Stock can belong to many Portfolios (Stock ima list<Portoflio> Portfolios polje)
+                      .HasForeignKey(p => p.StockId); // FK in Porftolio is StockId koji automatski gadaj Stock.Id (na osnovu imena EF ih mapira), jer Portfolio ima StockId polje
+               
+                // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio. Ovo se zove Eager loading kad Include radim.
+            });
 
             /* Objasnjene: Neka postoji AppUser1, AppUser2, Stock1, Stock2 i Stock3. 
                             AppUser1 ima Stock1 i Stock2. 
@@ -82,25 +87,29 @@ namespace Api.Data
                    .HasIndex(s => s.Symbol)
                    .IsUnique();
 
-            // IdentityRole moze imati proizvoljno name of Role
-            List<IdentityRole> roles = new List<IdentityRole>
+            // IdentityRole table configuration zbog AppUser:IdentityUser
+            builder.Entity<IdentityRole>(entity =>
             {
-                new IdentityRole
-                {   
-                    Id = "8d04dce2-969a-435d-bba4-df3f325983dc",
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                },
+                // IdentityRole moze imati proizvoljno name of Role
+                List<IdentityRole> roles = new List<IdentityRole>
+                {
+                    new IdentityRole
+                    {
+                        Id = "8d04dce2-969a-435d-bba4-df3f325983dc",
+                        Name = "Admin",
+                        NormalizedName = "ADMIN"
+                    },
 
-                new IdentityRole
-                {   
-                    Id = "de1287c0-4b3e-4a3b-a7b5-5e221a57d55d",
-                    Name = "User",
-                    NormalizedName = "USER"
-                }
-            };
+                    new IdentityRole
+                    {
+                        Id = "de1287c0-4b3e-4a3b-a7b5-5e221a57d55d",
+                        Name = "User",
+                        NormalizedName = "USER"
+                    }
+                };
 
-            builder.Entity<IdentityRole>().HasData(roles); // Seeds data in Migration to AspNetRoles only if it is empty 
+                entity.HasData(roles);// Seeds data in Migration to AspNetRoles only if it is empty 
+            });
         }
     }
 }

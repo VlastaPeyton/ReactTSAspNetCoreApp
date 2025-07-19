@@ -5,6 +5,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\repository\\portfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\repository\\portfoliorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,21 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ApplicationDBContext.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Data\\ApplicationDBContext.cs",
-              "RelativeDocumentMoniker": "Api\\Data\\ApplicationDBContext.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Data\\ApplicationDBContext.cs",
-              "RelativeToolTip": "Api\\Data\\ApplicationDBContext.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwBsAAABDAQAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-19T18:03:10.052Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
@@ -40,6 +31,32 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PortfolioRepository.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Repository\\PortfolioRepository.cs",
+              "RelativeDocumentMoniker": "Api\\Repository\\PortfolioRepository.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Repository\\PortfolioRepository.cs",
+              "RelativeToolTip": "Api\\Repository\\PortfolioRepository.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABoAAACGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-19T18:11:00.372Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ApplicationDBContext.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Data\\ApplicationDBContext.cs",
+              "RelativeDocumentMoniker": "Api\\Data\\ApplicationDBContext.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Data\\ApplicationDBContext.cs",
+              "RelativeToolTip": "Api\\Data\\ApplicationDBContext.cs",
+              "ViewState": "AgIAAFcAAAAAAAAAAADwv3IAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-19T18:03:10.052Z",
+              "EditorCaption": ""
             }
           ]
         }
