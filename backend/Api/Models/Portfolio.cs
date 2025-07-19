@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Api.Value_Objects;
 
 namespace Api.Models
 {
@@ -12,7 +13,7 @@ namespace Api.Models
     public class Portfolio // U principu, 1 Portfolio je 1 Stock za zeljenog AppUser-a
     {   
         // U ApplicationDbContext OnModelCreating definisacu PK (i automatski Index bice) kao kombinaciju AppUserId i StockId, jer to ovde ne moze.
-        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id (IdentityUser.Id) je GUID(String).
+        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id (IdentityUser.Id) String.
         public int StockId { get; set; }   // StockId je int, jer u Stock Id je int. 
         public AppUser AppUser { get; set; } // Navigation property
         public Stock Stock { get; set; } // Navigation property

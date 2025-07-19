@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Api.Value_Objects;
 
 namespace Api.Models
 {   // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 

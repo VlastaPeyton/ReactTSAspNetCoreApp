@@ -8,7 +8,10 @@ namespace Api.Models
     public class AppUser : IdentityUser // AspNetUsers tabela koja se automatski kreira u bazi i odnosice se na AppUser.
     {    
         /* AppUser nasledio sva polja iz IdentityUser, gde najvise nas zanima Id, UserName, Email i Password polje. 
-         Ako dodam custom field u AppUser (ali da nije Navigation attribute of reference type), to polje ce biti dodatna kolona u AspNetUsers table
+         Ako dodam custom field u AppUser (ali da nije Navigation attribute), to polje ce biti dodatna kolona u AspNetUsers table
+         
+          Zbog IdentityUser definicije, "ne mogu" AppUser:IdentityUser<AppUserId>, gde AppUserId je Value Object, jer morao bih onda AppUserId:IEquatable sto je cimanje. 
+        Ovako, by default, Id je string.
         */
 
         // U ApplicationDbContext OnModelCreating definisem PK(AppUser.Id) vezu sa FK iz Porftolio.cs (AppUserId) mada to bi EF i sam znao 
