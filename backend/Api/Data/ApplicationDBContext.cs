@@ -24,8 +24,8 @@ namespace Api.Data
         {
             base.OnModelCreating(builder);
 
-            /* Dok je Id iz Comment/Stock primary type, nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip.
-            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK i HasConversion i potencijalno ValueGeneratedOnAdd ako zelim da automatski baza generise  vrednost u Id.
+            /* Dok je Id iz Comment/Stock primary type, nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip, i prikom Create Comment/Stock EF Core ce automatski dodeliti vrednost to Id.
+            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK i HasConversion i potencijalno ValueGeneratedOnAdd ako zelim da automatski baza generise vrednost u Id obzirom da kod custom type EF Core ne generise automtaski novi Id.
             Samo za Comment sam stavio custom type for Id da vidimo kako to izgleda, jer nema potrebe za sad i u Stock to raditi. */
             builder.Entity<Comment>(builder =>
             {
