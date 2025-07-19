@@ -1,6 +1,7 @@
 ﻿using System.Reflection.Emit;
 using System.Runtime.ConstrainedExecution;
 using Api.Models;
+using Api.Value_Objects;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +24,16 @@ namespace Api.Data
         {
             base.OnModelCreating(builder);
 
-            /*Nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip.
-            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs koaj sadrzi Value polje, ctor i Of metodu - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK. */
+            /* Dok je Id iz Comment/Stock primary type, nisam morao setovao PK za Comment, AppUser i Stock, jer EF Core automatski zna da je Id kolona PK obzirom da je u svakoj klasi Id Guid ili int tip.
+            Da je Id bar u jednoj klasi bio custom type (npr CommentId.cs - pogledaj EShopMicroservices Ordering service) morao bih da rucno definisem PK i HasConversion i potencijalno ValueGeneratedOnAdd ako zelim da automatski baza generise  vrednost u Id.
+            Samo za Comment sam stavio custom type for Id da vidimo kako to izgleda, jer nema potrebe za sad i u Stock to raditi. */
+            builder.Entity<Comment>(builder =>
+            {
+                builder.Property(c => c.Id).HasConversion(
+                    id => id.Value,                 // Write to DB
+                    value => CommentId.Of(value)    // Read from DB
+                ).ValueGeneratedOnAdd(); // U CommentRepository CreateComment metodi automatski se generise Id vrednost kao dok je Id of Comment bio int tipa.
+            });
 
             // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
             builder.Entity<Portfolio>(x => x.HasKey(p => new { p.AppUserId, p.StockId })); // Ovo je samo po sebi index za ovaj composite key
@@ -71,7 +80,7 @@ namespace Api.Data
             // U FE cesto brisem portfolio(stock) koji sam added to my portfolios, pa se DeletePortfolio metoda cesto koristi,a tamo LINQ by Stock.Symbol i zato mu dodelim index da brze pretrazuje. Isto vazi i za GetAllAsync jer cesto gledam Company profile za neki stock pa ovaj Endpoint cesto pokrecem.
             builder.Entity<Stock>()
                    .HasIndex(s => s.Symbol)
-                   .IsUnique(); 
+                   .IsUnique();
 
             // IdentityRole moze imati proizvoljno name of Role
             List<IdentityRole> roles = new List<IdentityRole>

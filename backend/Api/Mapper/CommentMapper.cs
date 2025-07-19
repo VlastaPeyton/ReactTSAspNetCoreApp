@@ -14,7 +14,7 @@ namespace Api.Mapper
         {
             return new CommentDTO
             {
-                Id = comment.Id, // Id mapiram jer mapiram iz Comment to CommentDTO
+                Id = comment.Id.Value, // Id mapiram jer mapiram iz Comment to CommentDTO. Id u Comment ima Value polje.
                 Title = comment.Title,
                 Content = comment.Content,
                 CreatedOn = comment.CreatedOn,
@@ -29,8 +29,8 @@ namespace Api.Mapper
         public static Comment ToCommentFromCreateCommentRequestDTO(this CreateCommentRequestDTO createCommentRequestDTO, int stockId)
         {
             return new Comment
-            {   
-                // Id se ne mapira iz DTO,jer DTO nema Id, jer to tabela sama dodeli
+            {
+                // Id se ne mapira iz DTO,jer DTO nema Id, jer to tabela sama dodeli prema OnModelCreating zbog ValueGeneratedOnAdd za custom CommentId type
                 Title = createCommentRequestDTO.Title,
                 Content = createCommentRequestDTO.Content,
                 StockId = stockId,

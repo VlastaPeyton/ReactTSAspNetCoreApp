@@ -25,17 +25,17 @@ namespace Api.Repository
             await _dbContext.Portfolios.AddAsync(portfolio, cancellationToken); // EF starts tracking portfolio changes. 
             /*Portfolio ima composite PK (AppUserId+StockId), defined in OnModelCreating. DB will not insert value to composite PK 
             jer to morao sam ja da odradim pre toga. I je sam odradio, jer AppUser ima Id polje u bazi i Stock ima Id polje u bazi. */
-            await _dbContext.SaveChangesAsync(cancellationToken); // Sacuvan portfolio u bazi => EF azurira portfolio objekat
+            await _dbContext.SaveChangesAsync(cancellationToken); // Sacuvan portfolio u bazi i autonatski mu popuni composide PK (Id) polje => EF azurira portfolio objekat
             return portfolio;
         }
 
-        public async Task<Portfolio> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken)
-        {
+        public async Task<Portfolio?> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken)
+        {   
             var portfolio = await _dbContext.Portfolios.FirstOrDefaultAsync(p => p.AppUserId == appUser.Id && p.Stock.Symbol.ToLower() == symbol.ToLower(), cancellationToken); 
             // EF start tracking changes in portfolio object. Ne smem AsNoTracking, jer Remove(portfolio) ne moze za untracked entity objects. 
             // U OnModelCreating objasnjeno zasto sam Stock.Symbol Indexirao.
             if (portfolio == null)
-                return null;
+                return null; // Zbog ovoga, stvim Task<Portfolio?> da se VS ne buni.
 
             _dbContext.Portfolios.Remove(portfolio); // EF stop tracking portfolio and set its tracking to Detached
             await _dbContext.SaveChangesAsync(cancellationToken);

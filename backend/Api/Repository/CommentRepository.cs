@@ -34,7 +34,7 @@ namespace Api.Repository
 
         public async Task<Comment?> DeleteAsync(int id, CancellationToken cancellationToken)
         {
-            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>  c.Id == id, cancellationToken); 
+            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c =>  c.Id.Value == id, cancellationToken);  // Jer Id field of Comment ima Value polje int tipa
             /* EF start tracking comment object, so every change made to comment will be applied to its corresponding row in Comment table after SaveChangesAsync
              Ne smem AsNoTracking, jer Remove(comment) nece hteti ako entity object nije tracked. */
 
@@ -68,7 +68,7 @@ namespace Api.Repository
 
         public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {   // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
-            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id, cancellationToken); 
+            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id.Value == id, cancellationToken); // Jer Id of Comment ima Value polje int tipa
             // Id je PK i Index by default tako da pretrazuje bas brzo
             // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam/brisem objekat pa sam dodao AsNoTracking jer tracking dodaje overhead and uses memory
             if (existingComment is null)

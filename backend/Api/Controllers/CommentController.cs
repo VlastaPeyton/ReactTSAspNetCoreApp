@@ -125,7 +125,7 @@ namespace Api.Controllers
 
             await _commentRepository.CreateAsync(comment, cancellationToken); // Iako CreateAsync ima return, ne treba "var result = _commentRepository.CreateAsync(comment), jer comment je Reference type, stoga promena comment u CreateAsync uticace i ovde
 
-            return CreatedAtAction(nameof(GetById), new { id = comment.Id }, comment.ToCommentDTO());
+            return CreatedAtAction(nameof(GetById), new { id = comment.Id.Value }, comment.ToCommentDTO()); // Id property of Comment ima Value polje jer strongly-id type
             /* Prva 2 su route i route argument, jer GetById zahteva id argument.
                Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/comment/{id} u Response Header.
             */

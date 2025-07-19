@@ -9,13 +9,13 @@ namespace Api.Models
     [Table("Comments")]
     public class Comment // Entity jer predstavlja tabelu u bazi
     {
-        public int Id { get; set; } // PK and Index by default
-        public int? StockId { get; set; } // FK koji gadja Id u Stock klasi
+        public CommentId Id { get; set; } // PK and Index by default. Bio je int, ali sam stavio custom type.
+        public int StockId { get; set; } // FK koji gadja Id u Stock klasi mora biti istog tipa kao Id u Stock klasi.
         public Stock? Stock { get; set; } // Navigational property
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now; 
-        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je GUID(String). FK koji gadja Id u AppUser klasi
+        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je String. Ovo je FK koji gadja Id u AppUser klasi
         public AppUser AppUser { get; set; } // Navigational property 
 
         // Navigational property objasnjeje u AppUser ! 

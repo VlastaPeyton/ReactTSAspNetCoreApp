@@ -14,7 +14,7 @@ namespace Api.Models
     {   
         // U ApplicationDbContext OnModelCreating definisacu PK (i automatski Index bice) kao kombinaciju AppUserId i StockId, jer to ovde ne moze.
         public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id (IdentityUser.Id) String.
-        public int StockId { get; set; }   // StockId je int, jer u Stock Id je int. 
+        public int StockId { get; set; }   // StockId je int, jer u Stock Id je int. Sada sam dodao StockId umesto int.
         public AppUser AppUser { get; set; } // Navigation property
         public Stock Stock { get; set; } // Navigation property
 
