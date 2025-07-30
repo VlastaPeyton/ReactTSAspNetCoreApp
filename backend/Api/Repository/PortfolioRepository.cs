@@ -19,14 +19,13 @@ namespace Api.Repository
         }
 
         // Sve metode su async, jer u PortfolioController bice pozvace pomocu await. 
-
         public async Task<Portfolio> CreateAsync(Portfolio portfolio, CancellationToken cancellationToken)
         {
             await _dbContext.Portfolios.AddAsync(portfolio, cancellationToken); // EF starts tracking portfolio changes. 
             /*Portfolio ima composite PK (AppUserId+StockId), defined in OnModelCreating, ali nema nikad automatsku dodelu kao non-composite Id. Stoga, DB will not insert value to composite PK 
             jer to morao sam ja da odradim pre toga, obzirom da je composite PK. Tj moram da imam vec AppUser i Stock u bazi pre toga. */
             await _dbContext.SaveChangesAsync(cancellationToken); // Sacuvan portfolio u bazi i autonatski mu popuni composide PK (Id) polje => EF azurira portfolio objekat
-            return portfolio;
+            return portfolio; 
         }
 
         public async Task<Portfolio?> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken)
