@@ -183,7 +183,15 @@ Na email stize link koji vodi u reset password page.
 
    Search/CardPortfolio/Card treba React.memo() => njegove props funkcije pravim da budu useCallback
 
-   
 52) useMemo for expensive computation inside component ali msm da nigde to nemam
+
+53) Cypress for testing: 53.1) u frontend folder terminal "npm install --save-dev cypress" i pokrecem sa "npm cypress open"
+                         53.2) modifikujem cypress.config.ts kao sto je sad takav da bude
+                         53.3) napravim cypress folder ako nema, i automatski se kreiraju subfolder, dodam e2e.ts folder sa sadrzajem u njemu, modifikujem commands.ts sa sadrzajem u njemu
+                         Krecem sa E2E test, jer prakticnije nego components.
+                         53.4) u cypress pravim E2E folder u kome pisem test fajlove (kodove)
+                         53.5) CTRL + SHIFT + X  and find Cypress Helper " by Dmytro Shyshkin
+                         53.6) Mora npm start + npx cypress open kako bi E2E testing mogo. Dok kad testiram components, onda samo npx cypress open. 
+
 
 

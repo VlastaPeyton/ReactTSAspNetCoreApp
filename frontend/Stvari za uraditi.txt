@@ -4,9 +4,9 @@ Dodaj EN/SR
 
 1) Provera koda before compiling: ESlint dodaj u VSC
 
-2) Testing:   Cypress za E2E testing nauci.
+2) Testing:   -Cypress za E2E testing nauci.
                 Cypress is a testing framework that validates your entire application works correctly by simulating real user interactions across your full app.
-              Storybook nauci
+              -Storybook nauci
                 Storybook is a development and documentation tool for building UI components in isolation. 
                 It's about creating and showcasing individual components outside of your main application.
 
