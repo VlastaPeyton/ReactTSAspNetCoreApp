@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { registerAPI, loginAPI, forgotPasswordAPI, resetPasswordAPI } from "../Services/AuthService";
 import { toast } from "react-toastify";
 import React from "react";
-import { boolean } from "yup";
 
 // Context je global state which allows me to share data across components (inside <UserProvider> in App.tsx) without passing props manually to them 
 
@@ -28,6 +27,10 @@ type Props = {children: React.ReactNode} // Mora ovako, jer u App.tsx izmedju <U
 const UserContext = createContext<UserContextType>({} as UserContextType); // Ovo u zagradi mora zbog TS da se ne buni. 
 // createContext create empty box that holds shared data onih Components (Navbar, Outlet i ToastContainer) koje ce, u App.tsx, biti izmedju <UserProvider> i </UserProvider> 
 
+// Dobra praksa da JWT(Access Token) bude in-memory, a ne u localStorage. Objasnjeno u "SPA Security Best Practice.txt". 
+let inMemoryToken: string | null = null;
+export const getInMemoryToken = () => inMemoryToken; // export obezbedi da mogu ovome da pristupim globalno
+
 // This Component mounts on app start up as it is placed in App.tsx
 export const UserProvider = ({children} : Props) => {
     // childer se odnosi na children u Props 
@@ -44,7 +47,8 @@ export const UserProvider = ({children} : Props) => {
         if (user && token) { 
             setUser(JSON.parse(user)); // JSON.parse mora, jer ispod je skladisteno kao JSON.Stringify(user) u localStorage, posto localStorage samo string prihvata.
             setToken(token); // Jer ispod je skladisteno kao string u localStorage, jer localStorage samo string prihvata.
-            //axios.defaults.headers.common["Authorization"] = "Bearer" + token; // Za svaki Axios request made to .NET backend, jer mora tako. Ali sam izbrsiao ovu liniju, jer nesto me zezalo, pa sam u svakom api Request dodao rucno token
+            //axios.defaults.headers.common["Authorization"] = "Bearer" + token; // Za svaki Axios request made to .NET backend, jer mora tako posto BE trazi JWT. Ali sam izbrsiao ovu liniju, jer nesto me zezalo, pa sam u svakom api Request dodao rucno token ili koristio AxiosWithJWTForBackend.tsx koji sam dodaje JWT to Authorize header
+            inMemoryToken = token; // Necu vise koristiti localStorage za JWT, jer nesigurno 
         }               
         setIsReady(true); 
     }, []); /* Ne sme da bude [user, token], jer setUser/setToken je unutar useEffect i onda ce uci u infinite loop.
@@ -62,6 +66,7 @@ export const UserProvider = ({children} : Props) => {
                    if result.data.userName/emailAddress/token is string jer UserProfileToken ima userName/emailAddress/token:string
                 */
                 
+                // U BE, JWT nije poslat ka FE kroz Cookie, vec obicnim (non-XSS secured putem), i zato ga moram skladistiti u localStorage. To nije dobra praksa, jer napadac ga moze naci. Bolje je kroz Cookie.
                 localStorage.setItem("token", result.data.token); // Skladisteno kao string, jer localStorage samo string prihvata.
                 /* result? - jer result moze biti i undefined ako backend vratio error u registerAPI
                    result?.data - jer registerAPI vraca AxiosResponse<UserProfileToken>, a nas payload(tipa UserProfileToken) je data.
@@ -81,6 +86,7 @@ export const UserProvider = ({children} : Props) => {
                 setToken(result.data.token);  // FE uvek mora da sacuva JWT from BE kako bi u Authorization Header ga slao to BE za Endpoints koji zahtevaju to. React re-renders this component zbog set.
                 setUser(user);    // React re-renders this component zbog set.
                 // Posto su ovde 2 uzastopna set, react odradi oba, pa tek re-renders component.
+                inMemoryToken = result.data.token; // Necu vise koristiti localStorage  za JWT jer je nesigurno 
                 toast.success("Register successfull"); // Prikaze mali pop-up u gornji desni ugao ekrana 
                 navigate("/search"); // Baca nas na SearcPage, jer u Routes.tsx definisano da SearchPage je u /search route.
             }
@@ -117,6 +123,7 @@ export const UserProvider = ({children} : Props) => {
                 setToken(result.data.token); // FE uvek mora da sacuva JWT from BE kako bi u Authorization Header ga slao to BE za Endpoints koji zahtevaju to. React re-renders this component zbog set.
                 setUser(user); // React re-renders this component zbog set
                 // Posto su ovde 2 uzastopna set, react odradi oba, pa tek re-renders component.
+                inMemoryToken = result.data.token; // Necu vise koristiti localStorage za JWT jer nesigurno 
                 toast.success("Login successfull");
                 navigate("/search"); // Baca nas na SearchPage.
             }
@@ -135,6 +142,7 @@ export const UserProvider = ({children} : Props) => {
         localStorage.removeItem("user");
         setUser(null);
         setToken("");
+        inMemoryToken = null; // Necu vise koristiti localStorage za JWT jer nesigurno 
         navigate("/"); // Baca me na homepage after logout
     }
 
@@ -177,7 +185,7 @@ export const UserProvider = ({children} : Props) => {
     )
 }
 
-// Custom Hook, jer koristi bar 1 built-in Hook (useContext). Gives access to everything stored in UserContext to children components (npr: const {loginUser} = useAuth() in child Component definiciji nekoj).
+// Custom Hook, jer koristi bar 1 built-in Hook (useContext). Gives access to everything stored in UserContext to children components (npr: const {loginUser} = useAuth() in child Component).
 export const useAuth = () => React.useContext(UserContext); 
 
 // U components, koje su unutar <UserProvider> u App.tsx (<Navbar>, <ToastContainer> i <Outlet> (sve children routes of <App>)), da bih pristupio necemu iz UserContexts, moram bas to ime da navedem (npr: loginUser)

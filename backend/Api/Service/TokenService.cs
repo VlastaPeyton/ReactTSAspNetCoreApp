@@ -8,8 +8,7 @@ namespace Api.Service
 {
     public class TokenService : ITokenService // U Program.cs registrujem da ITokenService se odnosi na TokenService
     {   
-        private readonly IConfiguration _configuration; // Za pristup svemu iz appsettings
-        // _configuration je isto kao builder.Configuration u Program.cs
+        private readonly IConfiguration _configuration; // Za pristup svemu iz appsettings. _configuration je isto kao builder.Configuration u Program.cs
         private readonly SymmetricSecurityKey _signingKey; // Symetric jer ocu sa istim kljucem to Sign and Verify JWT. SHA256 moram zbog ovoga koristiti.
         public TokenService(IConfiguration configuration) 
         { 

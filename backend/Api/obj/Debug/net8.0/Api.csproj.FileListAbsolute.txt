@@ -352,12 +352,6 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.build.json
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.development.json
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets\msbuild.Api.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets\msbuild.Api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets\msbuild.build.Api.props
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Api.props
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Api.props
-C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\Api.csproj.Up2Date
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\Api.dll
@@ -367,3 +361,8 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\ref\Api.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\DotNetEnv.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Sprache.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.build.json.cache

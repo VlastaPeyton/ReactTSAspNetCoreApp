@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getInMemoryToken } from "../Context/useAuthContext";
 
 // Create axios instance kako u 
 const apiBackendWithJWT = axios.create({
@@ -13,8 +14,9 @@ apiBackendWithJWT.interceptors.request.use(
     // Arrow function called before Request is sent
     (config) => {
         const token = localStorage.getItem("token"); // U Context loginUser/registerUser funkciji sam ga setovao.
-        if (token){
-            config.headers.Authorization = `Bearer ${token}`; // Mora sa Bearer zbog .NET ja msm
+        const tokenInMemory = getInMemoryToken(); // U Context, token nije skladisten u localStorage vise, jer nesigurno je, vec je u in-memory variable
+        if (tokenInMemory){
+            config.headers.Authorization = `Bearer ${tokenInMemory}`; // Mora sa Bearer zbog .NET ja msm
         }
         return config;
     },

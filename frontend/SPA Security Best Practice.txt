@@ -1,0 +1,9 @@
+Kada sam napravio ovu app, koristio sam long-lived JWT koji je skaldisten u localStorage u React, gde localStorage 
+pripada Browseru, a ne FE, i to je XSS vulnerable, jer moze da mu se pristuipi i kad FE nije ukljucen. 
+Bolje da sam ga smestio u varialbe (in-memory) jer to prevents XSS. Kako god da je smesten, bitno da nije Cookie, morao je biti poslat from FE putem Authorization headera u svakom API Request.
+
+App mi je SPA, a best practice is:
+	-Access Token (JWT) not store in localStorage, but in-memory (variable) - prevent XSS. Ne zelim njega u Cookie, jer zelim da bude short-live, manually attached to API Request. Saljem ga u API Request rucno u authorization header.
+	-Refresh Token store in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). On je auto attached to API Request jer Browser to posalje backendu.
+
+

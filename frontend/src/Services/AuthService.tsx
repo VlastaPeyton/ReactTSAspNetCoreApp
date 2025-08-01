@@ -12,7 +12,7 @@ po njoj, ako user navigates away or closes app, BE ce autoamtski, zbog HTTP meha
 Da sam u Endpoint imao cancellationToken = default, u slucaju kad user navigates away or closes the app, u axios moram proslediti "signal:controller.signal" ali to nije Header or Body i jos uraditi neki cudni return 
 koji ce aktivira controller.abort(). 
 
-Ovde ne koristim axiosWithJWTBackend, jer loginAPI, registerAPI i forgotPasswordAPI se rade pre nego sto se user login/register i onda ne mogu ni da imam JWT jer backend salje JWT once user is logged/registered.
+Ovde ne koristim axiosWithJWTBackend, jer loginAPI, registerAPI i forgotPasswordAPI i resetPasswordAPI se rade pre nego sto se user login/register i onda ne mogu ni da imam JWT jer backend salje JWT tek nakon user is logged/registered.
 */
 
 // For useAuthContext.tsx

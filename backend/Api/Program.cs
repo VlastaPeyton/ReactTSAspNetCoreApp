@@ -87,7 +87,8 @@ builder.Services.AddAuthentication(options =>
     // Svuda koristim JWT Bearer jer to mi najlakse 
 
 }).AddJwtBearer(options =>
-{
+{   /* AddJwtBearer zahteva Authorization = `Bearer ${token}` u React FE, tj BE zahteva JWT u Authorization header of each Request, pa moram jwt token u FE skladistiti u localStorage. Ovo je non-secure pristup.
+    Bolje je JWT slati kroz Cookie, jer React ne mora da skladisti JWT nigde, pa XSS napadi ne mogu da ga nadju u FE, jer Browser onda salje JWT kad treba to BE.*/
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
