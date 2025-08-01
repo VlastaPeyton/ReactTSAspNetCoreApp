@@ -32,5 +32,11 @@ namespace Api.Models
          
           Nece postojati kolona Portfolios u AspNetUsers tabeli, jer nije Primary type lista. 
          */
+
+        // Dodajem kolone potrebne za Refresh Token jer Refresh Token is not stateless as JWT(Access Token) i mora biti povezan u bazi za odgovarajuceg user
+        public string RefreshTokenHash { get; set; } // Mora da se hashuje pre skaldistenja u bazu
+        public DateTime RefreshTokenExpiryTime { get; set; }
+        public DateTime LastRefreshTokenUsedAt { get; set; }
+        // Nakon dodavanja ovih kolona, pokrenem migraciju da u AppUser tabeli u bazi ih dodam
     }
 }

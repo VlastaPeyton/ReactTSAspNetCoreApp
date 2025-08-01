@@ -42,7 +42,7 @@ export const UserProvider = ({children} : Props) => {
 
     useEffect(() => {
         const user = localStorage.getItem("user"); 
-        const token = localStorage.getItem("token"); 
+        //const token = localStorage.getItem("token");  ne treba mi vise jer nije dobro imati token u localStorage
         // Ako user i token nisu null (svaki put nakon very first time login) onda izvrsi ovo ispod, a to se desi samo ako smo ostali ulogovani i startovali app opet, jer on 7dana pamti login valjda
         if (user && token) { 
             setUser(JSON.parse(user)); // JSON.parse mora, jer ispod je skladisteno kao JSON.Stringify(user) u localStorage, posto localStorage samo string prihvata.
@@ -67,7 +67,7 @@ export const UserProvider = ({children} : Props) => {
                 */
                 
                 // U BE, JWT nije poslat ka FE kroz Cookie, vec obicnim (non-XSS secured putem), i zato ga moram skladistiti u localStorage. To nije dobra praksa, jer napadac ga moze naci. Bolje je kroz Cookie.
-                localStorage.setItem("token", result.data.token); // Skladisteno kao string, jer localStorage samo string prihvata.
+                //localStorage.setItem("token", result.data.token); // Skladisteno kao string, jer localStorage samo string prihvata. Ne treba mi vise jer nije dobro imati token u localStorage
                 /* result? - jer result moze biti i undefined ako backend vratio error u registerAPI
                    result?.data - jer registerAPI vraca AxiosResponse<UserProfileToken>, a nas payload(tipa UserProfileToken) je data.
                    result?.data.token/userName/emailAddress - jer payload ima userName, emailAddress i token polja
@@ -106,7 +106,7 @@ export const UserProvider = ({children} : Props) => {
                    if result.data is not undefined tj if result.data is object tipa UserProfileToken.
                    if result.data.userName/emailAddress/token is string jer UserProfileToken ima userName/emailAddress/token:string
                 */
-                localStorage.setItem("token", result.data.token); 
+                //localStorage.setItem("token", result.data.token); ne treba mi vise jer nije dobro imati token u localStorage
                 /* result? - jer result moze biti i undefined ako backend vratio error u registerAPI
                    result?.data - jer registerAPI vraca AxiosResponse<UserProfileToken>, a nas payload(tipa UserProfileToken) je data.
                    result?.data.token/userName/emailAddress - jer payload ima userName, emailAddress i token polja
@@ -139,7 +139,7 @@ export const UserProvider = ({children} : Props) => {
 
     const logout = () => {
         localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        //localStorage.removeItem("user"); ne treba mi vise jer nije dobro imati token u localstorage
         setUser(null);
         setToken("");
         inMemoryToken = null; // Necu vise koristiti localStorage za JWT jer nesigurno 

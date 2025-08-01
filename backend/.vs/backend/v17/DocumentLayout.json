@@ -3,16 +3,8 @@
   "WorkspaceRootPath": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\service\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\service\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\spa security best practice.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\spa security best practice.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,8 +14,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Api\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Api\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAACgBAAAAAAAAAAAswDoBAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-01T16:38:18.412Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
@@ -31,47 +36,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SPA Security Best Practice.txt",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\SPA Security Best Practice.txt",
-              "RelativeDocumentMoniker": "Api\\SPA Security Best Practice.txt",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\SPA Security Best Practice.txt",
-              "RelativeToolTip": "Api\\SPA Security Best Practice.txt",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-07-31T17:02:56.23Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "TokenService.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Service\\TokenService.cs",
-              "RelativeDocumentMoniker": "Api\\Service\\TokenService.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Service\\TokenService.cs",
-              "RelativeToolTip": "Api\\Service\\TokenService.cs",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAkwDIAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-31T15:55:44.864Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Program.cs",
-              "RelativeDocumentMoniker": "Api\\Program.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Program.cs",
-              "RelativeToolTip": "Api\\Program.cs",
-              "ViewState": "AgIAAEgAAAAAAAAAAAAAAFIAAABsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-31T15:53:47.329Z",
-              "EditorCaption": ""
             }
           ]
         }

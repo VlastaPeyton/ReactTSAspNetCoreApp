@@ -1,16 +1,17 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using System.Text.Encodings.Web;
 using Api.DTOs.Account;
 using Api.Interfaces;
 using Api.Models;
+using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using DotNetEnv;
-using System.Net;
 namespace Api.Controllers
 {
     // Postman/Swagger gadja Endpoints ovde definisane
@@ -56,7 +57,10 @@ namespace Api.Controllers
          Ne koristim CancellationToken jer neam async Endpoint, zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
          
          Rate Limiter objasnjen u Program.cs
+
+         Access Token and Refresh Token objasnjeni u SPA Security Best Practice.txt 
          */
+
         //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
         [HttpPost("register")] // https://localhost:port/api/account/register
         // Ne ide [Authorize] jer ovo je Register 
@@ -94,7 +98,28 @@ namespace Api.Controllers
                     // Dodaje u AspNetUserRoles tabelu koja automatski ima RoleId FK koji gadja Id u AspNetRoles i UserId FK koji gadja Id u AspNetUsers tabeli 
 
                     if (roleResult.Succeeded)
-                        return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser) });
+                    {
+                        var accessToken = _tokenService.CreateToken(appUser);
+                        var refreshToken = _tokenService.GenerateRefreshToken(); 
+                        var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken);
+
+                        appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
+                        appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived 
+                        appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom register, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
+                        await _userManager.UpdateAsync(appUser);
+                        
+                        // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
+                        Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
+                            Path = "/api/account/refresh-token" // Definisacu ovaj Endpoint
+                        });
+
+                        return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
+                    }
                     // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
 
                     else
@@ -145,7 +170,26 @@ namespace Api.Controllers
                 return Unauthorized("Invalid Password");
             // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid Password" u Response Body.
 
-            return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = _tokenService.CreateToken(appUser) });
+            var accessToken = _tokenService.CreateToken(appUser);
+            var refreshToken = _tokenService.GenerateRefreshToken();
+            var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Before putting it in DB dobro je hashovati ga
+
+            appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
+            appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived. 
+            appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom login, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
+            await _userManager.UpdateAsync(appUser);
+
+            // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
+            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
+                Path = "/api/account/refresh-token" // Ovaj Endpoint cu da napravim 
+            });
+
+            return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
             // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a NewUserDTO u Response Body.
         }
 
@@ -219,6 +263,56 @@ namespace Api.Controllers
             // Always return the same response regardless of whether user exists or reset succeeded
             // This prevents timing attacks and email enumeration
             return Ok("If the email exists in our system, the password has been reset.");
+        }
+
+        /* Kada user posalje Request to protected Endpoint, automatski odredi da li je trenutni JWT(Access Token) blizu isteka i ako jeste, automatski kaze Browseru da preko Cookie (koji sadrzi Refresh Token) pozove ovaj endpoint 
+         da BE, za tog usera, napravi novi Refresh Token, invalidira stari i kreira novi JWT.*/
+        [HttpGet("refresh-token")]
+        public async Task<IActionResult> RefreshToken()
+        {   
+            // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru
+            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken)) // U Login/Register sam nazvao refreshToken i zato ovde ga ocitavam
+                return Unauthorized("No refresh token provided");
+
+            var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Jer u bazi skladistim Hash Refresh Token, dok u Cookie je obican Refresh Token
+
+            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshTokenHash == hashedRefreshToken);
+
+            if (appUser is null)
+                return Unauthorized("Invalid refresh token");
+
+            if (appUser.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                return Unauthorized("Refresh token expired");
+
+            // Prevent double use of token. Poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
+            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt).TotalSeconds < 5)
+            {   // Uslov je 5s, ako se user login-logout expresno onda je sumnjivo
+                appUser.RefreshTokenHash = null;
+                appUser.RefreshTokenExpiryTime = new DateTime(2000,1,1); 
+                await _userManager.UpdateAsync(appUser);
+                return Unauthorized("Refresh token reuse suspected");
+            }
+
+            var newAccessToken = _tokenService.CreateToken(appUser);
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
+            var newHashedRefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
+
+            appUser.RefreshTokenHash = newHashedRefreshToken;
+            appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            appUser.LastRefreshTokenUsedAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(appUser);
+
+            // Saljek secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni
+            Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Path = "/api/account/refresh-token"
+            });
+
+            return Ok( new { accessToken = newAccessToken } );
         }
 
     }

@@ -153,7 +153,7 @@ app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request
 app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
                  .AllowAnyMethod() // Allows every Request method (GET,POST,PUT,DELETE...)
                  .AllowAnyHeader() // Allows custom headers, Authorization headers za JWT...
-                 .AllowCredentials());
+                 .AllowCredentials()); // Da bi FE mogo, kad mu je Access Token blizu isteka , rekao Browseru posalji zahtev za novi Access Token via Cookie(Refresh Token)
 
 // Enable Authentication + Authorization
 app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
