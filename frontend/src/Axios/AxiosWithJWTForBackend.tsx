@@ -23,16 +23,21 @@ function onRefreshed(newToken: string): void {
     refreshSubscribers = [];
 }
 
+// Axios.post expected return type kao sto sam radio u Services folderu
+export type NewAccessToken = {
+  accessToken: string; // Jer BE vraca Ok(new {accessToken=...}), pa mora isto ime argumenta
+};
+
 // Function to refresh the access token (which is gonna be called by only first Request made to protected Endpoint)
 async function refreshAccessToken() {
     try {
          // Use the SAME axios instance to ensure cookies are sent properly
-        const response = await apiBackendWithJWT.post(
+        const response = await apiBackendWithJWT.post<NewAccessToken>(
             'account/refresh-token', // Relative URL since we have baseURL
-            {}, // Empty body
+            {}, // Empty body jer RefreshToken endpoint ne prima argumente
         );
 
-        const newToken = response.data.accessToken; // RefreshToken Endpoint vraca objekat ovog imena
+        const newToken = response.data.accessToken; // jer NewAccessToken ima ovo polje
         console.log(`new toke ${newToken}`);
         setInMemoryToken(newToken); 
         toast.success("New token set");
@@ -45,6 +50,7 @@ async function refreshAccessToken() {
         return null;
     }
 }
+
 
 
 // Add Request Axios iterceptor kako ne bih pri svakom Backend API pozivu to protected Endpoint(koji u .NET ima [Authenticate]) prosledjivao JWT u Authorization header rucno. 
@@ -83,6 +89,7 @@ apiBackendWithJWT.interceptors.request.use(
                         // Kada prvi Request naidje, isRefreshing===false, i ide u else, ali ostali request udju ovde jer je njima isRefreshing===true
                         if (isRefreshing){
                             // Ostali Requests cekaju until resolve(config) (zbog Promise), dok se onRefreshed(newToken) ne zavrsi i tek tada nastavljaju sa azuriranim tokenom
+                            // Promise is same as Task in ASP.NET Core
                             return new Promise((resolve, reject) => {
                                 // i svaki od njih pozove subscribeTokenRefresh kome prosledi telo funkcije koju jos uvek nije aktivirao
                                 subscribeTokenRefresh((newToken: string) =>{ //newToken iz onRefreshed(newToken)
@@ -132,8 +139,8 @@ apiBackendWithJWT.interceptors.request.use(
 
 )
 
-// Add Response Interceptor to handle 401 errors as fallback jer moze se desi da FE nije poslao Request (user nije kliknuo nista) i token expired i onda request interceptor izbacice gresku jer BE Endpoints ne mogu pozvati bez tokena
-// Npr ako sam poslao 10 Requests, a token vec istekao, samo prvi ce da pozove refreshAccessToken,a ostalih 9 cekaju, ali ce svih 10 da dobije 401 status pre toga
+// Add Response Interceptor to handle 401 errors as fallback jer moze se desi da FE nije poslao Request (user nije kliknuo nista) i token expired i onda request interceptor izbacice gresku jer protected Endpoints ne mogu pozvati bez tokena
+// Npr ako sam poslao 10 Requests, a token vec istekao, svih 10 ce da dobije 401 status pre toga, ali samo prvi ce da pozove refreshAccessToken,a ostalih 9 cekaju,
 apiBackendWithJWT.interceptors.response.use(
     (response) => response, // If Response is success
     // If Response is 401 
