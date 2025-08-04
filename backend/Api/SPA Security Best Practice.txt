@@ -4,8 +4,10 @@ Bolje da sam ga smestio u varialbe (in-memory) jer to prevents XSS. Kako god da 
 
 App mi je SPA, a best practice is:
 	-Access Token (JWT) not store in localStorage, but in-memory (variable) - prevent XSS. Ne zelim njega u Cookie, jer zelim da bude short-live, manually attached to API Request. Saljem ga u API Request rucno u authorization header.
+	 Lasting 15mins. Na svakih 15min pravi se novi
+	 Kad se user login/register, pravi se JWT i Refresh Token
 	-Refresh Token store in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). On je auto attached to API Request jer Browser to posalje backendu.
-
+	 Lasting npr 7days. After 7days, user has to manually logout and login to obtain a new refresh token 
 
 Kada sam napravio app:
 	Users opens FE -> forced to Login/Register -> Login/Register Endpoint is triggered -> Endpoint sends Access Token (JWT) back to FE, via Response body, JWT lasts 7days which is stored in localStorage. 
@@ -26,7 +28,7 @@ Popravka2:
 	Token rotation = Pri svakom refresh token zahtevu koji FE salje to BE pozivanjem RefreshToken Endpoint, BE mora da invalidate prethodni (koji mu je browser poslao) refresh token i da napravi novi i da ga putem Cookie posalje to browser istovremeno kad i salje novi access token to FE.
 	Access Token se NE upisuje u bazu za zeljenog usera, jer user claims are encoded in JWT.
 	Refresh Token se upisuje u bazu za zeljenog usera.
-	I zato moram razdvojiti generate access token od generate refresh token metode.
+	Zbog ova 2 moram razdvojiti generate access token od generate refresh token metode.
 
 	Modifikujem AppUser da dodam kolone potrebne za RefreshToken
 	Modifikujem ITokenService i TokenService

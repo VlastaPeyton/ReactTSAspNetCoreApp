@@ -113,9 +113,10 @@ namespace Api.Controllers
                         {
                             HttpOnly = true,
                             Secure = true,
-                            SameSite = SameSiteMode.Strict,
+                            SameSite = SameSiteMode.None,
                             Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
-                            Path = "/api/account/refresh-token" // Definisacu ovaj Endpoint
+                            Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
+                            IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
                         });
 
                         return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
@@ -184,9 +185,11 @@ namespace Api.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
-                Path = "/api/account/refresh-token" // Ovaj Endpoint cu da napravim 
+                Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
+                IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
+
             });
 
             return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
@@ -266,8 +269,9 @@ namespace Api.Controllers
         }
 
         /* Kada user posalje Request to protected Endpoint, automatski odredi da li je trenutni JWT(Access Token) blizu isteka i ako jeste, automatski kaze Browseru da preko Cookie (koji sadrzi Refresh Token) pozove ovaj endpoint 
-         da BE, za tog usera, napravi novi Refresh Token, invalidira stari i kreira novi JWT.*/
-        [HttpGet("refresh-token")]
+         da BE, za tog usera, napravi novi Refresh Token, invalidira stari i kreira novi JWT. Nema argumenta, jer Browser mu salje Cookie.*/
+        [HttpPost("refresh-token")]
+        [EnableRateLimiting("slow")] // To prevent attacks
         public async Task<IActionResult> RefreshToken()
         {   
             // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru
@@ -284,15 +288,13 @@ namespace Api.Controllers
             if (appUser.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 return Unauthorized("Refresh token expired");
 
-            // Prevent double use of token. Poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
-            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt).TotalSeconds < 5)
-            {   // Uslov je 5s, ako se user login-logout expresno onda je sumnjivo
-                appUser.RefreshTokenHash = null;
-                appUser.RefreshTokenExpiryTime = new DateTime(2000,1,1); 
-                await _userManager.UpdateAsync(appUser);
-                return Unauthorized("Refresh token reuse suspected");
+            // Prevent double use:  poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
+            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt).TotalSeconds < 10)
+            {   // Uslov je 10s za real-world apps koji osigurava da ne moze unutar 10s 2 ili vise puta da ovaj endpoint bude pozvan. Ovo je u skladu sa 30s JWT expiry time u AxiosWithJWTForBackend.tsx u FE
+                return Unauthorized("Refresh token used too frequently");
             }
 
+            // Token rotation
             var newAccessToken = _tokenService.CreateToken(appUser);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
             var newHashedRefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
@@ -307,9 +309,11 @@ namespace Api.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7),
-                Path = "/api/account/refresh-token"
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7), // Mora ito kao appUser.RefreshTokenExpiryTime
+                Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
+                IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
+
             });
 
             return Ok( new { accessToken = newAccessToken } );

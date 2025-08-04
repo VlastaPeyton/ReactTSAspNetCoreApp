@@ -10,7 +10,7 @@ import React from "react";
 
 type UserContextType = {
     user: UserProfile | null; 
-    token: string | null; // When you are NOT logged in this is NULL
+    //token: string | null; // When you are NOT logged in this is NULL. Ne treba mi ovo, jer component nikad ne zavise direktno od njega, vec or ovih funkcija ispod navedenih.
     registerUser: (email: string, username: string, password: string) => void; // Register metoda u .NET zahteva ove parametre
     loginUser: (username: string, password: string) => void;                   // Login metoda u .NET zahteva ove parametre 
     logout: () => void;
@@ -30,6 +30,9 @@ const UserContext = createContext<UserContextType>({} as UserContextType); // Ov
 // Dobra praksa da JWT(Access Token) bude in-memory, a ne u localStorage. Objasnjeno u "SPA Security Best Practice.txt". 
 let inMemoryToken: string | null = null;
 export const getInMemoryToken = () => inMemoryToken; // export obezbedi da mogu ovome da pristupim globalno
+export const setInMemoryToken = (newToken: string | null) => {
+    inMemoryToken = newToken;
+};
 
 // This Component mounts on app start up as it is placed in App.tsx
 export const UserProvider = ({children} : Props) => {
@@ -42,7 +45,7 @@ export const UserProvider = ({children} : Props) => {
 
     useEffect(() => {
         const user = localStorage.getItem("user"); 
-        //const token = localStorage.getItem("token");  ne treba mi vise jer nije dobro imati token u localStorage
+        //const token = localStorage.getItem("token");  ne treba mi vise jer nije dobro imati token u localStorage => i u ostalim fajlovima, ovo brisem i menjam sa getInMemoryToken
         // Ako user i token nisu null (svaki put nakon very first time login) onda izvrsi ovo ispod, a to se desi samo ako smo ostali ulogovani i startovali app opet, jer on 7dana pamti login valjda
         if (user && token) { 
             setUser(JSON.parse(user)); // JSON.parse mora, jer ispod je skladisteno kao JSON.Stringify(user) u localStorage, posto localStorage samo string prihvata.
@@ -173,12 +176,12 @@ export const UserProvider = ({children} : Props) => {
 
     return (
         /* 
-         UserContext.Provider allows you to share data (loginUser, user, token, logout, isLoggedIn, registerUser) between components without having to manually pass props down the component tree. 
+         UserContext.Provider allows you to share data (loginUser, user, logout, isLoggedIn, registerUser) between components without having to manually pass props down the component tree. 
          Ovo se odnosi u App.tsx na children components (<Navbar/>, <Outlet/> i <ToastContainer/>) koje su izmedju <UserProvider> i </UserProvider>. 
-         UserContext = createContext<UserContextType>, a UserContextType ima loginUser, user, token, logout, isLoggedIn, registerUser polja i zato moramo u value sve da ih navedem. 
-         isReady ? children : null znaci da ako isReady=true renderovace u App.tsx children components unutar <UserProvider>, a children samo preko useAuth mogu da pristupe to loginUser, user, token, logout, isLoggedIn, registerUser, stoga 
+         UserContext = createContext<UserContextType>, a UserContextType ima loginUser, user, logout, isLoggedIn, registerUser polja i zato moramo u value sve da ih navedem. 
+         isReady ? children : null znaci da ako isReady=true renderovace u App.tsx children components unutar <UserProvider>, a children samo preko useAuth mogu da pristupe to loginUser, user, logout, isLoggedIn, registerUser, stoga 
         moram definisati, van UserProvider, useAuth custom Hook.  */
-        <UserContext.Provider value={{ loginUser, user, token, logout, isLoggedIn, registerUser, forgotPassword, resetPassword}}> {isReady ? children : null}</UserContext.Provider>
+        <UserContext.Provider value={{ loginUser, user, logout, isLoggedIn, registerUser, forgotPassword, resetPassword}}> {isReady ? children : null}</UserContext.Provider>
         /* Prosledim vrednosti za polja u UserContextType zbog UserContext = createContext<UserContextType> i onda mogu preko useAuth custom Hook da pristupim ovome bez ponavljanja koda u children componentama izmedju <UserProvider> i </UserProvider> u App.tsx
         {children} je isto kao da napisem  <Component1/> <Component2>... , jer children je React.ReactNode tj 0,1 ili vise Components 
         */
@@ -188,4 +191,4 @@ export const UserProvider = ({children} : Props) => {
 // Custom Hook, jer koristi bar 1 built-in Hook (useContext). Gives access to everything stored in UserContext to children components (npr: const {loginUser} = useAuth() in child Component).
 export const useAuth = () => React.useContext(UserContext); 
 
-// U components, koje su unutar <UserProvider> u App.tsx (<Navbar>, <ToastContainer> i <Outlet> (sve children routes of <App>)), da bih pristupio necemu iz UserContexts, moram bas to ime da navedem (npr: loginUser)
+// U components, koje su unutar <UserProvider> u App.tsx (<Navbar>, <ToastContainer> i <Outlet> (sve children routes of <App>)), da bih pristupio necemu iz UserContext, moram bas to ime da navedem (npr: loginUser)

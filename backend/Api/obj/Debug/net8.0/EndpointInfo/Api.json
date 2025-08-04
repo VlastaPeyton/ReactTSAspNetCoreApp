@@ -149,6 +149,18 @@
         }
       }
     },
+    "/api/account/refresh-token": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/comment": {
       "get": {
         "tags": [

@@ -87,7 +87,9 @@ builder.Services.AddAuthentication(options =>
     // Svuda koristim JWT Bearer jer to mi najlakse 
 
 }).AddJwtBearer(options =>
-{   /* AddJwtBearer zahteva Authorization = `Bearer ${token}` u React FE, tj BE zahteva JWT u Authorization header of each Request, pa moram jwt token u FE skladistiti u localStorage. Ovo je non-secure pristup.
+{   /* AddJwtBearer zahteva Authorization = `Bearer ${token}` u React FE, tj BE zahteva JWT u Authorization header of each Request, pa moram jwt token u FE skladistiti u localStorage. 
+    Tj svaki endpoint koji ima [Authorize] znaci da mu se moze pristupiti samo ako je user logged in + FE mora mu poslati Authorization = `Bearer {token}`
+    Ovo je non-secure pristup.
     Bolje je JWT slati kroz Cookie, jer React ne mora da skladisti JWT nigde, pa XSS napadi ne mogu da ga nadju u FE, jer Browser onda salje JWT kad treba to BE.*/
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -155,14 +157,23 @@ app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od 
                  .AllowAnyHeader() // Allows custom headers, Authorization headers za JWT...
                  .AllowCredentials()); // Da bi FE mogo, kad mu je Access Token blizu isteka , rekao Browseru posalji zahtev za novi Access Token via Cookie(Refresh Token)
 
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always,
+    Secure = CookieSecurePolicy.Always,
+    MinimumSameSitePolicy = SameSiteMode.Strict
+}); // Jer RefreshToken Endpoint ovo zahteva. Ovo mora before UseAuthentication
+
 // Enable Authentication + Authorization
 app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
 app.UseAuthorization();  // Enforces access rules based on user identity
 
+// Use Rate Limiter on desired Endpoints 
+app.UseRateLimiter();
+
 // Activate Controllers routing. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
 
-// Use Rate Limiter on desired Endpoints 
-app.UseRateLimiter(); 
+
 
 app.Run();

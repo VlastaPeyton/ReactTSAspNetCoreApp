@@ -3,6 +3,7 @@ import { CommentPost } from "../Models/CommentPost";
 import { handleError } from "../ErrorHandler/ErrorHandler";
 import { CommentGetFromBackend } from "../Models/CommentGetFromBackend";
 import apiBackendWithJWT from "../Axios/AxiosWithJWTForBackend"; 
+import { getInMemoryToken } from "../Context/useAuthContext";
 
 //const apiEndpoint = "https://localhost:7045/api/comment/"; // Mogo sam i HTTP, jer u .NET Program.cs ima onaj HttpsRedirection da ako gadjam http://localhost:5110/api/ da odma me baci na https
 // Koristim iz .env, jer bolja praksa nego da hardcodujem API u kodu 
@@ -21,7 +22,8 @@ export const commentPostAPI = async (title: string, content: string, symbol: str
     // try-catch zbog axios. Try se izvrsi ako StatusCode=2XX from backend. Catch se izvrsi ako StatusCode!=2XX from backend.
     try{ 
         // Potreban je JWT poslati iz Frontend to CommentController Create Endpoint, jer on ima User.GetUserName koja zahteva JWT da se posalje from Frontend. Ovaj Endpoint, u .NET i da nema [Authorize], zbog User.GetUserName zahteva JWT.
-        const token = localStorage.getItem("token"); // Jer u useAuthContext sam ga upisao u localStorage, pa pristup tome moze kroz sve fajlove u projektu.
+        //const token = localStorage.getItem("token"); // Jer u useAuthContext sam ga upisao u localStorage, pa pristup tome moze kroz sve fajlove u projektu. Ne koristim vise, jer je nebezbedno, vec cu getInMemoryToken
+        const token = getInMemoryToken(); // U Context, token nije skladisten u localStorage vise, jer nesigurno je, vec je u in-memory variable
         // Moram navesti <CommentPost> kao POTENCIJALNI return ako backend Endpoint ne vrati error, jer uspesan CommentController Create metod vraca CommentDTO objekat sa poljima navedenim u CommentPost - objasnjeno u CommentPost.
         const response = await axios.post<CommentPost>(apiEndpoint + `${symbol}`, 
             // Mora `${symbol}, jer u https://localhost:7045/api/comment/{symbol} Endpoint napisano da symbol kroz URL se prosledjuje u Request.
@@ -54,7 +56,8 @@ export const commentsGetAPI = async (symbol: string) => {
     // try-catch zbog axios. Try se izvrsi ako StatusCode=2XX from backend. Catch se izvrsi ako StatusCode!=2XX from backend.
     try{ 
         // Potreban je JWT poslati iz Frontend to CommentController GetAll Endpoint. Iako on nema User.GetUserName koja zahteva JWT da se posalje from Frontend. Ovaj Endpoint, u .NET da nema [Authorize], ne bih morao slati JWT iz Frontend.
-        const token = localStorage.getItem("token"); // Jer u useAuthContext sam ga upisao u localStorage, pa pristup tome moze kroz sve fajlove u projektu.
+        //const token = localStorage.getItem("token"); // Jer u useAuthContext sam ga upisao u localStorage, pa pristup tome moze kroz sve fajlove u projektu. Ne koristim ovo vise, jer nebezbedno, vec getInMemoryToken
+        const token = getInMemoryToken(); // U Context, token nije skladisten u localStorage vise, jer nesigurno je, vec je u in-memory variable
         // Moram navesti <CommentGetFromBackend[]> kao POTENCIJALNI return ako backend ne vrati error, jer uspesan CommentController GetAll metod u vraca commentDTOs niz ciji element(CommentDTO) ima polja navedena u CommentGetFromBackend - objasnjeno u CommentGetFromBackend.
         // Da mi treba samo jedan element iz ovog Endpoint, moram <CommentGetFromBackend[]>, pa onda response.data[i] za zeljeni element.
 

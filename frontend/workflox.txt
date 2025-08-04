@@ -196,6 +196,14 @@ Na email stize link koji vodi u reset password page.
 
 54) Do sada sam koristio (Long-lived) Access Token (JWT) koji sam skladistio u localStorage. Ali to je XSS vulnerable jer localStorage je skladiste of Browser i svako mu pristupi lagano.
    Zamenio sam localStorage sa in-memory varijablom koja je XSS secured i njoj ne moze da se pristupi kroz browser. 
-   Pogledaj "SPA Security Best Practice.txt". Zato sada menjam localStorage sa in-memory za JWT.
+   Dodao sam, pored Access Token i Refresh Token - pogledaj "SPA Security Best Practice.txt". Zato sada menjam localStorage sa in-memory za JWT.
+   Prvo sam u useAuthContext.tsx zamenio localStorage sa in-memory, a onda i u svim ostalim fajlovima, koji su koristili localStorage.getItem("token") sam to morao uraditi !!!!!!
+   Dodao sam setInMemoryToken i getInMemoryToken u useAuthContext.
+
+   Install "npm install jwt-decode" jer iz BE nisam poslao vreme nastanka access token ali automatski se salje to (kao za svaki BE-FE response) i onda nadjem kad je poruka u kojoj je JWT pristigla
+ ova biblioteka sama proracuna kad je JWT dosao i sracuna koliko ce da traje.
+   Modifikujem AxiosWithJWTForBackend da podrzi i credential: 'include' u axios interceptor i da silent refresh access token ako je pri isteku automatically pri svakom protected endpoint request 
+
+
 
 

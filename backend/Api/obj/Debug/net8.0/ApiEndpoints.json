@@ -33,6 +33,16 @@
   },
   {
     "ContainingType": "Api.Controllers.AccountController",
+    "Method": "RefreshToken",
+    "RelativePath": "api/account/refresh-token",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Api.Controllers.AccountController",
     "Method": "Register",
     "RelativePath": "api/account/register",
     "HttpMethod": "POST",
