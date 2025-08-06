@@ -150,7 +150,7 @@
       }
     },
     "/api/account/refresh-token": {
-      "post": {
+      "get": {
         "tags": [
           "Account"
         ],

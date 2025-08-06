@@ -12,7 +12,8 @@ po njoj, ako user navigates away or closes app, BE ce autoamtski, zbog HTTP meha
 Da sam u Endpoint imao cancellationToken = default, u slucaju kad user navigates away or closes the app, u axios moram proslediti "signal:controller.signal" ali to nije Header or Body i jos uraditi neki cudni return 
 koji ce aktivira controller.abort(). 
 
-Ovde ne koristim axiosWithJWTBackend, jer loginAPI, registerAPI i forgotPasswordAPI i resetPasswordAPI se rade pre nego sto se user login/register i onda ne mogu ni da imam JWT jer backend salje JWT tek nakon user is logged/registered.
+Ovde ne koristim axiosWithJWTBackend, jer loginAPI, registerAPI, forgotPasswordAPI i resetPasswordAPI se rade pre nego sto se user login/register i onda ne mogu ni da imam JWT jer backend salje JWT tek nakon user is logged/registered.
+Ali moram dodati withCredentials:true header jer Login/Register Endpoint vracaju i Cookie refresh token. Ako ovo ne dodam, browser nece uhvatiti refresh token koji bi trebao odma da uhvati. Ne dodajem ovo u Forgot/ResetPassowrd Endpoint jer nema smisla.
 */
 
 // For useAuthContext.tsx
@@ -26,7 +27,12 @@ export const loginAPI = async (username: string, password: string) => {
             Username: username,
             Password: password
             // Ovo je redosled i imena argumenata za LoginDTO u Login endpoint u .NET i mora da ovde ispratim to 
-        });
+            },
+            // Objasnjeno iznad zasto ovo mora
+            {
+                withCredentials: true // Enable cookie handling for this specific request
+            }
+    );
         
         return response; // type = AxiosResponse<UserProfileToken> ili undefined ako Login method backend vrati gresku(BadRequest, Unauthorized ili nepoznati server error koji nije def), jer onda idem u catch
                          // Zbog full response ovako, u useAuthContext.tsx moracu result.data da dohvatim payload.
@@ -49,7 +55,12 @@ export const registerAPI = async (email: string, username: string, password: str
             EmailAddress: email,
             Password: password
             // Ovo je redosled i imena argumenata za RegisterDTO u Register endpoint u .NET i mora da ovde ispratim to
-        });
+            },
+            // Objasnjeno iznad zasto ovo mora
+            {
+                withCredentials: true // Enable cookie handling for this specific request
+            }
+        );
         
         return response; // type = AxiosResponse<UserProfileToken> ili undefined ako Register method backend vrati gresku(BadRequest, Unauthorized ili nepoznati server error koji nije def)
                          // Zbog full response ovako, u useAuthContext.tsx moracu result.data da dohvatim payload.
@@ -72,7 +83,8 @@ export const forgotPasswordAPI = async (email: string) =>{
             // Body of Request
             EmailAddress: email
             // Ovo je redosled i imena argumenata za ForgotPasswordDTO u ForgotPassword Endpoint i moram ovode da ispratim to
-        });
+            }
+        );
         
         return response; // type= AxiosResponse<string> ili undefined ako je neocekivana greska, jer ForgotPassword method i u slucaju wrong email nece vrati gresku vec, zbog sigurnosti bice return OK("Reset password link is sent to email") 
                          // Zbog full response ovako, u useAuthContext moracu result.data da bih dohvatio payload.    
@@ -95,7 +107,8 @@ export const resetPasswordAPI = async (newPassword: string, resetPasswordToken: 
             ResetPasswordToken: resetPasswordToken,
             EmailAddress: email
             // Ovo je redosled i imena argumenata za ResetPasswordDTO u ResetPassword Endpoint i moram ovode da ispratim to
-        });
+            }
+        );
 
         return response;  // ResetPassword sends Ok("If the email exists in our system, the password has been reset."") i da je dobro i da je lose  pa response.status=200
 

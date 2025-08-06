@@ -9,7 +9,8 @@ import { getInMemoryToken } from "../Context/useAuthContext";
 // Koristim iz .env, jer bolja praksa nego da hardcodujem API u kodu 
 const apiEndpoint = `${process.env.REACT_APP_BASE_BACKEND_API}comment/`;
 
-// Axios koristim umesto Fetch, jer bolji i more user-friendly than Fetch. 
+// Axios koristim umesto Fetch, jer bolji i more user-friendly than Fetch.  
+// Koristim apiBackendWithJWT custom axios, a ne obican axios, jer ove funkcije gadjaju protected Endpoints + postoji RefreshEndpoint koji se poziva iz interceptor za apiBackendWithJWT
 
 /* U BE Endpoints, koje gadjaju ove funkcije pomocu axios, postoji cancellationToken, ali bez =default. Kada sam na page, koja koristi ove funkcije, i dok kad pokrenem neki Endpoint kliktanjem 
 po njoj, ako user navigates away or closes app, BE ce autoamtski, zbog HTTP mehanizma, provaliti da sam prekinuo poziv, i prestace sa radom tako sto ce dodeliti RequestAborted vrednost za cancellationToken.
@@ -25,20 +26,27 @@ export const commentPostAPI = async (title: string, content: string, symbol: str
         //const token = localStorage.getItem("token"); // Jer u useAuthContext sam ga upisao u localStorage, pa pristup tome moze kroz sve fajlove u projektu. Ne koristim vise, jer je nebezbedno, vec cu getInMemoryToken
         const token = getInMemoryToken(); // U Context, token nije skladisten u localStorage vise, jer nesigurno je, vec je u in-memory variable
         // Moram navesti <CommentPost> kao POTENCIJALNI return ako backend Endpoint ne vrati error, jer uspesan CommentController Create metod vraca CommentDTO objekat sa poljima navedenim u CommentPost - objasnjeno u CommentPost.
-        const response = await axios.post<CommentPost>(apiEndpoint + `${symbol}`, 
-            // Mora `${symbol}, jer u https://localhost:7045/api/comment/{symbol} Endpoint napisano da symbol kroz URL se prosledjuje u Request.
-            // Body of POST request jer ovaj Endpoint zahteva, pored symbol in URL, Title i Content ( tj CreateCommentRequestDTO) kroz Request Body.
-            {
-            Title: title,
-            Content: content
-            // Moraju ovaj redosled i imena polja kao u CreateCommentRequestDTO.
-            },
-            // Header of request jer "https://localhost:7045/api/comment/{symbol} u .NET ima ili [Authenticate] ili/i User.GetUserName(), pa zahteva JWT
-            {
-            headers:{
-                Authorization: `Bearer ${token}`
-                }
-            }
+        // const response = await axios.post<CommentPost>(apiEndpoint + `${symbol}`, 
+        //     // Mora `${symbol}, jer u https://localhost:7045/api/comment/{symbol} Endpoint napisano da symbol kroz URL se prosledjuje u Request.
+        //     // Body of POST request jer ovaj Endpoint zahteva, pored symbol in URL, Title i Content ( tj CreateCommentRequestDTO) kroz Request Body.
+        //     {
+        //     Title: title,
+        //     Content: content
+        //     // Moraju ovaj redosled i imena polja kao u CreateCommentRequestDTO.
+        //     },
+        //     // Header of request jer "https://localhost:7045/api/comment/{symbol} u .NET ima ili [Authenticate] ili/i User.GetUserName(), pa zahteva JWT
+        //     {
+        //     headers:{
+        //         Authorization: `Bearer ${token}`
+        //         }
+        //     }
+        // )
+        // Dok nisam ubacio RefreshToken Endpoint, mogo sam raditi ono iznad sa obicnim axios, ali sad ne moze, jer sam u apiBackendWithJWT dodao interceptors za RefreshToken
+        const response = await apiBackendWithJWT.post<CommentPost>(apiEndpoint + `${symbol}`,
+             {  
+                Title: title,
+                Content: content
+             }
         )
 
         return response; // type = AxiosResponse<CommentPost> ili undefined ako CommentController Create Endpoint vrati gresku jer onda u catch block ispod idem.
@@ -48,7 +56,6 @@ export const commentPostAPI = async (title: string, content: string, symbol: str
         handleError(error);
     }
     // Nema return u catch blok, pa ako error, response=undefined, pa u StockComment moramo da proverimo da li je result non-undefined pomocu if (result) ili result? 
-    // Ovde nisam koristio apiBackendWithJWT jer ocu da pokazem kako se radi bez njega. 
 }
 
 // For StockComment.tsx
@@ -71,7 +78,7 @@ export const commentsGetAPI = async (symbol: string) => {
         //         }
         //     }
         // )
-
+        
         const response = await apiBackendWithJWT.get<CommentGetFromBackend[]>(apiEndpoint + `?Symbol=${symbol}&IsDescending=true`,
             // U Axios GET Request, samo Header moze, a Body ne moze i zato ovaj Endpoint u .NET ima [FromQuery], a ne [FromBody]. Kroz Query Parameters (posle ? in URL) prosledjujem i moram pisati imena i redosled polja kao u CommentQueryObject klasi u BE.
             // Header of request jer " GET https://locahost:7045/api/comment/" u .NET ima ili [Authenticate] ili/i User.GetUserName(), pa zahteva JWT koji automatski je ubacen putem apiBackendWithJWT
@@ -84,7 +91,6 @@ export const commentsGetAPI = async (symbol: string) => {
         handleError(error);
     }
     // Nema return u catch blok, pa ako error, response=undefined, pa u StockComment moramo da proverimo da li je result non-undefined pomocu if (result) ili result? 
-
 }
 
 // Poredi ovo sa api.tsx jer tamo se salje Request za Public API sa neta i drugacije je malo.

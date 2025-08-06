@@ -202,8 +202,17 @@ Na email stize link koji vodi u reset password page.
 
    Install "npm install jwt-decode" jer iz BE nisam poslao vreme nastanka access token ali automatski se salje to (kao za svaki BE-FE response) i onda nadjem kad je poruka u kojoj je JWT pristigla
  ova biblioteka sama proracuna kad je JWT dosao i sracuna koliko ce da traje.
-   Modifikujem AxiosWithJWTForBackend da podrzi i credential: 'include' u axios interceptor i da silent refresh access token ako je pri isteku automatically pri svakom protected endpoint request 
-
+   Modifikujem AxiosWithJWTForBackend (custom axios) da podrzi i credential: 'include' interceptor i da silent refresh access token ako je pri isteku automatically pri svakom protected endpoint request 
+   Svi BE request za protected routes moraju biti preko AxiosWithJWTForBackend 
+   Moram rucno poslati withCredentials:'include' u AuthService.tsx gde koristim obican axios, jer Login/Register Endpoints vracaju Cookie with RefreshToken, pa ako nema withCredentials, onda FE nece da prihvati 
+   Da bi Cookie se poslao ka BE, moram https pokrenuti applikaciju a to je zeznuto:
+      1) u .env dodajem HTTPS=true
+                        SSL_CRT_FILE=./localhost.pem
+                        SSL_KEY_FILE=./localhost-key.pem
+         ova 2 fajla su untracked by github
+      2) powershell run as admin: download chocolatey -> choco install mkcert -> cd to frontend folder -> mkcert localhost i 2 fajla navedena u .env se naprave bas gde treba
+      3) npm start => https://localhost:3000 je i sada svaki put, dok ovi certificati koji su validni do okt 2027, bice https kad uradim npm start
+      4) U BE Program.cs zameni da CORS prima https, a ne dosadasnji http ! 
 
 
 

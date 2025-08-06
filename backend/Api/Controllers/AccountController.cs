@@ -112,11 +112,11 @@ namespace Api.Controllers
                         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
                         {
                             HttpOnly = true,
-                            Secure = true,
+                            Secure = true, // Mora zbog SameSite=None, ali FE mora u HTTPS
                             SameSite = SameSiteMode.None,
                             Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
                             Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
-                            IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
+                            IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
                         });
 
                         return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
@@ -184,12 +184,11 @@ namespace Api.Controllers
             Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = true, // Mora zbog SameSite=None, ali FE mora u HTTPS
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7), // Mora da odgovara appUser.RefreshTokenExpiryTime
                 Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
-                IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
-
+                IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
             });
 
             return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
@@ -270,13 +269,15 @@ namespace Api.Controllers
 
         /* Kada user posalje Request to protected Endpoint, automatski odredi da li je trenutni JWT(Access Token) blizu isteka i ako jeste, automatski kaze Browseru da preko Cookie (koji sadrzi Refresh Token) pozove ovaj endpoint 
          da BE, za tog usera, napravi novi Refresh Token, invalidira stari i kreira novi JWT. Nema argumenta, jer Browser mu salje Cookie.*/
-        [HttpPost("refresh-token")]
-        [EnableRateLimiting("slow")] // To prevent attacks
+        [HttpGet("refresh-token")]
+        //[EnableRateLimiting("slow")] // To prevent attacks
         public async Task<IActionResult> RefreshToken()
         {   
             // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken)) // U Login/Register sam nazvao refreshToken i zato ovde ga ocitavam
                 return Unauthorized("No refresh token provided");
+
+            _logger.LogInformation("BE primio refreshtoken cookie");
 
             var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Jer u bazi skladistim Hash Refresh Token, dok u Cookie je obican Refresh Token
 
@@ -304,16 +305,15 @@ namespace Api.Controllers
             appUser.LastRefreshTokenUsedAt = DateTime.UtcNow;
             await _userManager.UpdateAsync(appUser);
 
-            // Saljek secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni
+            // Salje secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni
             Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = true, // Mora zbog SameSite=None, ali FE mora u HTTPS
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7), // Mora ito kao appUser.RefreshTokenExpiryTime
                 Path = "/", // Allow cookie to be sent to all endpoints, not just refresh-token. if axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
-                IsEssential = true // Ne kapiram zasto ali ovo nekad mora.
-
+                IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
             });
 
             return Ok( new { accessToken = newAccessToken } );

@@ -152,17 +152,19 @@ app.UseSwaggerUI(); // Default UI at /swagger
 app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045 jer je sigurnije
 
 // CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
-app.UseCors(x => x.WithOrigins("http://localhost:3000") // Samo moj Fronted (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
+app.UseCors(x => x.WithOrigins("https://localhost:3000") // Samo moj Fronted(https ili http) (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
                  .AllowAnyMethod() // Allows every Request method (GET,POST,PUT,DELETE...)
                  .AllowAnyHeader() // Allows custom headers, Authorization headers za JWT...
                  .AllowCredentials()); // Da bi FE mogo, kad mu je Access Token blizu isteka , rekao Browseru posalji zahtev za novi Access Token via Cookie(Refresh Token)
 
+/*
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always,
-    Secure = CookieSecurePolicy.Always,
-    MinimumSameSitePolicy = SameSiteMode.Strict
+    Secure = CookieSecurePolicy.Always, // Zbog ovoga, mora FE in HTTPS
+    MinimumSameSitePolicy = SameSiteMode.None
 }); // Jer RefreshToken Endpoint ovo zahteva. Ovo mora before UseAuthentication
+Ako ovo imam, onda u AccountController ne pisem Append i ne navodim one parametre.*/
 
 // Enable Authentication + Authorization
 app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register

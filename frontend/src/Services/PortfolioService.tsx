@@ -21,19 +21,20 @@ export const portfolioAddApi = async (symbol: string) => {
         //const token = localStorage.getItem("token"); // Jer u Context sam ga upisao u localStorage, ali ne koristim vise jer nesigurno, vec getInMemoryToken 
         const token = getInMemoryToken(); // U Context, token nije skladisten u localStorage vise, jer nesigurno je, vec je u in-memory variable
         // Odgovor u AddPortfolio Endpoint je Created() i to fakticki bez oblika ali mora stojati neki oblik kao return type
-        const response = await axios.post<PortfolioAddDelete>(apiEndpoint + `?symbol=${symbol}`, {}, 
-            {
-            // Nema body zbog Endpoint definicije, ali header mora zbog JWT. Mogo sam i bez {} za body, vec samo da preskocim taj argument.
-            headers:{
-                Authorization: `Bearer ${token}`
-                }
-            });
+        // const response = await axios.post<PortfolioAddDelete>(apiEndpoint + `?symbol=${symbol}`, {}, 
+        //     {
+        //     // Nema body zbog Endpoint definicije, ali header mora zbog JWT. Mogo sam i bez {} za body, vec samo da preskocim taj argument.
+        //     headers:{
+        //         Authorization: `Bearer ${token}`
+        //         }
+        //     });
+            // Ovde nisam koristio apiBackendWithJWT iako bih trebao, jer ocu da vidim kako se rucno salje Authorization Header 
+        const response = await apiBackendWithJWT.post<PortfolioAddDelete>(apiEndpoint + `?symbol=${symbol}`, {})
         return response; 
         
     } catch (error){
         handleError(error);
     }
-    // Ovde nisam koristio apiBackendWithJWT iako bih trebao, jer ocu da vidim kako se rucno salje Authorization Header 
 }
 
 export const portfolioDeleteApi = async (symbol: string) => {
