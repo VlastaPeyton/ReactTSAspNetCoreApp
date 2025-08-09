@@ -12,7 +12,9 @@ namespace Api.Models
          
           Zbog IdentityUser definicije, "ne mogu" AppUser:IdentityUser<AppUserId>, gde AppUserId je Value Object, jer morao bih onda AppUserId:IEquatable sto je cimanje. 
         Ovako, by default, Id je string.
-        */
+            
+         Zbog IdentityUser, imam automatski resen Race Condition problem pomocu ConcurrencyStamp kolone - pogledaj Race Condtitions.txt
+         */
 
         // U ApplicationDbContext OnModelCreating definisem PK(AppUser.Id) vezu sa FK iz Porftolio.cs (AppUserId) mada to bi EF i sam znao 
         public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Collection navigation property. Dobra praksa da ima default value. Uz PK-FK za AppUser-Portfolio, omogucava koriscenje Include sto olaksava LINQ (Eager loading).
@@ -38,5 +40,6 @@ namespace Api.Models
         public DateTime RefreshTokenExpiryTime { get; set; }
         public DateTime LastRefreshTokenUsedAt { get; set; }
         // Nakon dodavanja ovih kolona, pokrenem migraciju da u AppUser tabeli u bazi ih dodam
+
     }
 }

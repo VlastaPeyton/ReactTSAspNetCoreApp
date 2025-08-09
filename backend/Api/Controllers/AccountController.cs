@@ -22,6 +22,7 @@ namespace Api.Controllers
     {   // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
+        // Zbog AppUser updating via UserManager i SignInManager, automatski je implementiran Race Condition using ConcurrencyStamp kolonu of IdentityUser
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
         private readonly IEmailService _emailSender; // U Program.cs definisan da poveze IEmailSender kao EmailService
         private readonly ILogger<AccountController> _logger;
@@ -57,6 +58,11 @@ namespace Api.Controllers
          Ne koristim CancellationToken jer neam async Endpoint, zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
          
          Rate Limiter objasnjen u Program.cs
+         
+         Race conditions regarding AppUser je automatski odradjen u Register/Login/ResetPassword/RefreshToken, jer IdentitUser sadrzi ConcurrencyStamp polje koje se automatski menja svaki put kad azuriramo usera (vrstu AspNetUsers tabele). 
+           Tako sto _userManage.UpdateAsync/ResetPasswordAsync automatski zameni ConcurrencyStamp kolonu i sprecava da se u "isto vreme" zameni neko user polje - pogledaj Race Conditions.txt
+         
+         Race conditions regarding refresh token in RefreshToken je sredjen rucno - pogledaj Race Conditions.txt
 
          Access Token and Refresh Token objasnjeni u SPA Security Best Practice.txt 
          */
@@ -89,9 +95,10 @@ namespace Api.Controllers
                 };
 
                 var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password); // Dodaje novog usera u AspNetUsers tabelu 
-                // Dodaje AppUser polja (UserName i Email) i register.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
-                // CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program da definisem rucno u AddIdentity)
-
+                /* Dodaje AppUser polja (UserName i Email) i register.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
+                 CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program da definisem rucno u AddIdentity)
+                 CreateAsync behing the scenes attaches appUser to EF Core and populates every column of AspNetUsers table regarding ConcurrencyStamp koja sprecava race conditions
+                 */
                 if (createdUser.Succeeded)
                 {
                     var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogo sam samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom kroz OnModelCreating u AspNetRoles tabelu
@@ -103,11 +110,11 @@ namespace Api.Controllers
                         var refreshToken = _tokenService.GenerateRefreshToken(); 
                         var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken);
 
-                        appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
+                        appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide non-hashed refresh token
                         appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived 
                         appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom register, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
-                        await _userManager.UpdateAsync(appUser);
-                        
+                        await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser prevents overwriting if another request wanna update the same user right after registration - race condition prevented
+
                         // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
                         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
                         {
@@ -159,6 +166,7 @@ namespace Api.Controllers
             //var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDTO.UserName.ToLower()); // Moze i FindAsync jer je brze 
             // _userManager.Users odnsosi se na AspNetUsers tabelu
             var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
+            // appUser je ocitao sve kolone iz zeljene vrste AspNetUsers tabele, medju kojima je i ConcurrencyStamp koji sprecava race conditions
 
             if (appUser is null)
                 return Unauthorized("Invalid UserName");
@@ -178,7 +186,7 @@ namespace Api.Controllers
             appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
             appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived. 
             appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom login, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
-            await _userManager.UpdateAsync(appUser);
+            await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser stops a race where two logins for the same account try to update refresh token fields at the same time - race condition sprecen. 
 
             // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
             Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
@@ -208,6 +216,8 @@ namespace Api.Controllers
 
             var user = await _userManager.FindByEmailAsync(forgotPasswordDTO.EmailAddress);
             // If email is not found, just send "success" mesage to FE da zavaramo trag napadacima
+            // user sadrzi celu vrstu iz AspNetUsers tabele medju kojom je ConcurrencyStamp kolona koja sprecava race conditions 
+
             if (user is null)
                 return Ok("Reset password link is sent to your email");
 
@@ -236,7 +246,7 @@ namespace Api.Controllers
             // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ResetPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
 
             // Find user by email
-            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.EmailAddress);
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.EmailAddress); // Ocitane sve kolone ove vrste, pa i ConcurrencyStamp koja sprecava race conditions
 
             // Always return success to prevent email enumeration attack ! 
             // But only actually reset if user exists
@@ -245,7 +255,9 @@ namespace Api.Controllers
                 _logger.LogInformation("User found: {Email}", resetPasswordDTO.EmailAddress);
                 var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
                 /* ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword encodovao token.
-                 Prover i li je za ovaj user generisan resetPasswordToken u ForgotPassword i da li NewPassword se slaze sa zahtevima u Program.cs */
+                 Proveri li je za ovaj user generisan resetPasswordToken u ForgotPassword i da li NewPassword se slaze sa zahtevima u Program.cs
+                 Due to ConcurrencyStamp column of IdentityUser, ResetPasswordAsync azurira tu kolonu cime prevents overwriting if another request has updated the user since the reset token was issued - race condition sprecen
+                */
                 if (!result.Succeeded)
                 {
                     _logger.LogError("Password reset failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -280,14 +292,11 @@ namespace Api.Controllers
             _logger.LogInformation("BE primio refreshtoken cookie");
 
             var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Jer u bazi skladistim Hash Refresh Token, dok u Cookie je obican Refresh Token
-
+            
             var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshTokenHash == hashedRefreshToken);
 
-            if (appUser is null)
+            if (appUser is null || appUser.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 return Unauthorized("Invalid refresh token");
-
-            if (appUser.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                return Unauthorized("Refresh token expired");
 
             // Prevent double use:  poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
             if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt).TotalSeconds < 10)
@@ -303,7 +312,7 @@ namespace Api.Controllers
             appUser.RefreshTokenHash = newHashedRefreshToken;
             appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             appUser.LastRefreshTokenUsedAt = DateTime.UtcNow;
-            await _userManager.UpdateAsync(appUser);
+            await _userManager.UpdateAsync(appUser); // Prevents a race condition, jer azurira automatski ConcurrencyStamp kolonu, wheen two refresh requests try to update refresh token field simultaneously.
 
             // Salje secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni
             Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions

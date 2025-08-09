@@ -185,10 +185,10 @@ apiBackendWithJWT.interceptors.response.use(
                 const newToken = await refreshAccessToken();
                 if (newToken) {
                      // CRITICAL: Preserve withCredentials when retrying
-                    // originalRequest.withCredentials = true;
-                    // originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                    // onRefreshed(newToken); 
-                    // return apiBackendWithJWT(originalRequest); // Retry the original request
+                    originalRequest.withCredentials = true;
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    onRefreshed(newToken); 
+                    return apiBackendWithJWT(originalRequest); // Retry the original request
                    
                 }
             } catch (refreshError) {
