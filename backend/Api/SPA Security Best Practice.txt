@@ -35,7 +35,3 @@ Popravka2:
 	Modifikujem Login/Register Endpoint da pored JWT napravi i RefreshToken i prosledi to FE i Browser
 	Modifikujem AccountController da dodam RefreshToken endpoint with rotation and reuse detection
 
-
-
-
-
