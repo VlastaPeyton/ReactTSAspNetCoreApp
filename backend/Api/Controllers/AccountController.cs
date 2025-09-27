@@ -1,17 +1,13 @@
 ﻿using System.Net;
-using System.Text;
 using System.Text.Encodings.Web;
 using Api.DTOs.Account;
 using Api.Interfaces;
 using Api.Models;
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
+
 namespace Api.Controllers
 {
     // Postman/Swagger gadja Endpoints ovde definisane
