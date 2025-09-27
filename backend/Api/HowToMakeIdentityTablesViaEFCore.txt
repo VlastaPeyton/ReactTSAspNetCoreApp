@@ -1,5 +1,5 @@
 ﻿												
-				      Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims tabele
+Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims tabele
 
 1) Napravi AppUser:IdentityUser koja predstavlja AspNetUsers tabelu
 

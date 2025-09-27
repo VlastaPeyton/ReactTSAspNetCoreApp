@@ -1,37 +1,39 @@
-﻿Kada sam napravio ovu app, koristio sam long-lived JWT koji je skaldisten u localStorage u React, gde localStorage 
-pripada Browseru, a ne FE, i to je XSS vulnerable, jer moze da mu se pristuipi i kad FE nije ukljucen. 
-Bolje da sam ga smestio u varialbe (in-memory) jer to prevents XSS. Kako god da je smesten, bitno da nije Cookie, morao je biti poslat from FE putem Authorization headera u svakom API Request.
+﻿Kada sam napravio ovu app inicijalno: 
+	Koristio sam long-lived JWT koji je skaldisten u localStorage u React, gde localStorage pripada Browseru, a ne FE, i to je XSS vulnerable, jer moze da mu se pristupi i kad FE nije ukljucen. 
+	Bolje da sam ga smestio u varialbe (in-memory) jer to prevents XSS. 
+	Kako god da je smesten (bitno da nije Cookie) morao je biti poslat from FE putem Authorization headera u svakom Request (rucno ili putem interceptor).
 
-App mi je SPA, a best practice is:
-	-Access Token (JWT) not store in localStorage, but in-memory (variable) - prevent XSS. Ne zelim njega u Cookie, jer zelim da bude short-live, manually attached to API Request. Saljem ga u API Request rucno u authorization header.
-	 Lasting 15mins. Na svakih 15min pravi se novi
-	 Kad se user login/register, pravi se JWT i Refresh Token
-	-Refresh Token store in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). On je auto attached to API Request jer Browser to posalje backendu.
-	 Lasting npr 7days. After 7days, user has to manually logout and login to obtain a new refresh token 
-
-Kada sam napravio app:
-	Users opens FE -> forced to Login/Register -> Login/Register Endpoint is triggered -> Endpoint sends Access Token (JWT) back to FE, via Response body, JWT lasts 7days which is stored in localStorage. 
-	Problem sa localStorage je taj sto ako je ne ocistim u FE, token ce postojati u njoj sve vreme, a localStorage pripada Browseru i podlozne je za XSS. 
-	Kada FE dobio JWT i skladistio u localStorage, moze da poziva protected Endpoints. 
+	Users opens FE -> forced to Login/Register -> Login/Register Endpoint is triggered -> Login/Register Endpoint sends Access Token (JWT) to FE, via Response body, JWT lasts 7days which is stored in localStorage. 
+	Problem sa localStorage ako je ne ocistim u FE, token ce postojati u njoj sve vreme i kad app is not open, a localStorage pripada Browseru i podlozne je za XSS.
+	Kada FE dobio JWT i skladistio u localStorage, moze da poziva protected Endpoints (koji zahtevaju Authorization header tj JWT zahtevaju).
 	Ako user close/refresh app, localStorgae ostaje nepromenjen i user nastavlja pozivanje protected Endpoints bez problema, sve dok JWT ne istekne. Ako istekne, user rucno mora logout, pa login da bi dobio novi JWT.
-	Ovo nije bas dobra praksa, narocito zbog localStorage. 
+	Ovo nije bas dobra praksa, narocito zbog localStorage.
 
-Popravka1:
-	Sve kao iznad, samo umesto localStorage, JWT skladisten u variablu (in-memory) i ako user closes/refresh app, morao bi rucno logout, pa login da bi dobio novi JWT. 
-	Ovo je dobro sto sprecava XSS, jer ne koristi localStorage, ali zajebano ako ugasi app ili refresh. 
+Zelim SPA App, a best practice to achieve SPA is to enhance security on BE side:
+	-Access Token (JWT) (short-lived) not stored in localStorage in React, but in-memory (variable) - prevent XSS. Ne zelim JWT (Access Token) u Cookie, jer zelim da bude short-live, manually attached to API Request. Saljem ga rucno u Authorization header of Request.
+	 Lasting 15mins u mom slucaju. Na svakih 15min pravi se novi. 
+	 Kad se user login/register, pravi se JWT i Refresh Token. 
 
-Popravka2: 
-	User opens FE -> forced to Login/Register -> Login/Register Endpoint is triggered -> Endpoint sends back Short-lived Access Token (JWT) via Response body to FE Access Token (JWT) of 15min lasting which is stored in variable (in-memory preventing XSS) and 
-  at the same time sends to Browser (not to FE)  Cookie (HttpOnly, SameSite, Secure atributi) containing Long-lived Refresh Token. Cookie ima podesavanja koja osiguravaju CSRF attack. 
-    Pri svakom protected Endpoint pozivu, FE with treba blagovremeno da proverava da li mu je Access Token blizu isteka, jer ako jeste, da onda kaze browseru posalji isti Cookie na RefreshToken Endpoint gde ce BE da proveri Refresh Token iz Cookie da li je isti kao Refresh Token u Cookie koji je BE poslao prethodno i 
-  ako je isti, onda pravi novi Access Token i salje ga to FE. 
-	Token rotation = Pri svakom refresh token zahtevu koji FE salje to BE pozivanjem RefreshToken Endpoint, BE mora da invalidate prethodni (koji mu je browser poslao) refresh token i da napravi novi i da ga putem Cookie posalje to browser istovremeno kad i salje novi access token to FE.
+	-Refresh Token (long-lived) stored in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). On je auto attached to API Request, jer Browser to automatski salje to BE.
+	 Lasting npr 7days u mom slucaju. After 7days, user has to manually logout and login (or automaticly logout by app) to obtain a new refresh token.
+	 
+Popravka1 to achieve SPA security best practice:
+	Sve kao iznad inicijalno, samo umesto localStorage, JWT skladisten u variablu (in-memory) i ako user close/refresh app, morao bi rucno logout, pa login da bi dobio novi JWT. 
+	Ovo je dobro sto sprecava XSS, jer ne koristi localStorage, ali zajebano ako close/refresh app jer onda kad otvori app, bice login i dalje, ali JWT je izgubljen, pa nece shvatiti da treba logut manualno, pa opet login.
+	Svakako, ovo je los UX zbog JWT in-memory, i zato Popravka2 sledi.
+
+Popravka2 to achieve SPA security best practice: 
+	User opens FE -> forced to Login/Register -> Login/Register Endpoint is triggered -> Endpoint sends Short-lived Access Token (JWT) via Response body to FE of 15min lasting which is stored in variable (in-memory, preventing XSS) and 
+  at the same time sends to Browser (not to FE) Cookie (HttpOnly, SameSite, Secure atributes) containing Long-lived Refresh Token. Cookie ima podesavanja for preventing CSRF attack. 
+    Pri svakom protected Endpoint pozivu, FE with treba blagovremeno da proverava da li mu je Access Token blizu isteka, jer ako jeste, da onda kaze browseru posalji isti Cookie (long-lived Refresh Token) na RefreshToken Endpoint, gde ce BE da proveri Refresh Token iz Cookie
+  da li je isti kao Refresh Token koji je BE poslao prethodno, i ako je isti, onda pravi novi Access Token i salje ga to FE. 
+	Token rotation = Pri svakom Refresh Token zahtevu koji FE salje to BE pozivanjem RefreshToken Endpoint, BE mora da invalidate prethodni (koji mu je browser poslao) Refresh Token i da napravi novi i da ga putem Cookie posalje to browser istovremeno kad i novi Access Token to FE.
 	Access Token se NE upisuje u bazu za zeljenog usera, jer user claims are encoded in JWT.
 	Refresh Token se upisuje u bazu za zeljenog usera.
-	Zbog ova 2 moram razdvojiti generate access token od generate refresh token metode.
+	Zbog ova 2 moram razdvojiti metode za kreiranje Refresh i Access tokena, jer GenerateRefreshToken metoda pristupa bazi, pa zbog sigurnosti pristup bazi kao posebna metoda mora.
 
-	Modifikujem AppUser da dodam kolone potrebne za RefreshToken
-	Modifikujem ITokenService i TokenService
-	Modifikujem Login/Register Endpoint da pored JWT napravi i RefreshToken i prosledi to FE i Browser
-	Modifikujem AccountController da dodam RefreshToken endpoint with rotation and reuse detection
+	=> Modifikujem AppUser da dodam kolone potrebne za RefreshToken
+	=> Modifikujem ITokenService i TokenService
+	=> Modifikujem Login/Register Endpoint da pored JWT, i RefreshToken salje
+	=> Modifikujem AccountController da dodam RefreshToken endpoint with rotation and reuse detection
 
