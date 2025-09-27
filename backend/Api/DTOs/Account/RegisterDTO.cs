@@ -2,10 +2,10 @@
 
 namespace Api.DTOs.Account
 {
-
-    // Zbog Data Validation mi treba, jer ModelState u Register endpoint, na osnovu ovih annotations automatski radi validaciju
-    // Request DTO se koristi kad FE gadja Endpoint jer ne moze Entity klasa jer ona sluzi za DB interaction u Repository
-
+    /* Ovog redosleda i imena navodim argumente u React request kad pozivam Register endpoint
+       Zbog Data Validation mi treba, jer ModelState u Register endpoint na osnovu ovih annotations automatski radi validaciju
+       Request DTO se koristi kad FE poziva endpoint, jer ne sme Models (entity) klasu koristiti u tom slucaju, jer ona sluzi samo za DB interaction u Repository
+    */
     public class RegisterDTO
     {   // Ovog redosleda i imena navodim argumente kad gadjam Register endpoint 
 
@@ -19,6 +19,4 @@ namespace Api.DTOs.Account
         [Required]
         public string? Password { get; set; }
     }
-    /* U Register endpoint, ModelState ce da proveri da li je unesen UserName zbog [Required], da li je EmailAddress unesen i da li je zeljenog oblika,
-     da li je Password unesen. */
 }

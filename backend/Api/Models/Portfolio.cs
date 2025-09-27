@@ -5,9 +5,9 @@ namespace Api.Models
 {
     // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 
 
-    /*Join table koja ce da predstavlja each Stock of each AppUser (zato Stock polje postoji), jer nije dobra praksa da AppUser ima Stocks listu kao polje i Stock da ima AppUsers listu kao polje.
-     Takodje, predstavlja AppUser of each Stock i zato AppUser polje postoji.  
-     Joint table se koristi za Many-to-Many relationship (u ovom slucaju izmedju User-Stock). */
+    /* Join table koja ce da predstavlja each Stock of each AppUser (zato Stock polje postoji), jer nije dobra praksa da AppUser ima Stocks listu kao polje i Stock da ima AppUsers listu kao polje.
+       Takodje, predstavlja AppUser of each Stock i zato AppUser polje postoji.  
+       Join table se koristi za Many-to-Many relationship (u ovom slucaju izmedju User-Stock). */
 
     [Table("Portfolios")]
     public class Portfolio // U principu, 1 Portfolio je 1 Stock za zeljenog AppUser-a

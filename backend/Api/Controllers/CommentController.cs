@@ -30,29 +30,28 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Za Endpoint argument koristim DTO klase i za return object to FE, nikad Comment tj Models klase, jer Models klase namenjene za Repository tj za EF.
-
-        /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
-           
-           Svaki Endpoint, salje to Frontend, Response koji ima polja Status Line, Headers i Body. 
-        Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
-        Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
-
-         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined u FE.
+        /* Svaki Endpoint:
+            - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
+            - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
+            - salje to FE Response koji ima polja Status Line, Headers i Body. 
+              Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
+              Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
+              Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u FE try block, vec ide u catch block i onda response=undefined u ReactTS.
          
          Data validation when writing to DB: 
             Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
             If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
-            Validation can be done using ModelState - u Write to DB Endpoint stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object iz tog Endpoint. ModelState ako ne zelim custom validation logic.
-            Validation can be done using FluentValidation - ako zelim custom validaiton logic.          
+            Validation can be done:
+                1) using ModelState - default validation logic. U write to DB endpoint, stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object tog endpointa.
+                2) using FluentValidation - ako zelim custom validation logic. 
          
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi kod more complex. Koristim ModelState.
+         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima bar 1, onda treba.
+         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
 
          Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.
          
-         Za async Endpoints, nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
+         Za async endpoints nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
         Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
         CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
@@ -99,7 +98,7 @@ namespace Api.Controllers
             // ModelState pokrene validation za CreateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima u "errors" delu of Response
+            // Frontendu ce biti poslato StatusCode=400 u Response Status, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima u "errors" delu of Response
 
             // U FE, zelim da ostavim komentar za neki stock, pa u search kucam npr "tsla" i onda on trazi "tsla" sve stocks koji pocinju na "tsla" u bazi pomocu GetBySymbolAsync
             var stock = await _stockRepository.GetBySymbolAsync(symbol, cancellationToken); // Nadje u bazy stock za koji ocu da napisem komentar 
@@ -115,7 +114,7 @@ namespace Api.Controllers
                     await _stockRepository.CreateAsync(stock, cancellationToken); 
             }
 
-            // I da ne stoji [Authorize] iznad, moram sa FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName bio !=null
+            // I da ne stoji [Authorize] iznad, mora FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName != null
             var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
             // _userManager methods does not use cancellationToken

@@ -24,25 +24,24 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        // Za Endpoint argument i return object koristim DTO objekat, nikad Portfolio tj Models klase, jer Models klase namenjene za Repository tj za EF.
-
-        /* Svaki Endpoint bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
-           
-           Svaki Endpoint, salje to Frontend, Response koji ima polja Status Line, Headers i Body. 
-        Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
-        Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
-          
-         Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u try block, vec ide u catch block i onda response=undefined najcesce u FE.
-
+        /* Svaki Endpoint:
+            - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
+            - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
+            - salje to FE Response koji ima polja Status Line, Headers i Body. 
+              Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
+              Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
+              Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u FE try block, vec ide u catch block i onda response=undefined u ReactTS.
+         
          Data validation when writing to DB: 
             Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
             If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
-            Validation can be done using ModelState - u Write to DB Endpoint stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object iz tog Endpoint. ModelState ako ne zelim custom validation logic.
-            Validation can be done using FluentValidation - ako zelim custom validaiton logic. 
+            Validation can be done:
+                1) using ModelState - default validation logic. U write to DB endpoint, stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object tog endpointa.
+                2) using FluentValidation - ako zelim custom validation logic. 
          
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi kod more complex. Koristim ModelState.
+         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako Endpoint nema [Authorize] ili User.GetUserName(), u FE ne treba slati JWT in Request Header, ali ako ima jedno bar, onda treba.
+         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
             
          Nisam koristio cancellationToken = default, jer ako ReactTS pozove  Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
             Zbog nemanja =defaul ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu.

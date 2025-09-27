@@ -4,7 +4,6 @@ using Api.Interfaces;
 using Api.Models;
 using Api.Repository;
 using Api.Service;
-using Azure.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -15,7 +14,7 @@ using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Env.Load(); // loads ".env" from project root, pre svega ostalog jer mnogo toga zavisi od Env.GetString(...) pa ne moze se napravi ako ovo nije omoguceno
+Env.Load(); // Loads ".env" from project root pre svega ostalog jer mnogo toga zavisi od Env.GetString(...) pa ne moze se napravi ako ovo nije omoguceno
 
 // Add Controllers classes. Ovo prepoznaje sve iz Controllers foldera.
 builder.Services.AddControllers();
@@ -38,7 +37,7 @@ builder.Services.AddSwaggerGen(options =>
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {   
-        { // Mora ova jer OpenApiSecurityRequirement nasledjuje recnik 
+        { // Mora ovaj par zagrada, jer OpenApiSecurityRequirement nasledjuje recnik 
             new OpenApiSecurityScheme // Dictionary Key
             {
                 Reference = new OpenApiReference
@@ -61,48 +60,49 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 // Add IdentityDbContext da bih definisao password kog oblika mora biti i skladistim ga u istu bazu sa Stocks i Comments, stoga mora AddEntityFrameworkStores
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{   // IdentityRole je AspNetRoles tabela
+{   // IdentityRole je AspNetRoles tabela. AddIdentity ce napraviti i povezati SVE Identity tabele, a ne samo ove 2.
     options.Password.RequireDigit = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 12;
-    options.User.RequireUniqueEmail = true; // Da ne mogu dva usera da imaju isti Email prilikom njihovog dodavanja u AspNetUsers tabelu u Register endpoint
+    options.User.RequireUniqueEmail = true;         // Da ne mogu dva usera da imaju isti Email prilikom njihovog dodavanja u AspNetUsers tabelu u Register endpoint
 
-    // AddEntityFrameworkStores tells Identity to use EF to store Identity data (users, roles, tokens, etc.) in the database using your AppDbContext.
-}).AddEntityFrameworkStores<ApplicationDBContext>()
-.AddDefaultTokenProviders();//  is needed for email confirmation, password reset, etc for ForgotPassword 
+}).AddEntityFrameworkStores<ApplicationDBContext>() // AddEntityFrameworkStores tells Identity to use EF Core to store Identity data (users, roles, tokens, etc.) in the database using AppDbContext.
+  .AddDefaultTokenProviders();                      // Is needed for email confirmation, password reset, etc. for ForgotPassword 
 
-// Nakon ova 2 registrovanja iznad, u Package Manager Console kucam "Add-Migration Identity", pa "Update-Database", da sa naprave tabele AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims... 
+// Nakon ova 2 registrovanja iznad, u Package Manager Console kucam "Add-Migration Identity", pa "Update-Database", da sa naprave sve Identity tabele (objasnjene u ApplicationDbContext.cs) 
 
-// JWT Authentication 
+// JWT Authentication for [Authorize] endpoints
 builder.Services.AddAuthentication(options =>
-{
+{   
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // How app authenticate users (reads JWT)
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // What happens when unathenticated user hits [Authorize]
-    options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme; // What happens when authenticated user is not authorized 
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Fallback if other shcemes arent specified
-    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme; // For sign in 
-    options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme; // For sign out
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;    // What happens when unauthenticated user hits [Authorize] endpoint
+    options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;       // What happens when authenticated user is not authorized 
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;             // Fallback if other shcemes arent specified
+    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;       // For sign in 
+    options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;      // For sign out
     // Svuda koristim JWT Bearer jer to mi najlakse 
 
 }).AddJwtBearer(options =>
 {   /* AddJwtBearer zahteva Authorization = `Bearer ${token}` u React FE, tj BE zahteva JWT u Authorization header of each Request, pa moram jwt token u FE skladistiti u localStorage. 
-    Tj svaki endpoint koji ima [Authorize] znaci da mu se moze pristupiti samo ako je user logged in + FE mora mu poslati Authorization = `Bearer {token}`
-    Ovo je non-secure pristup.
-    Bolje je JWT slati kroz Cookie, jer React ne mora da skladisti JWT nigde, pa XSS napadi ne mogu da ga nadju u FE, jer Browser onda salje JWT kad treba to BE.*/
+    Tj svaki endpoint koji ima [Authorize] znaci da mu se moze pristupiti samo ako je user logged in + FE mora mu poslati "Authorization = `Bearer {token}`" u Requst Authorization header.
+    Ovo je validacija Access Token (JWT) short-lived, ne Refresh Token !
+    Pogledati
+    */
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"], // appsettings.json
+        ValidIssuer = builder.Configuration["JWT:Issuer"], // Iz appsettings.json 
         ValidateAudience = true,
         ValidAudience = builder.Configuration["JWT:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))
     };
 });
 
-/* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock  i to je circular reference. Pa da ne dodje do problema. 
-Isto vazi i za AppUser/Stock - Portfolio. */
+/* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock i to je circular reference koji dovodi do problema u JSON serialization ako ne ugasim to ovde.
+   Isto vazi i za AppUser/Stock - Portfolio.
+*/
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;

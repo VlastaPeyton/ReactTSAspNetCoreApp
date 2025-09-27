@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs.Account
-{    // Ovog redosleda i imena navodim arugmente u React kad gadjam ForgotPassword endpoint
-    // Zbog Data Validation mi treba, jer ModelState u ForgotPassword endpoint, na osnovu ovih annotations automatski radi validaciju
-    // DTO je request object koji se koristi kad FE gadja Endpoint jer ne moze Entity klasa jer ona sluzi za DB interaction u Repository
+{    /* Ovog redosleda i imena navodim arugmente u React request kad pozivam ForgotPassword endpoint
+        Zbog Data Validation mi treba, jer ModelState u ForgotPassword endpoint na osnovu ovih annotations automatski radi validaciju
+        Request DTO se koristi kad FE poziva endpoint, jer ne sme Models (entity) klasu koristiti u tom slucaju, jer ona sluzi samo za DB interaction u Repository
+    */
     public class ResetPasswordDTO
     {
         [Required]

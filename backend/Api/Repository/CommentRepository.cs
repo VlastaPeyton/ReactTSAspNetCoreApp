@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repository
 {
-    /* Repository pattern kako bi, umesto u CommentController, u CommentRepository definisali tela Endpoint metoda + DB calls u Repository se stavljaju i zato
-    ovde moze ne ide CommentDTO, vec samo Comment jer Models Entity klase se koriste za EF Core.
+    /* Repository pattern kako bi, umesto u CommentController, u CommentRepository definisali tela endpoint metoda + DB calls u Repository se stavljaju i zato
+    ovde ne ide CommentDTO, vec samo Comment, jer Models Entity klase se koriste za EF Core.
                
        Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase i zato u Controller koristim mapper extensions da napravim Entity klasu from DTO klase.
     

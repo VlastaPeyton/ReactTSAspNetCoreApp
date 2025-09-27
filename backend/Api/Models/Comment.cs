@@ -5,17 +5,17 @@ namespace Api.Models
 {
     // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 
 
-    // Comment table i ovo se koristi samo za EF tj bazu. Za Endpoints se koristi CommentDTO
+    // Comment table i ovo se koristi samo za EF Core tj bazu. Za endpoints se koristi CommentDTO
     [Table("Comments")]
-    public class Comment // Entity jer predstavlja tabelu u bazi
+    public class Comment 
     {
-        public CommentId Id { get; set; } // PK and Index by default. Bio je int, ali sam stavio custom type.
+        public CommentId Id { get; set; } // PK and Index by default dok je bio int type, ali sam stavio custom type. Posto je custom type(Value Object) u OnModelCreating moram definisati da je PK.
         public int StockId { get; set; } // FK koji gadja Id u Stock klasi mora biti istog tipa kao Id u Stock klasi.
         public Stock? Stock { get; set; } // Navigational property
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now; 
-        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je String. Ovo je FK koji gadja Id u AppUser klasi
+        public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je string. Ovo je FK koji gadja Id u AppUser klasi
         public AppUser AppUser { get; set; } // Navigational property 
 
         // Navigational property objasnjeje u AppUser ! 
