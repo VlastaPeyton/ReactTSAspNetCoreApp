@@ -75,7 +75,7 @@ namespace Api.Controllers
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
         {   // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioAddApi u FE moram poslati symbol nakon ? in URL
             // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali stavim [Authorize] jer osigura da userName!=null, jer forsira Frontend da posalje JWT.
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims 
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims koji su in-memory, jer brze nego u bazi da nadjem
             var appUser = await _userManager.FindByNameAsync(userName); // Ne moze cancellationToken ovde
 
             // Kada u search ukucan npr "tsla" izadje mi 1 ili lista Stocks ili ETFs koji pocinju sa "tsla" i zelim kliknuti Add da dodam bilo koji stock u portfolio, pa prvo provera da li je zeljeni stock u bazi

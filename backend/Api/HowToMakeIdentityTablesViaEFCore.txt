@@ -1,7 +1,7 @@
 ﻿												
-Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims tabele
+Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNetUserClaims itd tj sve Identity tabele
 
-1) Napravi AppUser:IdentityUser koja predstavlja AspNetUsers tabelu
+1) Napravi AppUser:IdentityUser ,gde IdentityUserpredstavlja AspNetUsers tabelu
 
 2) Napravi ApplicationDbContext: IdentityDbContext<AppUser> 
 
@@ -21,4 +21,5 @@ Kako napraviti AspNetUsers, AspNetRoleClaims, AspNetRoles,AspNetUserRoles, AspNe
 		options.User.RequireUniqueEmail = true;
 	}).AddEntityFrameworkStores<ApplicaitonDbContext>(); 
 
-4) Pokreni Migracije i Update database sa one 2 komande poznate svima
+4) Pokreni Migracije i Update database sa one 2 komande poznate svima i napravice se sve Identity tabele i automatski PK-FK relacije, jer
+   IdentityDbContext te tabele sadrzi bez da ih definisem u ApplicationDbContext

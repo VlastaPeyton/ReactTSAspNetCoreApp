@@ -29,7 +29,7 @@ Popravka2 to achieve SPA security best practice:
   da li je isti kao Refresh Token koji je BE poslao prethodno, i ako je isti, onda pravi novi Access Token i salje ga to FE. 
 	Token rotation = Pri svakom Refresh Token zahtevu koji FE salje to BE pozivanjem RefreshToken Endpoint, BE mora da invalidate prethodni (koji mu je browser poslao) Refresh Token i da napravi novi i da ga putem Cookie posalje to browser istovremeno kad i novi Access Token to FE.
 	Access Token se NE upisuje u bazu za zeljenog usera, jer user claims are encoded in JWT.
-	Refresh Token se upisuje u bazu za zeljenog usera.
+	Refresh Token se upisuje u bazu za zeljenog usera (statefull).
 	Zbog ova 2 moram razdvojiti metode za kreiranje Refresh i Access tokena, jer GenerateRefreshToken metoda pristupa bazi, pa zbog sigurnosti pristup bazi kao posebna metoda mora.
 
 	=> Modifikujem AppUser da dodam kolone potrebne za RefreshToken

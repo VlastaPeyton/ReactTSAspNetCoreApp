@@ -10,7 +10,7 @@ namespace Api.DTOs.Stock
         Sve isto kao Stock.cs, samo Id nema jer se on automatski dodeljuje u bazi i nema Comments/Portfolios, jer je to Navigation Property povezan preko PK-FK sa zeljenim vrstama
      Comments/Portfolios tabele, pa se ne pise ovde, jer to nikad ne saljem from FE, vec to je veza sa Comments/Portfolios tabelama.
        
-        Mora imati annotations jer ovu klasu koristim za writing to DB  Endpoint argument pa da ModelState moze da validira polja. */
+        Mora imati annotations jer ovu klasu koristim za writing to DB endpoint argument pa da ModelState moze da validira polja. */
     public class CreateStockRequestDTO
     {
 

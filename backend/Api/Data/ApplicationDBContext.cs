@@ -43,8 +43,13 @@ namespace Api.Data
             {   // entity = builder.Entity<Portfolio>
 
                 // Portfolios tabela imace PK kao kombinaciju AppUserId i StockId zato sto Portfolio.cs tako napravljen i jer u Portfolio.cs ne mogu compositni PK da napravim, nego ovde moram
-                entity.HasKey(p => new { p.AppUserId, p.StockId }); // Ovo je samo po sebi index za ovaj composite PK
-                                                                    // Zbog ovoga, moram prvo dodati AppUser u bazu i Stock, kako bi tokom AddAsync(portfolio) u PortfolioRepository mogao da doda ga u bazu, jer composite PK ne moze baza da popuni sama kao obican Id PK, vec to moram da osiguram prethodno
+                entity.HasKey(p => new { p.AppUserId, p.StockId }); 
+                /* Ovo je samo po sebi index za ovaj composite PK. 
+                   AppUserId i StockId cu ispod definisati kao FK za AppUser i Stock.
+                   Ovaj composite PK je sastavljen od 2 FK i zato moram prvo dodati AppUser i Stock u bazu, kako bi tokom AddAsync(portfolio) u PortfolioRepository mogao da doda ga u bazu, 
+                jer composite PK ne moze baza da popuni sama kao obican Id PK, vec to moram da osiguram prethodno. 
+                   Da je composite PK sastavljen od 2 polja gde nijedno nije FK, onda ne bih morao imati AppUser i Stock u bazi pre AddAsync(portfolio).
+                */
 
                 // Zbog explicitno defisanja PK za Portfolio, moram definisati explicitno 1-to-many AppUser/Stock - Portfolio veze
 

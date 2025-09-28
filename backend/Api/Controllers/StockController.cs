@@ -43,16 +43,16 @@ namespace Api.Controllers
          Koristim mapper extensions da napravim Stock Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Stock Entity kad saljem data to FE.
          
          Za async Endpoints, nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
-        Zbog nemanja =default ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
+        Zbog nemanja "=default" ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
-        CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
+        CancellationToken se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
         
          Rate Limiter objasnjen u Program.cs
         */
 
         // Get All Stocks Endpoint
         [HttpGet]   // https://localhost:port/api/stock/
-        [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint
+        [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint + FE mora poslati JWT u Authorization header of request
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query, CancellationToken cancellationToken)
         {   // Mora [FromQuery], jer GET Axios Request u ReactTS ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL), moram proslediti vrednosti za svako polje iz QueryObject (iako neka imaju default value) redosledom i imenom iz QueryObject
             // U ReactTS zbog [Authorize] moram proslediti JWT u Request Header. 
