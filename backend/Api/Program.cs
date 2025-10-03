@@ -167,8 +167,15 @@ app.UseCookiePolicy(new CookiePolicyOptions
 Ako ovo imam, onda u AccountController ne pisem Append i ne navodim one parametre.*/
 
 // Enable Authentication + Authorization
-app.UseAuthentication(); // Must come before UseAuthorization as it validates user identity when Login/Register
-app.UseAuthorization();  // Enforces access rules based on user identity
+app.UseAuthentication(); 
+/* UseAuthentication must come before UseAuthorization as it validates user identity when Login/Register.
+   UseAuthentication hvat Authorization header iz Request tj hvata JWT koji je uvek u Authorization header smesten u mom slucaju (zbog SPA Security best practice)
+ ili cookie (ali cookie JWT mi nije) i napravi ClaimsPrincipal (nasledjen Claim objekat iz ControllerBase) i upise ga u HttpContext.User.
+ * */
+app.UseAuthorization();  
+/* Enforces access rules based on user (HttpContext.User koji je UseAuthentication popunio) identity.
+   Controller:ControllerBase, a ControllerBase ima User(HttpContext.User) polje. 
+*/
 
 // Use Rate Limiter on desired Endpoints 
 app.UseRateLimiter();

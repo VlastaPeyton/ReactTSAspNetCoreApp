@@ -5,7 +5,8 @@ namespace Api.Models
 {   // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 
 
     // Stock table i ovo se koristi samo za EF Core tj bazu. Za endpoints se koristi StockDTO jer Stock se koristi samo u ApplicaitonDbContext kad interaguje sa bazon kroz EF Core.
-    [Table("Stocks")]
+    
+    [Table("Stocks")] // Ime tabele u bazi explicitno definisano 
     public class Stock // Entity jer predstavlja tabelu u bazi
     {
         public int Id { get; set; } // PK and Index by default.

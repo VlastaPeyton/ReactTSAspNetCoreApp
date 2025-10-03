@@ -116,7 +116,7 @@ namespace Api.Controllers
             }
 
             // I da ne stoji [Authorize] iznad, mora FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName != null
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, i to je Claim i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
             // _userManager methods does not use cancellationToken
 

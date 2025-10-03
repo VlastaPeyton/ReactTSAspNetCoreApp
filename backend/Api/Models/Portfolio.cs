@@ -9,7 +9,7 @@ namespace Api.Models
        Takodje, predstavlja AppUser of each Stock i zato AppUser polje postoji.  
        Join table se koristi za Many-to-Many relationship (u ovom slucaju izmedju User-Stock). */
 
-    [Table("Portfolios")]
+    [Table("Portfolios")] // Ime tabele u bazi explicitno definisano
     public class Portfolio // U principu, 1 Portfolio je 1 Stock za zeljenog AppUser-a
     {   
         // U ApplicationDbContext OnModelCreating definisacu PK (i automatski Index bice) kao kombinaciju AppUserId i StockId, jer to ovde ne moze.

@@ -4,9 +4,9 @@ using Api.Value_Objects;
 namespace Api.Models
 {
     // Models folder sluzi za Entity klase jer te klase ce biti tabele u bazi. 
-
     // Comment table i ovo se koristi samo za EF Core tj bazu. Za endpoints se koristi CommentDTO
-    [Table("Comments")]
+    
+    [Table("Comments")] // Ime tabele u bazi explicitno definisano
     public class Comment 
     {
         public CommentId Id { get; set; } // PK and Index by default dok je bio int type, ali sam stavio custom type. Posto je custom type(Value Object) u OnModelCreating moram definisati da je PK.
