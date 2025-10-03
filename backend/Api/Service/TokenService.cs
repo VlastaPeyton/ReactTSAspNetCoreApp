@@ -43,7 +43,7 @@ namespace Api.Service
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims), // Email i UserName from AppUser
-                Expires = DateTime.UtcNow.AddMinutes(15), // Objasnjeno u "SPA Security Best Practice.txt"
+                Expires = DateTime.UtcNow.AddMinutes(2), // Objasnjeno u "SPA Security Best Practice.txt"
                 SigningCredentials = signingCredentials,
                 Issuer = _configuration["JWT:Issuer"], // From appsettings
                 Audience = _configuration["JWT:Audience"]

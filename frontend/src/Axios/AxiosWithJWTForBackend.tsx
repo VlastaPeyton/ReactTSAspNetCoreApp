@@ -10,6 +10,12 @@ const apiBackendWithJWT = axios.create({
     withCredentials: true // Required to send HttpOnly Refresh Token cookie to BE
 })
 
+// Create a separate axios instance for refreshing token to avoid interceptor deadlock as this instance does not have interceptors attached to it 
+const axiosRefreshToken = axios.create({
+    baseURL: process.env.REACT_APP_BASE_BACKEND_API,
+    withCredentials: true // Ensure cookies are sent
+});
+
 /* Ako je vise requests to protected Endpoint poslato, a Acces Token is about to expire (jer svi request koriste isti token), 
 osiguravam da samo jedan Request pozove RefreshToken Endpoint, dok ostalih 9 cekaju (subscribeTokenRefresh) da FE dobije novi JWT i kad ga dobiju, nastavljaju
 sa novim tokenom. */
@@ -24,29 +30,34 @@ function onRefreshed(newToken: string): void {
     refreshSubscribers = [];
 }
 
-
 // Function to refresh the access token (which is gonna be called by only first Request made to protected Endpoint)
 async function refreshAccessToken() {
+
+    console.log("Calling refresh...");
+
     try {
-         // Use the SAME axios instance to ensure cookies are sent properly
-        const response = await apiBackendWithJWT.get<NewAccessToken>(
+         // Use the SAME axios instance to ensure cookies are sent properly - LOSE
+         // Use DIFF axios instance da ne bude self-intercept deadlock 
+        const response = await axiosRefreshToken.get<NewAccessToken>(
             'account/refresh-token', // Relative URL since we have baseURL
             {
                 withCredentials: true // Explicitly ensure cookies are sent by the browser
             }
         );
-                
+        
         const newToken = response.data.accessToken; // jer NewAccessToken ima ovo polje
 
         console.log(`New access token ${newToken}`);
         setInMemoryToken(newToken); 
         toast.success("New token set");
+
         return newToken;
 
     } catch (error) {
         console.warn("Token refresh failed", error);  
         toast.warn("Nije refreshovan token");
         setInMemoryToken(null);
+        
         return null;
     }
 }

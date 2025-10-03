@@ -213,6 +213,7 @@ Na email stize link koji vodi u reset password page.
       2) powershell run as admin: download chocolatey -> choco install mkcert -> cd to frontend folder -> mkcert localhost i 2 fajla navedena u .env se naprave bas gde treba
       3) npm start => https://localhost:3000 je i sada svaki put, dok ovi certificati koji su validni do okt 2027, bice https kad uradim npm start
       4) U BE Program.cs zameni da CORS prima https, a ne dosadasnji http ! 
+      5) u AxiosWithJWTForBackend.tsx dodajem another axios instance koja sluzi samo za refreshAccessToken da ne bi axios koji inace koristim upao u deadlock i nikad ne pozvao refresh-token endpoint
 
 
 
