@@ -55,7 +55,7 @@ namespace tests.Controllers
             // A<AppUser>._ = Any AppUser. CreateAsync returns Task<IdentityResult> i zato ovakav Returns mora. Task.FromResut is synchronous way to create already complete async task jer za testing ne zelim da cekam kao kad u realnosti on upisuje u bazu.
             A.CallTo(() => _fakeUserManager.AddToRoleAsync(A<AppUser>._, "User")).Returns(Task.FromResult(IdentityResult.Success));            
             // Isto objasnjenje i ovde
-            A.CallTo(() => _fakeTokenService.CreateToken(A<AppUser>._)).Returns("fake-jwt-token");   
+            A.CallTo(() => _fakeTokenService.CreateAccessToken(A<AppUser>._)).Returns("fake-jwt-token");   
             // CreateToken returns string i zato moze ovakav Returns
 
             // Act - pozivam Endpoint koji testiram sa ovim fake registerDTO argumentom

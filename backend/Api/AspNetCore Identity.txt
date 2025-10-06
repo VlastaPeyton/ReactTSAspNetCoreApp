@@ -1,6 +1,5 @@
 ﻿AspNetCore Identity package se koristi za users i roles. 
 
-
      DB ime                   C# ime                 Kolone
 
  AspNetRoleClaims   | IdentityRoleClaim  | Id, RoleId, ClaimType, ClaimValue
@@ -30,8 +29,9 @@ Postoji UserManager, SignInManager i RoleManager.
 
 How to use Identity in code:
     Prvi uslov je da imam klasu koja nasledjuje IdentityUser (AppUser:IdentityUser) ako mi trebaju dodatne kolone koje IdentityUser nema
-ali ako mi ne trebaju, onda ne moram praviti nikakvu AppUser klasu. 
+   ali ako mi ne trebaju, onda ne moram praviti nikakvu AppUser klasu. 
     Drugi uslov je ApplicationDbContext:IdentityDbContext<AppUser> ili ApplicationDbContext:IdentityDbContext<IdentityUser> 
     Treci sulov je pokreni Migracije i Update database sa one 2 komande poznate svima i napravice se sve Identity tabele i automatski PK-FK relacije, jer
    IdentityDbContext te tabele sadrzi bez da ih definisem u ApplicationDbContext
     U AccountController koristim UserManager, RoleManager i SignInManager.
+    U OnModelCreating seedujem AspNetRoles, ali AspNetUsers ne mogu, jer za to mi treba UserManager koga NE SMEM koristiti u ApplicationDbContext.

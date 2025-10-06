@@ -60,7 +60,7 @@
   {
     "ContainingType": "Api.Controllers.AccountController",
     "Method": "ResetPassword",
-    "RelativePath": "api/account/resetpassword",
+    "RelativePath": "api/account/reset-password",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,

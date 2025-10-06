@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
 using DotNetEnv;
+using Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -184,5 +185,7 @@ app.UseRateLimiter();
 
 // Activate Controllers routing. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
+
+await app.SeedAdminAsync(); // Admin user se dodaje iz BE uvek
 
 app.Run();

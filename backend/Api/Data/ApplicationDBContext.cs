@@ -108,7 +108,7 @@ namespace Api.Data
             // IdentityRole (AspNetRoles) table configuration 
             builder.Entity<IdentityRole>(entity =>
             {
-                // IdentityRole moze imati proizvoljno name of Role
+                // IdentityRole moze imati proizvoljno ime role.
                 List<IdentityRole> roles = new List<IdentityRole>
                 {
                     new IdentityRole

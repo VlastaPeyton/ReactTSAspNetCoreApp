@@ -228,7 +228,7 @@ namespace Api.Controllers
             await _emailService.SendEmailAsync(user.Email, "Reset Password", $"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password."); 
             // URL je oblika http://localhost:port/reset-password?token=sad8282s9&email=adresa@gmail.com. Iako imam ovaj Query Parameter, ReactTS svakako otvara ResetPassword endpoint tj http://localhost:port/reset-password (ResetPasswordPage)         
             
-            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda FE posalje taj token kada klikne link u mejlu, cime aktivira ResetPassword endpoint, a .NET ima mehanizam u ResetPasswordAsync, koji decodes token i vidi user credentials u tokenu
+            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda user klikne na link u mejlu, cime aktivira ResetPassword endpoint, a .NET ima mehanizam u ResetPasswordAsync, koji decodes token iz linka i vidi user credentials u tokenu
             
             // Send success message to FE 
             return Ok("Reset password link is sent to your email"); 
@@ -250,7 +250,7 @@ namespace Api.Controllers
             {
                 _logger.LogInformation("User found: {Email}", resetPasswordDTO.EmailAddress);
                 var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
-                /* Kada user kliknuo Forgot Password, dobio je reset password link u email, a kad kliknuo na link, pokrenuo je ovaj endpoint.
+                /* Kada user kliknuo Forgot Password, dobio je reset password link u email, a kad kliknuo na link on pokrenuo je ovaj endpoint.
                  ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword endpoint encodovao token.
                  Proveri da l je za ovaj user generisan resetPasswordToken u ForgotPassword endpoint i da li NewPassword se slaze sa zahtevima u Program.cs
                  Due to ConcurrencyStamp column of IdentityUser, ResetPasswordAsync azurira tu kolonu cime prevents overwriting if another request has updated the user since the reset token was issued - race condition sprecen
@@ -297,7 +297,7 @@ namespace Api.Controllers
                 return Unauthorized("Invalid refresh token");
 
             // Prevent double use:  poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
-            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt).TotalSeconds < 10)
+            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt)?.TotalSeconds < 10)
             {   /* Uslov je 10s za real-world apps koji osigurava da ne moze unutar 10s 2 ili vise puta da ovaj endpoint bude pozvan. Sprecavam abuse ovim. 
                  Ovo je u skladu sa 30s JWT expiry time u AxiosWithJWTForBackend.tsx u FE, jer ako nije, onda problem. */
                 return Unauthorized("Refresh token used too frequently");
@@ -311,6 +311,7 @@ namespace Api.Controllers
             appUser.RefreshTokenHash = newHashedRefreshToken;
             appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             appUser.LastRefreshTokenUsedAt = DateTime.UtcNow;
+            // Update appUser in DB
             await _userManager.UpdateAsync(appUser); // Prevents a race condition, jer azurira automatski ConcurrencyStamp kolonu, wheen two refresh requests try to update refresh token field simultaneously.
 
             // Salje secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni

@@ -10,7 +10,7 @@ namespace Api.DTOs.Account
         [Required]
         public string NewPassword { get; set; }
         [Required]
-        public string ResetPasswordToken { get; set; }
+        public string ResetPasswordToken { get; set; } // FE procita ovo iz linka u email i prosledi prilikom pozivanja ResetPassword endpoint
         [Required]
         [EmailAddress]
         public string EmailAddress { get; set; }
