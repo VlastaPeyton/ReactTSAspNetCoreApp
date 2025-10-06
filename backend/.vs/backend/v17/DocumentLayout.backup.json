@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\controllers\\commentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\controllers\\commentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|c:\\projects\\reacttsaspnetcoreappgithub\\reacttsaspnetcoreapp\\backend\\api\\aspnetcore identity.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2012BA4A-51EE-4D1A-976B-7BF5558A8AE4}|Api\\Api.csproj|solutionrelative:api\\aspnetcore identity.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,14 +27,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "CommentController.cs",
-              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\CommentController.cs",
-              "RelativeDocumentMoniker": "Api\\Controllers\\CommentController.cs",
-              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\Controllers\\CommentController.cs",
-              "RelativeToolTip": "Api\\Controllers\\CommentController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-03T18:14:04.009Z",
+              "Title": "AspNetCore Identity.txt",
+              "DocumentMoniker": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\AspNetCore Identity.txt",
+              "RelativeDocumentMoniker": "Api\\AspNetCore Identity.txt",
+              "ToolTip": "C:\\Projects\\ReactTSAspNetCoreAppGithub\\ReactTSAspNetCoreApp\\backend\\Api\\AspNetCore Identity.txt",
+              "RelativeToolTip": "Api\\AspNetCore Identity.txt",
+              "ViewState": "AgIAACMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-10-03T18:34:27.788Z",
               "EditorCaption": ""
             }
           ]

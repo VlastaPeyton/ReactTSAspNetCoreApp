@@ -16,36 +16,35 @@ namespace Api.Service
      */
     public class TokenService : ITokenService // U Program.cs registrujem da ITokenService se odnosi na TokenService
     {   
-        private readonly IConfiguration _configuration; // Za pristup svemu iz appsettings. _configuration je isto kao builder.Configuration u Program.cs
-        private readonly SymmetricSecurityKey _signingKey; // Symetric jer ocu sa istim kljucem to Sign and Verify JWT. SHA256 moram zbog ovoga koristiti.
+        private readonly IConfiguration _configuration;    // Za pristup svemu iz appsettings. _configuration je isto kao builder.Configuration u Program.cs
+        private readonly SymmetricSecurityKey _signingKey; // Symetric - jer ocu sa istim kljucem to Sign and Verify JWT. SHA256 moram zbog ovoga koristiti.
         public TokenService(IConfiguration configuration) 
         { 
             _configuration = configuration;
-            _signingKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"])); 
+            _signingKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"]!)); 
         }
 
-        // Generate JWT(short lived access token) after new User successfully registers in Register method of AccountController.
-        // Generate JWT after existing User successfully logs in in Login method of AccountController. 
-        // Access Token is stateless tj ne upisuje se u bazu za zeljenog usera jer user claims are encoded in JWT.
-        public string CreateToken(AppUser appUser)
-        {
-            //Claims are better than Roles jer zelim da dohvatim AppUser polja iz Login/Register forme bez da gledam u bazu posto Claims (Email i Username polja iz AppUser u mom slucaju) nisu nikad u bazi, vec in-memory i onda ih brze i lakse dohvatim.
+        // Generate JWT(short-lived Access Token) after new User successfully register/login in AccountController.
+        // Access Token is stateless tj ne upisuje se u bazu za zeljenog usera, vec u JWT (in-memory variable)
+        public string CreateAccessToken(AppUser appUser)
+        {   
+            // User info (UserName/Password) je Claim kao sto znam iz Authentication middleware
             var claims = new List<Claim>
             {   
-                new Claim(JwtRegisteredClaimNames.Email, appUser.Email),
-                new Claim(JwtRegisteredClaimNames.GivenName, appUser.UserName)
+                new Claim(JwtRegisteredClaimNames.Email, appUser.Email!),
+                new Claim(JwtRegisteredClaimNames.GivenName, appUser.UserName!)
                 // U ClaimsExtension.cs samo mogu dohvatiti Email ili GivenName jer samo sam njih ovde setovao
             };
 
-            // Signing credentials  = type of Encryption
+            // Signing credentials = type of Encryption
             var signingCredentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(claims), // Email i UserName from AppUser
+                Subject = new ClaimsIdentity(claims),    // Moram od List<Claim> napraviti ClaimsIdentity
                 Expires = DateTime.UtcNow.AddMinutes(2), // Objasnjeno u "SPA Security Best Practice.txt"
                 SigningCredentials = signingCredentials,
-                Issuer = _configuration["JWT:Issuer"], // From appsettings
+                Issuer = _configuration["JWT:Issuer"],   // From appsettings
                 Audience = _configuration["JWT:Audience"]
             };
 
@@ -56,8 +55,8 @@ namespace Api.Service
             return tokenHandler.WriteToken(token); // Signed JWT string that is sent to Client
         }
         
-        // Ne moze Generate Refresh Token u CreateToken, jer ovo je stateless tj upis u bazu mora
-        public string GenerateRefreshToken()
+        // Ne moze kreiranje RefreshToken u CreateAccessToken, jer AccessToken je stateless (in JWT), dok RefreshToken je stateful (in DB)
+        public string CreateRefreshToken()
         {
             var randomNumber = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
@@ -67,7 +66,7 @@ namespace Api.Service
             } 
             // Automatski close resources zbog using
         }
-        // Before
+        
         public string HashRefreshToken(string refreshToken)
         {
             using (var sha256 = SHA256.Create())

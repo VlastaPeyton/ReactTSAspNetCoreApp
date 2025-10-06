@@ -12,11 +12,16 @@
 Zelim SPA App, a best practice to achieve SPA is to enhance security on BE side:
 	-Access Token (JWT) (short-lived) not stored in localStorage in React, but in-memory (variable) - prevent XSS. Ne zelim JWT (Access Token) u Cookie, jer zelim da bude short-live, manually attached to API Request. Saljem ga rucno u Authorization header of Request.
 	 Lasting 15mins u mom slucaju. Na svakih 15min pravi se novi. 
-	 Kad se user login/register, pravi se JWT i Refresh Token. 
+	 Kad se user login/register, pravi se JWT i Refresh Token. BE salje JWT u Response body to FE, dok FE salje JWT in Request Auth header 
 
-	-Refresh Token (long-lived) stored in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). On je auto attached to API Request, jer Browser to automatski salje to BE.
-	 Lasting npr 7days u mom slucaju. After 7days, user has to manually logout and login (or automaticly logout by app) to obtain a new refresh token.
+	 Svaki Request made from FE, BE proveri user info stored in JWT (Request Auth header) bez da gleda u bazu cime postizem brzinu i stateless.
 	 
+	-Refresh Token (long-lived) stored in Cookie (HttpOnly, Secure, SameSite - prevent CSRF). 
+	 Lasting npr 7days u mom slucaju. After 7days, user has to manually logout and login (or automaticly logout by app) to obtain a new refresh token.
+	 Refresh Token je stored in DB i to je stateful, ali on se proverava u bazi samo kad Access Token istice tj nije za svaki Request provera u bazi, jer se tad JWT proverava koji je in Request (stateless).
+	 BE salje Refresh Token in Cookie to Browser (not to FE), a Browser ga salje via Cookie samo kada FE vidi da JWT uskori istice (u FE napravljen Axios interceptor koji poziva RefreshToken endpoint samo kad treba).
+	 Token rotation = kada JWT is about to expire, menja se i JWT i Refresh Token.
+
 Popravka1 to achieve SPA security best practice:
 	Sve kao iznad inicijalno, samo umesto localStorage, JWT skladisten u variablu (in-memory) i ako user close/refresh app, morao bi rucno logout, pa login da bi dobio novi JWT. 
 	Ovo je dobro sto sprecava XSS, jer ne koristi localStorage, ali zajebano ako close/refresh app jer onda kad otvori app, bice login i dalje, ali JWT je izgubljen, pa nece shvatiti da treba logut manualno, pa opet login.

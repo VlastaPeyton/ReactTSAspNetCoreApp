@@ -60,7 +60,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 // Add IdentityDbContext da bih definisao password kog oblika mora biti i skladistim ga u istu bazu sa Stocks i Comments, stoga mora AddEntityFrameworkStores
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{   // IdentityRole je AspNetRoles tabela. AddIdentity ce napraviti i povezati SVE Identity tabele, a ne samo ove 2.
+{   // IdentityRole je AspNetRoles tabela. AddIdentity ce napraviti i povezati SVE Identity tabele iz IdentityDbContext, a ne samo ove 2.
     options.Password.RequireDigit = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
@@ -68,8 +68,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.Password.RequiredLength = 12;
     options.User.RequireUniqueEmail = true;         // Da ne mogu dva usera da imaju isti Email prilikom njihovog dodavanja u AspNetUsers tabelu u Register endpoint
 
-}).AddEntityFrameworkStores<ApplicationDBContext>() // AddEntityFrameworkStores tells Identity to use EF Core to store Identity data (users, roles, tokens, etc.) in the database using AppDbContext.
-  .AddDefaultTokenProviders();                      // Is needed for email confirmation, password reset, etc. for ForgotPassword 
+}).AddEntityFrameworkStores<ApplicationDBContext>() // AddEntityFrameworkStores tells Identity to use EF Core to store Identity data (users, roles, tokens, etc.) in the database using ApplicationDbContext.
+  .AddDefaultTokenProviders();                      // Is needed for email confirmation in Register or password reset in ForgotPassword endpoint
 
 // Nakon ova 2 registrovanja iznad, u Package Manager Console kucam "Add-Migration Identity", pa "Update-Database", da sa naprave sve Identity tabele (objasnjene u ApplicationDbContext.cs) 
 
@@ -119,7 +119,7 @@ builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 // Add FinancialModelingPrepService i IFinancialModelingPrepService
 builder.Services.AddScoped<IFinacialModelingPrepService, FinancialModelingPrepService>();
 // Add HttpClient for FinancialModelingPrepService
-builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>();
+builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>(); // Pogledaj IHttpClientFactory vs HttpClient.txt
 // Add EmailService as IEmailSender after Env.Load()
 builder.Services.AddScoped<IEmailService, EmailService>();
 
@@ -169,12 +169,14 @@ Ako ovo imam, onda u AccountController ne pisem Append i ne navodim one parametr
 // Enable Authentication + Authorization
 app.UseAuthentication(); 
 /* UseAuthentication must come before UseAuthorization as it validates user identity when Login/Register.
-   UseAuthentication hvat Authorization header iz Request tj hvata JWT koji je uvek u Authorization header smesten u mom slucaju (zbog SPA Security best practice)
- ili cookie (ali cookie JWT mi nije) i napravi ClaimsPrincipal (nasledjen Claim objekat iz ControllerBase) i upise ga u HttpContext.User.
- * */
+   UseAuthentication hvata Request, iz Request Authorization header ocita JWT (zbog SPA Security best practice JWT is in Auth header)
+ ili cookie (ali cookie za AccessToken ne koristim), iz JWT ocita user info (Username i Password) tj Claims, od Claims napravi ClaimsIdentity, 
+ od ClaimsIdentity napravi ClaimsPrincipal i upise ga u HttpContext.User.
+   ClaimsPrincipal je fakticki user koji moze imati vise ClaimsIdentity npr logovao sam se preko username/password (ClaimsIdentity1) i preko Google naloga(ClaimsIdentity2).
+ */
 app.UseAuthorization();  
 /* Enforces access rules based on user (HttpContext.User koji je UseAuthentication popunio) identity.
-   Controller:ControllerBase, a ControllerBase ima User(HttpContext.User) polje. 
+   Controller:ControllerBase, a ControllerBase ima User(HttpContext.User) polje koje omogucava stateless da ocitam user info bez gledanja u bazu.
 */
 
 // Use Rate Limiter on desired Endpoints 
@@ -182,7 +184,5 @@ app.UseRateLimiter();
 
 // Activate Controllers routing. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
-
-
 
 app.Run();

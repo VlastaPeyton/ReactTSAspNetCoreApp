@@ -23,8 +23,10 @@
    - AspNetUserTokens: (UserId FK) <-> AspNetUsers (Id PK)
                         
 Ako PK-FK veze nisu jasne, pogledaj u Server Explorer 
-Za svaku tabelu, pogledaj u Server Explorer da l je PK kolona IDENTITY, jer to znaci da se automatski popunjava
-tj za AspNetUserClaims i AspNetRoleClaims se automatski, dok za ostale tabele mora rucno iz koda.
+Za svaku tabelu, pogledaj u Server Explorer da l je PK kolona IDENTITY, jer to znaci da se automatski popunjava.
+Za AspNetUserClaims i AspNetRoleClaims se automatski popuni, dok za ostale tabele mora rucno iz koda.
+
+Postoji UserManager, SignInManager i RoleManager.
 
 How to use Identity in code:
     Prvi uslov je da imam klasu koja nasledjuje IdentityUser (AppUser:IdentityUser) ako mi trebaju dodatne kolone koje IdentityUser nema

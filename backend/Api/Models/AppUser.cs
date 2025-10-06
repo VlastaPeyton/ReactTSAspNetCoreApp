@@ -9,11 +9,11 @@ namespace Api.Models
     {
         /*  IdentityUser predstavlja AspNetUsers tabela koja se automatski kreira u bazi.
          
-            AppUser nasledio sva polja iz IdentityUser, gde najvise nas zanima Id, UserName, Email i Password polje. 
+            AppUser nasledio sva polja iz IdentityUser, gde najvise nas zanima Id, UserName, Email i HashedPassword polje. 
          Ako dodam custom field u AppUser (ali da nije Navigation attribute), to polje ce biti dodatna kolona u AspNetUsers tabeli.
          
           Zbog IdentityUser definicije, "ne mogu" AppUser:IdentityUser<AppUserId>, gde AppUserId bi bio Value Object, jer morao bih onda AppUserId:IEquatable sto je cimanje. 
-         Ovako onda, Id je string by default u IdentityUser.
+         Ovako onda, Id je string by default u IdentityUser, jer i GUID je string.
             
          Zbog IdentityUser, imam automatski resen Race Condition problem pomocu ConcurrencyStamp kolone - pogledaj Race Condtitions.txt
          */
@@ -42,7 +42,7 @@ namespace Api.Models
         public string RefreshTokenHash { get; set; } // Mora da se hashuje pre skaldistenja u bazu
         public DateTime RefreshTokenExpiryTime { get; set; }
         public DateTime LastRefreshTokenUsedAt { get; set; }
-        // Nakon dodavanja ovih kolona, pokrenem migraciju da u AppUser tabeli u bazi ih dodam
+        // Nakon dodavanja RefreshToken kolona, pokrenem migraciju da u AppUser tabeli u bazi ih dodam
 
     }
 }

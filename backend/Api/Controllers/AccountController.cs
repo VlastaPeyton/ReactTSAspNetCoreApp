@@ -18,7 +18,7 @@ namespace Api.Controllers
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         // Zbog AppUser updating via UserManager i SignInManager, automatski je implementiran Race Condition using ConcurrencyStamp kolonu of IdentityUser
         private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
-        private readonly IEmailService _emailSender;  // U Program.cs definisali da prepozna IEmailSender kao EmailService
+        private readonly IEmailService _emailService;  // U Program.cs definisali da prepozna IEmailSender kao EmailService
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService, ILogger<AccountController> logger)
@@ -26,7 +26,7 @@ namespace Api.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
-            _emailSender = emailService;
+            _emailService = emailService;
             _logger = logger;
         }
 
@@ -59,20 +59,22 @@ namespace Api.Controllers
          Race conditions regarding Refresh Token in RefreshToken endpoint je sredjen rucno - pogledaj Race Conditions.txt
 
          Access Token and Refresh Token objasnjeni u SPA Security Best Practice.txt 
+         
+         Claims objasnjeno u Authentication middleware.txt
+         
+         
          */
 
         //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
         [HttpPost("register")] // https://localhost:port/api/account/register
         // Ne ide [Authorize] jer ovo je Register, posto ovaj endpoint mora biti svima dostupan
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
-        {   /* Pre ove metode, pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije (ako sam uradio migraciju uopste).
+        {   /* Pre ove metode, pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije.
                
-               Kad novi User ukuca Email i Password, AspNetCoreIdentity ga upise u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
+               Kad novi User ukuca Email i Password, AspNetCoreIdentity ga upise u DB kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
             pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz Identity tabela ako treba. 
-            Tek nakon ovoga, poziva se CreateToken metoda iz TokenService da se JWT generise, jer JWT treba kako ne bi, za svaki API request made in FE, BE gledao u DB da proveri usera, ali provera usera 
-            je dovoljna prilikom Register/Login endpoint, a nakon toga ne zelimo, jer nema potrebe.
             
-               Kad gadjam iz ReactTS FE ovaj endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
+               Kad pozivam iz React FE ovaj endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
              */
 
             // Try-Catch, jer cesto se desava server error when using UserManager, a to je runtime error, pa obzirom da nista u try ne baca gresku cak ni implicitno stavi
@@ -81,7 +83,7 @@ namespace Api.Controllers
                 // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu njihovih annotations.
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                    // Frontendu ce biti poslato StatusCode=400 u Response Status Lie, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
+                    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
 
                 var appUser = new AppUser
                 {
@@ -89,25 +91,25 @@ namespace Api.Controllers
                     Email = registerDTO.EmailAddress
                 };
 
-                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password); // Dodaje novog usera u AspNetUsers (IdentityUser) tabelu 
-                /* Dodaje AppUser polja (UserName i Email) i register.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
+                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password!); // Dodaje novog usera u AspNetUsers (IdentityUser) tabelu 
+                /* Dodaje AppUser polja (UserName i Email) i registerDTO.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
                    CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program.cs da definisem rucno u AddIdentity)
                    CreateAsync behing the scenes attaches appUser to EF Core and populates every column of AspNetUsers table regarding ConcurrencyStamp column koja sprecava race conditions
                  */
                 if (createdUser.Succeeded)
                 {
-                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogo sam samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom u OnModelCreating u AspNetRoles tabelu
-                    // Dodaje u AspNetUserRoles tabelu koja automatski ima RoleId FK koji gadja Id u AspNetRoles i UserId FK koji gadja Id u AspNetUsers tabeli 
+                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogu samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom u OnModelCreating u AspNetRoles tabelu
 
                     if (roleResult.Succeeded)
                     {
-                        var accessToken = _tokenService.CreateToken(appUser);
-                        var refreshToken = _tokenService.GenerateRefreshToken(); 
-                        var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // U tabelu samo hashovan token stavljam
+                        var accessToken = _tokenService.CreateAccessToken(appUser);
+                        var refreshToken = _tokenService.CreateRefreshToken(); 
+                        var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Hash, jer u DB samo hash refresh token stavljam
 
                         appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide non-hashed refresh token
                         appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived 
                         appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom register, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
+                        // Moram azurirati appUser u bazi zbog RefreshToken
                         await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser prevents overwriting if another request wanna update the same user right after registration => race condition prevented
 
                         // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
@@ -148,7 +150,6 @@ namespace Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {   /* Kad existing User ukuca Email i Password, AspNetCoreIdentity ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
             pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz Identity tabela ako treba. 
-            Tek nakon ovoga, poziva se CreateToken metoda iz TokenService da se JWT generise, jer JWT treba kako ne bi, za svaki API request, app gledao u DB kao prilikom user login sto uradi.
             
             Kad pozivam iz ReactTS Frontenda ovaj Endpoint, moram polja da nazovem i prosledim redosledom kao u LoginDTO jer LoginDTO je tip input argumenta. Zbog [FromBody] moram u body of Request ih staviti.
             */
@@ -172,13 +173,14 @@ namespace Api.Controllers
                 return Unauthorized("Invalid Password");
                 // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid Password" u Response Body.
 
-            var accessToken = _tokenService.CreateToken(appUser);
-            var refreshToken = _tokenService.GenerateRefreshToken();
+            var accessToken = _tokenService.CreateAccessToken(appUser);
+            var refreshToken = _tokenService.CreateRefreshToken();
             var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Before putting it in DB dobro je hashovati ga
 
             appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
             appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived. 
             appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom login, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
+            // Moram azurirati appUser u bazi zbog Refresh Token
             await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser stops a race where two logins for the same account try to update refresh token fields at the same time - race condition sprecen. 
 
             // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
@@ -198,9 +200,8 @@ namespace Api.Controllers
 
         [HttpPost("forgotpassword")] // https://localhost:port/api/account/forgotpassword
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
-        // Email se obicno salje u Request Body from FE, moze i FromQuery, ali nije dobra praksa
+        // Email se obicno salje u Request Body from FE (moze i FromQuery, ali nije dobra praksa)
         {
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ForgotPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
@@ -224,16 +225,16 @@ namespace Api.Controllers
             var resetUrl = $"{frontendBaseUrl}/reset-password?token={encodedToken}&email={user.Email}"; // Ne treba email biit poslat, rizicno je !
             // frontendBaseUrl/reset-password mora da postoji u FE kao route da bi ovo moglo !
             // Send email to user.Email containing "Reset Password" subject and message containing reset-password url 
-            await _emailSender.SendEmailAsync(user.Email, "Reset Password", $"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password.");
-            // URL je oblika http://localhost:port/reset-password?token=sad8282s9&email=adresa@gmail.com. Iako imam ovaj Query Parameter, ReactTS svakako otvara http://localhost:port/reset-password (ResetPasswordPage)         
+            await _emailService.SendEmailAsync(user.Email, "Reset Password", $"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password."); 
+            // URL je oblika http://localhost:port/reset-password?token=sad8282s9&email=adresa@gmail.com. Iako imam ovaj Query Parameter, ReactTS svakako otvara ResetPassword endpoint tj http://localhost:port/reset-password (ResetPasswordPage)         
             
-            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda u ResetPasswrod FE posalje taj token ,ali .NET ima mehanizam, u ResetPasswordAsync, koji decodes token i vidi user credentials u tokenu
+            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda FE posalje taj token kada klikne link u mejlu, cime aktivira ResetPassword endpoint, a .NET ima mehanizam u ResetPasswordAsync, koji decodes token i vidi user credentials u tokenu
             
             // Send success message to FE 
             return Ok("Reset password link is sent to your email"); 
         }
 
-        [HttpPost("resetpassword")]
+        [HttpPost("reset-password")] // https://localhost:port/reset-password
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
         {
             if (!ModelState.IsValid)
@@ -249,8 +250,9 @@ namespace Api.Controllers
             {
                 _logger.LogInformation("User found: {Email}", resetPasswordDTO.EmailAddress);
                 var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
-                /* ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword endpoint encodovao token.
-                 Proveri li je za ovaj user generisan resetPasswordToken u ForgotPassword endpoint i da li NewPassword se slaze sa zahtevima u Program.cs
+                /* Kada user kliknuo Forgot Password, dobio je reset password link u email, a kad kliknuo na link, pokrenuo je ovaj endpoint.
+                 ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword endpoint encodovao token.
+                 Proveri da l je za ovaj user generisan resetPasswordToken u ForgotPassword endpoint i da li NewPassword se slaze sa zahtevima u Program.cs
                  Due to ConcurrencyStamp column of IdentityUser, ResetPasswordAsync azurira tu kolonu cime prevents overwriting if another request has updated the user since the reset token was issued - race condition sprecen
                 */
                 if (!result.Succeeded)
@@ -269,13 +271,14 @@ namespace Api.Controllers
                 _logger.LogWarning("User not found: {Email}", resetPasswordDTO.EmailAddress);
             }
 
-            // Always return the same response regardless of whether user exists or reset succeeded
-            // This prevents timing attacks and email enumeration
+            // Always return the same response regardless of whether user exists or reset succeeded as this prevents timing attacks and email enumeration
             return Ok("If the email exists in our system, the password has been reset.");
         }
 
-        /* Kada FE posalje Request to protected endpoint, FE automatski odredi da li je trenutni JWT(Access Token) blizu isteka, pa ako jeste, automatski kaze Browseru da preko Cookie (koji sadrzi Refresh Token) pozove ovaj endpoint 
-         da BE, za tog usera, napravi novi Refresh Token, invalidira stari i kreira novi JWT. Nema argumenta, jer Browser(ne FE) mu salje Cookie.*/
+        /* Pre nego FE posalje Request to protected endpoint, FE automatski odredi da li je trenutni JWT(Access Token) blizu isteka, pa ako jeste, taj request ceka da Axios interceptor kaze Browseru da pozove ovaj endpoint i prosledi Cookie (koji sadrzi Refresh Token)
+         da bi BE, za tog usera, napravi novi Refresh Token, invalidirao stari RefreshToken i kreira novi JWT. Nema argumenta, jer Browser(ne FE) mu salje Cookie. Onda BE posalje new Cookie to browser i new JWT to FE, pa Axios nastavi poziv protected endpointa 
+         koji je poceo pre poziva ovog endpointa, sada sa new JWT.
+        */
         [HttpGet("refresh-token")]
         //[EnableRateLimiting("slow")] // To prevent attacks
         public async Task<IActionResult> RefreshToken()
@@ -301,8 +304,8 @@ namespace Api.Controllers
             }
 
             // Token rotation
-            var newAccessToken = _tokenService.CreateToken(appUser);
-            var newRefreshToken = _tokenService.GenerateRefreshToken();
+            var newAccessToken = _tokenService.CreateAccessToken(appUser);
+            var newRefreshToken = _tokenService.CreateRefreshToken();
             var newHashedRefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
 
             appUser.RefreshTokenHash = newHashedRefreshToken;

@@ -30,7 +30,10 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        /* Svaki Endpoint:
+        /* 
+         HttpContext je objekat koji nosi info o Request, Response, logged in User, Session itd. ControllerBase pruza polja vezana za HttpContext kao sto je User(HttpContext.User) koji sadrzi sve user info from request (stateless) - pogledaj Authentication middleware.txt
+        
+         Svaki Endpoint:
             - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
             - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
             - salje to FE Response koji ima polja Status Line, Headers i Body. 
@@ -116,7 +119,7 @@ namespace Api.Controllers
             }
 
             // I da ne stoji [Authorize] iznad, mora FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName != null
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, i to je Claim i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, jer User je ClaimsPrincipal i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
             // _userManager methods does not use cancellationToken
 

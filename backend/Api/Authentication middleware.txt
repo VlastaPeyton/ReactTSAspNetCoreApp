@@ -1,0 +1,9 @@
+Built-in middleware koji uvek se koristi u Program.cs
+
+UseAuthentication must come before UseAuthorization as it validates user identity when Login/Register.
+UseAuthentication hvata Request, iz Request Authorization header ocita JWT (zbog SPA Security best practice JWT is in Auth header)
+ili cookie (ali cookie za AccessToken ne koristim), iz JWT ocita user info (Username i Password) tj Claims, od Claims napravi ClaimsIdentity, 
+od ClaimsIdentity napravi ClaimsPrincipal i upise ga u HttpContext.User.
+ClaimsPrincipal je fakticki user koji moze imati vise ClaimsIdentity npr logovao sam se preko username/password (ClaimsIdentity1) i preko Google naloga(ClaimsIdentity2).
+
+ControllerBase omogucava direktno dohvatanje svih user info in each request pomocu HttpContext.User cime se postize stateless da ne gledam user info u bazi.

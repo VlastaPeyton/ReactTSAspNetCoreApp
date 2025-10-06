@@ -24,7 +24,10 @@ namespace Api.Controllers
             _finacialModelingPrepService = finacialModelingPrepService;
         }
 
-        /* Svaki Endpoint:
+        /* 
+         HttpContext je objekat koji nosi info o Request, Response, logged in User, Session itd. ControllerBase pruza polja vezana za HttpContext kao sto je User(HttpContext.User) koji sadrzi sve user info from request (stateless) - pogledaj Authentication middleware.txt
+
+         Svaki Endpoint:
             - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
             - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
             - salje to FE Response koji ima polja Status Line, Headers i Body. 
@@ -59,7 +62,7 @@ namespace Api.Controllers
         public async Task<IActionResult> GetUserPortfolios(CancellationToken cancellationToken)
         {   
             // I da nisam stavio [Authorize], zbog User.GetUserName() mora JWT poslati sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da ovo ne bude null
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz Claims nego iz baze
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz request nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazuje AspNetUsers tabelu da nadje AppUser 
             // userManager metode nemaju cancellationToken 
 
@@ -75,7 +78,7 @@ namespace Api.Controllers
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
         {   // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioAddApi u FE moram poslati symbol nakon ? in URL
             // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali stavim [Authorize] jer osigura da userName!=null, jer forsira Frontend da posalje JWT.
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase Claims koji su in-memory, jer brze nego u bazi da nadjem
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal tj user info from request 
             var appUser = await _userManager.FindByNameAsync(userName); // Ne moze cancellationToken ovde
 
             // Kada u search ukucan npr "tsla" izadje mi 1 ili lista Stocks ili ETFs koji pocinju sa "tsla" i zelim kliknuti Add da dodam bilo koji stock u portfolio, pa prvo provera da li je zeljeni stock u bazi
@@ -123,7 +126,7 @@ namespace Api.Controllers
         {   // I da nisam stavio [Authorize], zbog User.GetUserName moral bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
             // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioDeleteApi u FE moram poslati symbol nakon ? in URL
             
-            var userName = User.GetUserName();
+            var userName = User.GetUserName(); // Objasnjeno iznad
             var appUser = await _userManager.FindByNameAsync(userName); // Ne podrzava cancellationToken
 
             var userStocks = await _portfolioRepository.GetUserPortfoliosAsync(appUser, cancellationToken); 

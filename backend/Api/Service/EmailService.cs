@@ -1,7 +1,6 @@
 ﻿using System.Net.Mail;
 using System.Net;
 using Api.Interfaces;
-using Azure.Core;
 using DotNetEnv;
 
 namespace Api.Service
@@ -24,7 +23,7 @@ namespace Api.Service
                 From = new MailAddress(Env.GetString("SMTP_FROM")),
                 Subject = subject,
                 Body = message,
-                IsBodyHtml = true, // Zbog <a href > in SendEmailAsync u ForgotPassword jer ocu clickable link da bude
+                IsBodyHtml = true, // Zbog <a href > in SendEmailAsync u ForgotPassword, jer ocu clickable link da bude
             };
 
             mailMessage.To.Add(primalac);
