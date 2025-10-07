@@ -1,0 +1,33 @@
+MassTransit:
+	NuGet za async komunikaciju izmedju microservices.
+	Iako neam microservices, tj samo 1 imam, nema veze, postavicu samo Publisher na message broker. 
+	Message broker bice mi RabbitMQ.
+	Drugi projekat moram napisati koji ce biti Consumer na message broker.
+	Napravim MassTransitExtensions.cs 
+
+Outbox/Inbox pattern:
+	Ako nemam Outbox pattern u Publisher microservice i Inbox pattern u Consumer microservice:
+	  Publisher modifikuje bazu, pa posalje event na message broker. 
+	  Ako pukne upis u bazu, a event se posalje, Consumer ce da ga primi ali baza nepromenjena. 
+	  Ovo izaziva consistency i jako je lose.
+
+	Ako imam Outbox pattern u Publisher microservice i Inbox pattern u Consumer microservice:
+	  Publisher modifikuje bazu i ima samo Outbox tabele, ali pre nego sto posalje event, u istoj transakciji sa modifikacijom upisuje taj event u 
+	 u Outbox u svojoj bazi. Pa ako nesto od ova 2 upisa pukne, nista se ne upisuje u bazu. 
+	  Background job custom, MassTransit ili Debezium CDC (koji je za Kafka napravljen mahom), cita periodicno Outbox i ako ima noviteta 
+	 onda evente salje u message broker, ali ako upis u bazu puko i nema novi event u Outbox, onda nema sta da posalje.
+	  Consumer ima samo Inbox tabelu, koja ne zna sadrzaj poruke, ali zna koje events je Consumer vec obradio. 
+	  Inbox sprecava da Consumer 2x obradi isti event. 
+
+	Inbox/Outbox + MassTransit:
+	  Posto MassTransit se koristi za publish event from Publisher microservice to message broker, napravljen je i da automatski napravi Inbox/Outbox tabele 
+	u Consumer/Publisher microservisima i da automatski upisuje u Outbox tabelu i da svojim background periodicnim poslom salje neposlate event iz Outbox u message broker. 
+	  Ne moram rucno praviti ni tabele, ni upis u njih, a ni slanje event iz njih u mesasge broker.
+	  Koraci:
+		  Instaliram MassTransit.EntityFrameworkCore
+		  Modifikujem MassTransitExtensions.cs i u Consumer i u Publisher microservice, ali u Publisher ugasim cleanup za inbox
+		  Modifikujem OnModelCreating sa Outbox tabelama u Publisher microservice
+		  Modifikujem OnModelCreating sa Inbox tabelama u Consumer microservice
+		  Uradim migracije u oba microservisa.
+		  Sada publishEndpoint.Publish(event) upise u Outbox, a pozadinski proces ocitava tabelu i salje neposlate events u message broker.
+

@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
 using DotNetEnv;
 using Api.Extensions;
+using Api.MessageBroker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,9 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
+// Add MassTransit (MessageBroker + Outbox pattern) - mora pre repository u kom se koristi
+builder.Services.AddMassTransitRabbitMQAndOutbox(builder.Configuration);
+
 // Add StockRepository i IStockRepository
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 // Add CommentRepository i ICommentRepository
@@ -117,8 +121,6 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Add IPortfolioRepository i PortfolioRepository 
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>(); 
-// Add FinancialModelingPrepService i IFinancialModelingPrepService
-builder.Services.AddScoped<IFinacialModelingPrepService, FinancialModelingPrepService>();
 // Add HttpClient for FinancialModelingPrepService
 builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>(); // Pogledaj IHttpClientFactory vs HttpClient.txt
 // Add EmailService as IEmailSender after Env.Load()
@@ -143,6 +145,8 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.QueueLimit = 7;
     });
 });
+
+
 
 var app = builder.Build();
 

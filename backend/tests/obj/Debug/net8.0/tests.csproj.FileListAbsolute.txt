@@ -181,3 +181,8 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\obj\De
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\obj\Debug\net8.0\tests.genruntimeconfig.cache
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\obj\Debug\net8.0\ref\tests.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\MassTransit.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\MassTransit.Abstractions.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\MassTransit.RabbitMqTransport.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\RabbitMQ.Client.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\tests\bin\Debug\net8.0\MassTransit.EntityFrameworkCoreIntegration.dll

@@ -13,10 +13,10 @@ namespace Api.Service
     {   
         private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs sam registrovao ovo za FinancialModelingPrepService 
         private IConfiguration _configuration; // Dohvata appsettings.json
-        public FinancialModelingPrepService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration)
         {
-            _configuration = configuration;  
-            _httpClient = httpClientFactory.CreateClient();  // Pogledaj IHttpClientFactory vs HttpClient.txt 
+            _configuration = configuration;
+            _httpClient = httpClient;  // Pogledaj IHttpClientFactory vs HttpClient.txt 
         }
 
         public async Task<Stock?> FindStockBySymbolAsync(string symbol, CancellationToken cancellationToken) 

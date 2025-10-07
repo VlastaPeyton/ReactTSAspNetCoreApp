@@ -366,3 +366,8 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MassTransit.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MassTransit.Abstractions.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MassTransit.RabbitMqTransport.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\RabbitMQ.Client.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MassTransit.EntityFrameworkCoreIntegration.dll

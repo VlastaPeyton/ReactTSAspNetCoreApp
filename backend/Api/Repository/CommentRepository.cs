@@ -1,7 +1,9 @@
 ﻿using Api.Data;
+using Api.Events.IntegrationEvents;
 using Api.Helpers;
 using Api.Interfaces;
 using Api.Models;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repository
@@ -16,9 +18,12 @@ namespace Api.Repository
     public class CommentRepository : ICommentRepository
     {   
         private readonly ApplicationDBContext _dbContext;
-        public CommentRepository(ApplicationDBContext context)
+        private readonly IPublishEndpoint _publishEndpoint;
+
+        public CommentRepository(ApplicationDBContext context, IPublishEndpoint publishEndpoint)
         {   
             _dbContext = context;
+            _publishEndpoint = publishEndpoint;
         }
 
         /* Sve metode su async, jer u StockController bice pozvace pomocu await. 
@@ -32,6 +37,12 @@ namespace Api.Repository
              EF change tracker marks comment tracking state to Added. Ne smem AsNoTracking, jer AddAsync(comment) nece hteti ako entity object nije tracked.
             */
             await _dbContext.SaveChangesAsync(cancellationToken); // DB doda vrednost u Id column for row corresponding to comment object => EF updates Id field in comment object
+
+            /* Outbox pattern via MassTransit + Publish event to message broker via MassTransit, pa MassTransit presretne event u Publish metodi i prvo upise u Outbox tabelu, pa posalje tek event na message broker
+              (MassTransit ima background job koji periodicno proverava Outbox table i salje neposlate evente u message broker) pa ga onda background job posalje u message broker.
+              Ako nesto pukne izmedju SaveChangesAsync i Publish, event nikad ne ode u message broker jer ga Publish ne upise u Outbox. */
+            await _publishEndpoint.Publish(new CommentCreatedIntegrationEvent { Text = "Komentar upisan" }, cancellationToken);
+            
             return comment;
         }
 

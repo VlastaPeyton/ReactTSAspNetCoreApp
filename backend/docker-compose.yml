@@ -1,0 +1,26 @@
+services:
+  api:
+    image: ${DOCKER_REGISTRY-}api
+    build:
+      context: Api
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - messagebroker2
+
+  # messagebroker postoji u EshopMicroservices sa 5672 i 15672 vec zauzetim portovima za taj rabbitmq container
+  messagebroker2:
+    image: rabbitmq:management # Mora ovako za RabbitMQ
+    container_name: messagebroker2 # Mora kao iznad ime
+    hostname: financeapp-mq # Mora ime da vidim u Chrome kad otvorim
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    restart: always
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+      # Levi port 5673 je localhost za RabbitMQ (nije mogo 5672 jer je zauzet u EshopMicroservices). Desni port  5672 je default za Docker RabbitMQ.
+      # Levi port 15673 je localhost za RabbitMQ Management Dashboard (u Chrome mu pristupam), a desni port 15672 je default za Docker RabbitMQ Management Dashboard.
+

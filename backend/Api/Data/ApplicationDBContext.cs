@@ -1,5 +1,7 @@
-﻿using Api.Models;
+﻿using System.Reflection.Emit;
+using Api.Models;
 using Api.Value_Objects;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -128,6 +130,12 @@ namespace Api.Data
 
                 entity.HasData(roles);// Seeds data in Migration to AspNetRoles only if it is empty 
             });
+
+            //Dodaj Outbox/Inbox tabele ručno u EF model, ali Inbox cu da iskljucim jer ovo je publisher microservice 
+            //builder.AddInboxStateEntity();    // InboxMessage tabela sprecava duplu obradu na Consumer message broker strani
+            builder.AddOutboxMessageEntity(); // OutboxMessage tabela sprecava nepotrebno slanje na Publishers message broker strani
+            builder.AddOutboxStateEntity();  
+            // Nakon ovoga, migracije uradi
         }
     }
 }

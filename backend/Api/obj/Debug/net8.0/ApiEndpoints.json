@@ -211,6 +211,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Api.Controllers.RabbitTestController",
+    "Method": "SendMessage",
+    "RelativePath": "api/rabbitmq/send",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Api.Controllers.StockController",
     "Method": "GetAll",
     "RelativePath": "api/stock",

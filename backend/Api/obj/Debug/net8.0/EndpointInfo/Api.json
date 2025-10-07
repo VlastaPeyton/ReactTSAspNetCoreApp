@@ -375,6 +375,18 @@
         }
       }
     },
+    "/api/rabbitmq/send": {
+      "post": {
+        "tags": [
+          "RabbitTest"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/stock": {
       "get": {
         "tags": [
