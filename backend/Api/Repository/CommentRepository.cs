@@ -39,7 +39,7 @@ namespace Api.Repository
             await _dbContext.SaveChangesAsync(cancellationToken); // DB doda vrednost u Id column for row corresponding to comment object => EF updates Id field in comment object
 
             /* Outbox pattern via MassTransit + Publish event to message broker via MassTransit, pa MassTransit presretne event u Publish metodi i prvo upise u Outbox tabelu, pa posalje tek event na message broker
-              (MassTransit ima background job koji periodicno proverava Outbox table i salje neposlate evente u message broker) pa ga onda background job posalje u message broker.
+              (MassTransit ima background job koji periodicno proverava Outbox table i salje neposlate evente u message broker) pa ga onda background job posalje u message broker i oznaci kao poslat u Outbox table.
               Ako nesto pukne izmedju SaveChangesAsync i Publish, event nikad ne ode u message broker jer ga Publish ne upise u Outbox. */
             await _publishEndpoint.Publish(new CommentCreatedIntegrationEvent { Text = "Komentar upisan" }, cancellationToken);
             
