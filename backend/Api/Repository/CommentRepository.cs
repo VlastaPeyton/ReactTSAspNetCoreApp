@@ -18,7 +18,7 @@ namespace Api.Repository
     public class CommentRepository : ICommentRepository
     {   
         private readonly ApplicationDBContext _dbContext;
-        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IPublishEndpoint _publishEndpoint; // Jer koristim Outbox pattern pomocu MassTransit
 
         public CommentRepository(ApplicationDBContext context, IPublishEndpoint publishEndpoint)
         {   

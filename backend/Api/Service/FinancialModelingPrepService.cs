@@ -11,12 +11,12 @@ namespace Api.Service
     // CancellationToken objasnjen u bilo kojoj Controller klasi.
     public class FinancialModelingPrepService : IFinacialModelingPrepService
     {   
-        private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs sam registrovao ovo za FinancialModelingPrepService 
+        private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs mora builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() 
         private IConfiguration _configuration; // Dohvata appsettings.json
         public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration)
-        {
+        {    
             _configuration = configuration;
-            _httpClient = httpClient;  // Pogledaj IHttpClientFactory vs HttpClient.txt 
+            _httpClient = httpClient;  // Pogledaj IHttpClientFactory, HttpClient, Resilience.txt 
         }
 
         public async Task<Stock?> FindStockBySymbolAsync(string symbol, CancellationToken cancellationToken) 
@@ -26,6 +26,8 @@ namespace Api.Service
             try
             {
                 var result = await _httpClient.GetAsync($"https://financialmodelingprep.com/api/v3/profile/{symbol}?apikey={_configuration["FMPApiKey"]}", cancellationToken);
+                // U Program.cs dodat AddStandardResilienceHandler() na AddHttpClient cime imam built-in retry, timeout, circuit breaker iz Microsoft.Extensions.Http.Resilience. Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
+
                 // result contains StatusCode, Header, Body ...
                 if (result.IsSuccessStatusCode)
                 {

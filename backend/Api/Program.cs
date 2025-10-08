@@ -120,9 +120,11 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 // Add TokenService i ITokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Add IPortfolioRepository i PortfolioRepository 
-builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>(); 
-// Add HttpClient for FinancialModelingPrepService
-builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>(); // Pogledaj IHttpClientFactory vs HttpClient.txt
+builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+// Add HttpClient for FinancialModelingPrepService 
+builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() // Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
+                .AddStandardResilienceHandler(); // Dodaje defaultne retry, timeout, circuit breaker. Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
+//builder.Services.AddFMPHttpClientWithCustomResilience();  - ako zelim custom Resilience
 // Add EmailService as IEmailSender after Env.Load()
 builder.Services.AddScoped<IEmailService, EmailService>();
 

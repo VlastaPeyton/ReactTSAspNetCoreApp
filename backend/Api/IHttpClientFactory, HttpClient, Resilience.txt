@@ -12,3 +12,13 @@ IHttpClientFactory:
  kada je konekcija ka API otvorena dugo kao sto je moj slucaj jer jednom ako pozovem FMP API, zauvek ostaje otvorena.
 	Polje klase je i dalje HttpClient tipa, ali u ctor imam IHttpClientFactoy.CreateClient() koje pravi HttpClient varijablu 
 	U Program.cs registrujem builder.Services.AddScoped<IFinacialModelingPrepService, FinancialModelingPrepService>(); 
+
+
+Resilience za Request:
+	Polly NuGet allows us to define resilience strategies such as retry, circuit breaker, timeout, rate-limiting, fallback.
+	Ove strategije mogu biti default (kao u Program.cs) a mogu biti i custom (kao u HttpClientResilienceExtensions.cs).
+	Umesto Polly, koristicu 2 nova NuGet koja olaksavaju posao, jer su built on top of Polly, a to su Microsoft.Extensions.Resilience i Microsoft.Extensions.Http.Resilience.
+	AddHttpClient i IHttpClientFactory trebaju Polly tj ova 2 nova NuGet, jer HttpClient koristim za Request prema external API ili drugom mikroservicu ako komuniciraju putem HTTP (ali to izbegavam, jer gRPC je bolji za inter-service communication).
+	U Program.cs:
+		- AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>().AddStandardRsilienceHandler() - cime postizem default retry, timeout, fallback 
+		- Umesto AddHttpClient<..>().AddStandardResilienceHandler(), koristim AddFMPHttpClientWithCustomResilience() - cime postizem custom retry, timeout, fallback
