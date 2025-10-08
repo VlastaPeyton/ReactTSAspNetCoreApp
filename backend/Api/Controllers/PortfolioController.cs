@@ -44,7 +44,7 @@ namespace Api.Controllers
          
          Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
+         Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
             
          Nisam koristio cancellationToken = default, jer ako ReactTS pozove  Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
             Zbog nemanja =defaul ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu.
@@ -61,7 +61,6 @@ namespace Api.Controllers
         [Authorize] // U Swagger Authorize dugme moram uneti JWT from Login kako bih mogo da pokrenem ovaj Endpoint
         public async Task<IActionResult> GetUserPortfolios(CancellationToken cancellationToken)
         {   
-            // I da nisam stavio [Authorize], zbog User.GetUserName() mora JWT poslati sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da ovo ne bude null
             var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz request nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazuje AspNetUsers tabelu da nadje AppUser 
             // userManager metode nemaju cancellationToken 
@@ -77,7 +76,6 @@ namespace Api.Controllers
         [Authorize]
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
         {   // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioAddApi u FE moram poslati symbol nakon ? in URL
-            // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali stavim [Authorize] jer osigura da userName!=null, jer forsira Frontend da posalje JWT.
             var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal tj user info from request 
             var appUser = await _userManager.FindByNameAsync(userName); // Ne moze cancellationToken ovde
 

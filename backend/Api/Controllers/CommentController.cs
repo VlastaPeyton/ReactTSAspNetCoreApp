@@ -50,7 +50,7 @@ namespace Api.Controllers
          
          Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
+         Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
 
          Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.
          
@@ -95,7 +95,7 @@ namespace Api.Controllers
         //[EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
-        [Authorize] // jer User.GetUserName() svakako zahteva JWT, ali je dobra praksa imati [Authorize] u tom slucaju, da onaj ko cita kod, a ne zna dobro .NET, zna da mora JWT biti poslat from FE.
+        [Authorize] 
         public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentRequestDTO createCommentRequestDTO, CancellationToken cancellationToken)
         // U FE commentPostAPI funkciji, symbol kroz URL prosledim, a kroz Body saljem polja imenom i redosledom kao u CreateCommentRequestDTO (nisam stavio [FromBody] jer se to podrazumeva za complex type in POST request)
         {
@@ -111,14 +111,13 @@ namespace Api.Controllers
             {   
                 stock = await _finacialModelingPrepService.FindStockBySymbolAsync(symbol, cancellationToken);
                 if (stock is null) // Ako nije ga naso na netu, onda smo lose ukucali u search
-                    return BadRequest("Nepostojeci stock symbol koji nema ni na netu");
+                    return BadRequest("Nepostojeci stock symbol koji nema ni na netu ili FMP API ne radi mozda");
                     // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Nepostojeci stock symbol koji nema ni na netu" u Response Body.
 
                 else // Ako ga naso na netu, ubaca ga u bazu
                     await _stockRepository.CreateAsync(stock, cancellationToken); 
             }
 
-            // I da ne stoji [Authorize] iznad, mora FE slati JWT, zbog User.GetUserName(), ali je dobra praksa zbog ovoga imati [Authorize] jer obavezuje Frontend da posalje JWT da bi userName != null
             var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, jer User je ClaimsPrincipal i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
             // _userManager methods does not use cancellationToken
@@ -147,6 +146,7 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO updateCommentRequestDTO, CancellationToken cancellationToken)
         // U FE, id uvek saljem in URL, dok complex type kroz Body kao sto znam
         {

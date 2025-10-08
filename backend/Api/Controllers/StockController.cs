@@ -38,7 +38,7 @@ namespace Api.Controllers
          
          Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
+         Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
          
          Koristim mapper extensions da napravim Stock Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Stock Entity kad saljem data to FE.
          
@@ -65,6 +65,7 @@ namespace Api.Controllers
 
         // Get Stock Endpoint
         [HttpGet("{id:int}")] // https://localhost:port/api/stock/{id}
+        [Authorize]
         public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken) 
         // Mora bas "id" kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON)
         {
@@ -79,6 +80,7 @@ namespace Api.Controllers
 
         // Post Stock Endpoint
         [HttpPost] // https://localshost:port/api/stock
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateStockRequestDTO createStockRequestDTO, CancellationToken cancellationToken)
         // Mora [FromBody] jer ne prosledjujem argumente kroz URL (posto ih ima vise od 1 non primary tipa), vec kroz Postman body (JSON).
         // Mora CreateStockRequestDTO, jer Request gadja Endpoint, stoga u Request body kucam polja iz CreateStockRequestDTO imenom i redosledom kao u CreateStockRequestDTO
@@ -100,6 +102,7 @@ namespace Api.Controllers
 
         // Update entire Stock Endpoint i zato PUT, a ne PATCH (jer PATCH je update samo za zeljena polja)
         [HttpPut("{id:int}")] // https://localhost:port/api/stock/{id}
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDTO updateStockRequestDTO, CancellationToken cancellationToken)
         // Id kroz URL obicno saljem iz FE i zato [FromRoute], dok objekte (JSON) moram kroz Body (ili kroz Query Parameters ako je Axios.GET u pitanju jer one podrzava Body).
         {
@@ -120,6 +123,7 @@ namespace Api.Controllers
 
         // Delete Stock Endpoint 
         [HttpDelete("{id:int}")] // https://localhost:port/api/stock/{id}
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
         // Id kroz URL se obicno salje iz FE i zato [FromRoute]
         {

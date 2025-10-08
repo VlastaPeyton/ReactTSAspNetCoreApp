@@ -47,7 +47,7 @@ namespace Api.Controllers
          
          Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
 
-         Ako endpoint nema [Authorize] ili User.GetUserName(), FE ne treba slati JWT in Request Header, ali ako ima bar 1 od ova 2, onda treba.
+         Ako endpoint nema [Authorize],FE ne treba slati JWT in Request Header.
          
          Ne koristim CancellationToken jer neam pure async endpoint (iako pise async), zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
          
@@ -61,7 +61,6 @@ namespace Api.Controllers
          Access Token and Refresh Token objasnjeni u SPA Security Best Practice.txt 
          
          Claims objasnjeno u Authentication middleware.txt
-         
          
          */
 
@@ -281,6 +280,7 @@ namespace Api.Controllers
         */
         [HttpGet("refresh-token")]
         //[EnableRateLimiting("slow")] // To prevent attacks
+        // Nema [Authorize], jer kad istekne JWT, user vise ne moze da se prepozna u BE, i onda nikad RefreshToken endpoint ne bi mogo da se aktivira
         public async Task<IActionResult> RefreshToken()
         {   
             // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru
