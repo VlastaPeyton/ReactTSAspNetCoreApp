@@ -4,13 +4,14 @@ using Api.Models;
 namespace Api.Interfaces
 {
     /* Repository pattern kako bi, umesto u CommentController, u CommentRepository definisali tela Endpoint metoda tj DB calls smestili u Repository.
-       Koriscenje ICommentRepository omogucava testiranje bez koriscenja baze + loose coupling.
+       Koriscenje interface mora zbog SOLID + testiranje(xUnit,Moq/FakeItEasy) bez koriscenja baze + loose coupling.
        Ne koristim CommentDTO, vec Comment, jer Repository direktno sa bazom komunicira.
        
        Objasnjenje za CancellationToken pogledaj u CommentController. 
 
        Za svaku klasu koja predstavlja Service pravim interface pomocu koga radim DI u Controller, dok u Program.cs pisem da prepozna interface kao zeljenu klasu
-    */
+        
+     */
     public interface ICommentRepository
     {
         // Task, jer u CommentRepository bice definisane kao async + ce u CommentController Endpoint mozda da ih poziva pomocu await

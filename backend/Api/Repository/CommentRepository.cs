@@ -3,6 +3,7 @@ using Api.Events.IntegrationEvents;
 using Api.Helpers;
 using Api.Interfaces;
 using Api.Models;
+using Api.Value_Objects;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,7 +49,7 @@ namespace Api.Repository
 
         public async Task<Comment?> DeleteAsync(int id, CancellationToken cancellationToken)
         {
-            var comment = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id.Value == id, cancellationToken);  // Jer Id field of Comment ima Value polje int tipa
+            var comment = await _dbContext.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == CommentId.Of(id), cancellationToken);  // Mora ovako poredjenje jer Id je tipa CommentId
             /* EF start tracking comment object, so every change made to comment will be applied to its corresponding row in Comment table after SaveChangesAsync
              Ne smem AsNoTracking, jer Remove(comment) nece hteti ako entity object nije tracked.
             
@@ -61,7 +62,7 @@ namespace Api.Repository
             _dbContext.Comments.Remove(comment); // Remove nema async, stoga nema ni cancellationToken.  EF in Change Tracker marks comment tracking state to Deleted
             await _dbContext.SaveChangesAsync(cancellationToken); // comment is no longer tracked by EF
 
-            return comment;
+            return comment; 
         }
 
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
@@ -84,7 +85,7 @@ namespace Api.Repository
 
         public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {   // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
-            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id.Value == id, cancellationToken); // Jer Id of Comment ima Value polje int tipa
+            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == CommentId.Of(id), cancellationToken); //  Mora ovako poredjenje jer Id je tipa CommentId
             // Id je PK i Index tako da pretrazuje bas brzo O(1) ili O(logn) u zavisnosti koja je struktura za index uzeta
             // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam/brisem objekat pa sam dodao AsNoTracking jer tracking dodaje overhead and uses memory
             if (existingComment is null)

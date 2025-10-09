@@ -7,7 +7,7 @@
         private StockId(int value) => Value = value; // Konstruktor na moderan nacin jer imam 1 polje samo
 
         // Of umesto public construktora je Rich domain model
-        public static StockId Of(int value) // Za sad mi ne treba ova metoda
+        public static StockId Of(int value) // Objasnjenje kao za CommentId
         {
             ArgumentNullException.ThrowIfNull(value); // Ovo je Domain layer i mora validacija u njemu
             return new StockId(value);

@@ -7,7 +7,7 @@
         private CommentId(int value) => Value = value; // Konstruktor na moderan nacin jer imam 1 polje samo
         
         // Of umesto public construktora je Rich domain model koristim
-        public static CommentId Of(int value) // Za sad je nepotreba jer u OnModelCreating automatski generisem Id polje Comments tabele
+        public static CommentId Of(int value) // Koristim u CommentRepository kada trazim c.Id = CommentId.Of(id) jer tako primeni HasConversion kad cita iz baze sto je i def u OnModelCreating
         {
             ArgumentNullException.ThrowIfNull(value); // Ovo je Domain layer i mora validacija u njemu
             return new CommentId(value);

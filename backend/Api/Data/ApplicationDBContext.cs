@@ -36,7 +36,7 @@ namespace Api.Data
                 entity.HasKey(c => c.Id); // Id polje je CommentId tipa i mora explicitno da se napravi kao PK 
                 entity.Property(c => c.Id).HasConversion(
                     id => id.Value,                 // Write to DB  (CommentId -> int)
-                    value => CommentId.Of(value)    // Read from DB (int -> CommentId)
+                    value => CommentId.Of(value)    // Read from DB (int -> CommentId) - pogledaj GetById i Delete metode 
                 ).ValueGeneratedOnAdd(); // Obezbedi da u CommentRepository CreateComment metodi automatski se generise Id vrednost kao dok je Id of Comment bio int tipa.
             });
 

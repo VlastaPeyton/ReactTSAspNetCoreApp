@@ -1,9 +1,13 @@
-﻿using Api.DTOs.CommentDTOs;
+﻿using Api.CQRS_and_Validation.Comment;
+using Api.CQRS_and_Validation.Comment.Delete;
+using Api.DTOs.CommentDTOs;
 using Api.Extensions;
 using Api.Helpers;
 using Api.Interfaces;
 using Api.Mapper;
 using Api.Models;
+using Mapster;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,16 +25,21 @@ namespace Api.Controllers
         private readonly IStockRepository _stockRepository; // Interaction with DB is made inside Repository
         private readonly UserManager<AppUser> _userManager; // Ovo moze jer AppUser:IdentityUser 
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
+        private readonly ISender _sender; // Zbog CQRS MediatR mi treba
 
-        public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository, UserManager<AppUser> userManager, IFinacialModelingPrepService finacialModelingPrepService)
+        public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository, UserManager<AppUser> userManager, IFinacialModelingPrepService finacialModelingPrepService, ISender sender)
         {   // U Program.cs registrovan da prepozna ICommentRepositor/IStockRepository/IFinacialModelingPrepService kao CommentRepository/StockRepository/FinacialModelingPrepService
             _commentRepository = commentRepository;
             _stockRepository = stockRepository;
             _userManager = userManager;
             _finacialModelingPrepService = finacialModelingPrepService;
+            _sender = sender;
         }
 
         /* 
+           Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor kontrolera doda zeljeni servis i kad se 
+          response posalje u FE, GC unistava kontroler, ali zivot servisa zavisi da li je Singleton, Transient ili Scoped. 
+
          HttpContext je objekat koji nosi info o Request, Response, logged in User, Session itd. ControllerBase pruza polja vezana za HttpContext kao sto je User(HttpContext.User) koji sadrzi sve user info from request (stateless) - pogledaj Authentication middleware.txt
         
          Svaki Endpoint:
@@ -59,6 +68,7 @@ namespace Api.Controllers
         Da sam koristio "=default" ovde, .NET ne bi znao da automatski prekine izvrsenje endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
         CancellationToken se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
          
+        U 2 endpoint koristim CQRS, pa bih onda morao i svuda da ga koristim i da neam repository ovde, vec samo u Handler klasama, ali nema veze, CQRS mi i ne treba ovde, vec samo da pokazem
          Rate Limiter objasnjen u Program.cs
         */
 
@@ -71,7 +81,7 @@ namespace Api.Controllers
                U ReactTS Frontend, zbog [Authorize], moram proslediti i JWT kroz Request Header u commentsGetAPI funkciji.
             */
             var comments = await _commentRepository.GetAllAsync(commentQueryObject, cancellationToken); 
-            var commentDTOs = comments.Select(x => x.ToCommentDTO());
+            var commentDTOs = comments.Select(x => x.ToCommentDTOResponse());
 
             return Ok(commentDTOs); 
            // Frontendu ce biti poslato commentDTOs lista u Response Body, a StatusCode=200 u Response Status Line.
@@ -80,23 +90,35 @@ namespace Api.Controllers
 
         // Get Comment By Id Endpoint
         [HttpGet("{id:int}")] // https://localhost:port/api/comment/{id}
+        [Authorize]
         public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken)
         // Mora bas "id" ime kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON) ili Query
         {
-            var comment = await _commentRepository.GetByIdAsync(id, cancellationToken);
-            if (comment is null)
-                return NotFound();
-                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, dok u Response Body nema nista.
+            //var comment = await _commentRepository.GetByIdAsync(id, cancellationToken);
+            //if (comment is null)
+            //    return NotFound();
+            //// Frontendu ce biti poslato StatusCode=404 u Response Status Line, dok u Response Body nema nista.
 
-            return Ok(comment.ToCommentDTO());
-            // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, a StatusCode=200 u Response Status Line.
+            //return Ok(comment.ToCommentDTOResponse());
+            //// Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTOResponse objekat) u Response Body, a StatusCode=200 u Response Status Line.
+
+            // Ovo iznad je bilo bez CQRS 
+
+            // Ovo ispod je sa CQRS 
+
+            // Ne mapiram Request to Query, jer Request nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
+            var result = await _sender.Send(new CommentGetByIdQuery(id)); // result = CommentGetByIdResult
+            // MediatR ne poziva ValidationBehavior jer Validation samo za ICommand napravljeno, pa onda odma zove CommentGetByIdQueryHandler Handle metodu
+            var response = result.Adapt<CommentGetByIdResponse>(); // Mapster auto mapira jer su polja istog imena i tipa u obe klase. Mogo sam i bez Response, ali cisto da vidite kako izgleda.
+            return Ok(response.commentDTOResponse);
+
         }
 
         //[EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
         [Authorize] 
-        public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentRequestDTO createCommentRequestDTO, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromRoute] string symbol, [FromBody] CreateCommentRequestDTO createCommentRequestDTO, CancellationToken cancellationToken)
         // U FE commentPostAPI funkciji, symbol kroz URL prosledim, a kroz Body saljem polja imenom i redosledom kao u CreateCommentRequestDTO (nisam stavio [FromBody] jer se to podrazumeva za complex type in POST request)
         {
             // ModelState pokrene validation za CreateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
@@ -127,22 +149,32 @@ namespace Api.Controllers
 
             await _commentRepository.CreateAsync(comment, cancellationToken); // Iako CreateAsync ima return, ne treba "var result = _commentRepository.CreateAsync(comment), jer comment je Reference type, stoga promena comment u CreateAsync uticace i ovde
 
-            return CreatedAtAction(nameof(GetById), new { id = comment.Id.Value }, comment.ToCommentDTO()); // Id property of Comment ima Value polje jer strongly-id type
+            return CreatedAtAction(nameof(GetById), new { id = comment.Id.Value }, comment.ToCommentDTOResponse()); // Id property of Comment ima Value polje jer strongly-id type
             /* Prva 2 su route of GetById endpoint i endpoint's argument, jer GetById endpoint zahteva id argument.
                Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/comment/{id} u Response Header.
             */
         }
 
         [HttpDelete("{id:int}")] // https://localhost:port/api/comment/{id}
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
         {
-            var comment = await _commentRepository.DeleteAsync(id, cancellationToken);
-            if (comment is null)
-                return NotFound("Comment does not exist");
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Comment does not exists" u Response Body.
+            //var comment = await _commentRepository.DeleteAsync(id, cancellationToken);
+            //if (comment is null)
+            //    return NotFound("Comment does not exist");
+            //    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Comment does not exists" u Response Body.
 
-            return Ok(comment.ToCommentDTO()); 
-            // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response body, a StatusCode=200 u Response Status Line.
+            //return Ok(comment.ToCommentDTOResponse()); 
+            //// Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response body, a StatusCode=200 u Response Status Line.
+
+            // Ovo iznad je bilo bez CQRS
+
+            // Ovo ispod je sa CQRS
+            // Ne mapiram Request to Query, jer Request nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
+            var result = await _sender.Send(new CommentDeleteCommand(id));
+            // MediatR poziva ValidationBehaviour (ubacen u pipeline kroz u Program.cs) jer je ovo Command i jos neke pipeline behaviours ako ih ima (a nema), pa tek na kraju CommentDeleteCommandHandler's Handle metodu
+            // Ne treba mi CommentDeleteResult to CommentDeleteResponse mapping 
+            return Ok(result.commentDTOResponse);
         }
 
         [HttpPut("{id:int}")]
@@ -160,7 +192,7 @@ namespace Api.Controllers
                 return NotFound("Comment not found");
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Comment not found" u Response Body.
 
-            return Ok(comment.ToCommentDTO());
+            return Ok(comment.ToCommentDTOResponse());
             // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, a StatusCode=200 u Response Status Line.
         }
     }

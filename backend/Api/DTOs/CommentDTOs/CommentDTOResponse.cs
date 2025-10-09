@@ -6,7 +6,7 @@
        Neam AppUserId iz Comment jer mi ne treba. 
 
        CommentDTO nema annotations za ModelState Validation, jer sluzi samo za prikaz svega iz Comment tj za slanje "Comment" to FE. */
-    public class CommentDTO
+    public class CommentDTOResponse
     {
         public int Id { get; set; } 
         public int? StockId { get; set; }

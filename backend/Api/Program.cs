@@ -1,18 +1,20 @@
 using System.Threading.RateLimiting;
+using Api.CQRS_and_Validation;
 using Api.Data;      
+using Api.Extensions;
 using Api.Interfaces;
+using Api.MessageBroker;
 using Api.Models;
 using Api.Repository;
 using Api.Service;
+using DotNetEnv;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
-using DotNetEnv;
-using Api.Extensions;
-using Api.MessageBroker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,8 +112,10 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
-// Add MassTransit (MessageBroker + Outbox pattern) - mora pre repository u kom se koristi
-builder.Services.AddMassTransitRabbitMQAndOutbox(builder.Configuration);
+// Add MassTransit (MessageBroker + Outbox pattern) za RabbitMQ Publisher - mora pre repository u kom se koristi
+builder.Services.AddMassTransitRabbitMQAndOutboxInbox<ApplicationDBContext>(builder.Configuration);
+
+// Svaki servis ima interface zbog SOLID + lako se testira sa xUnit, FakeItEasy/Moq itd.
 
 // Add StockRepository i IStockRepository
 builder.Services.AddScoped<IStockRepository, StockRepository>();
@@ -127,6 +131,17 @@ builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPr
 //builder.Services.AddFMPHttpClientWithCustomResilience();  - ako zelim custom Resilience
 // Add EmailService as IEmailSender after Env.Load()
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Morao sam FluentValidation.DependencyInjectionExtensions da instalim u BuildingBlocks pre ovoga
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly); // Finds CommandValidator klase koje imeplementiraju AbstractValidator , da ValidationBehaviour moze da ih nadje tokom runtime
+
+// Add Mediator
+builder.Services.AddMediatR(config =>
+{   // Registruje Handler klase jer registruje IRequestHandler koga implementira ICommand/IQueryHandler
+    config.RegisterServicesFromAssemblies(typeof(Program).Assembly); // Nadje sve klase koje implementiraju MediatR interface
+    //Dodam ValidationBehavior to MediatR pipeline
+    config.AddOpenBehavior(typeof(ValidationBehaviour<,>)); // Validation se pokrece automatski kada ISender.send()
+});
 
 // Add Rate Limiter 
 builder.Services.AddRateLimiter(options =>

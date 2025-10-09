@@ -21,7 +21,7 @@ namespace Api.Mapper
                 Dividend = stock.Dividend,
                 Industry = stock.Industry,
                 MarketCap = stock.MarketCap,
-                Comments = stock.Comments.Select(c => c.ToCommentDTO()).ToList() // Ovako mapiram listu
+                Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() // Ovako mapiram listu
             };
         }
 

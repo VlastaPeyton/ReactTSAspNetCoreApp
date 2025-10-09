@@ -20,10 +20,13 @@ Outbox/Inbox pattern:
 	 je l ima neki neobradjen event.
 	  Inbox sprecava da Consumer 2x obradi isti event. 
 
+	Ako mikroservis i salje i prima events od message broker, onda on ima u svojoj DB Outbox i Inbox, ali ako samo prima onda Inbox samo, a ako samo salje onda Outbox, jer tehnicki
+   moze uvek imati oba, ali sta ce mu ako mu ne treba.
+
 	Inbox/Outbox + MassTransit:
 	  Posto MassTransit se koristi za publish event from Publisher microservice to message broker, napravljen je i da automatski napravi Inbox/Outbox tabele 
-	u Consumer/Publisher microservisima i da automatski upisuje u Outbox tabelu i da svojim background periodicnim poslom salje neposlate event iz Outbox u message broker i 
-	automatski ih flaguje kao poslate. Isto automatski sve radi na Inbox strani.
+	u Consumer/Publisher microservisima i da automatski upisuje u Outbox tabelu i da svojim built-in background workerom salje neposlate event iz Outbox u message broker i 
+	automatski ih flaguje kao poslate. Isto built-in sve radi i na Inbox strani.
 	  Ne moram rucno praviti ni tabele, ni upis u njih, a ni slanje event iz njih u mesasge broker.
 	  Koraci:
 		  Instaliram MassTransit.EntityFrameworkCore

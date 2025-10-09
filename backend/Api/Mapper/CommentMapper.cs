@@ -10,16 +10,16 @@ namespace Api.Mapper
     public static class CommentMapper
     {   
         // Extension method za Comment, without calling parameters
-        public static CommentDTO ToCommentDTO(this Comment comment)
+        public static CommentDTOResponse ToCommentDTOResponse(this Comment comment)
         {
-            return new CommentDTO
+            return new CommentDTOResponse
             {
                 Id = comment.Id.Value, // Id mapiram jer mapiram iz Comment to CommentDTO. Id u Comment ima Value polje.
                 Title = comment.Title,
                 Content = comment.Content,
                 CreatedOn = comment.CreatedOn,
                 StockId = comment.StockId,
-                CreatedBy = comment.AppUser.UserName
+                CreatedBy = comment.AppUser.UserName // Zbog ovoga mora Include(c=> c.AppUser) u CommentRepository kada dohvatam comment iz baze jer je AppUser navigacioni atribut i nece biti automatic dohvacen
                 /* Ne mapiram AppUser,AppUserId,Stock,StockId polja, jer nisu prisutna u CommentDTO, dok AppUser/Stock su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
                  da EF (ili ja u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };

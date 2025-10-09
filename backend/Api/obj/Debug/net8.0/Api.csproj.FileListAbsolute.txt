@@ -390,3 +390,10 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Polly.Core.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Polly.Extensions.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Polly.RateLimiting.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\FluentValidation.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\FluentValidation.AspNetCore.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\FluentValidation.DependencyInjectionExtensions.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Mapster.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Mapster.Core.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MediatR.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MediatR.Contracts.dll

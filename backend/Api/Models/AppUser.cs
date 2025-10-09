@@ -29,7 +29,7 @@ namespace Api.Models
                                  - Ako je List, onda dobra praksa dodati mu default value da compiler ne kuka.
                                  - Ako DrugaEntityKlasa ima navigation property tipa ove klase, mora u Program.cs se napisati ona JSON fora da gasi circular reference
                                  - U OnModelCreating obavezno PK-FK definicija (ili EF Core na osnovu imena PK/FK polja i Navigation property moze to i sam na osnovu imena polja)
-                                 - Kad FE gadja GET endpoint, trebace mi Include (Eager loading) ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
+                                 - Kad FE poziva GET endpoint, trebace mi najcesce Include (Eager loading) ako zelim i Portfolios da dohvatim, jer ovaj Portfolios Navigation property nije automatski ocitan, jer usporava rad aplikacije, pa moram explicitno da ga ocitam pomocu Include.
                                  - Olaksava LINQ, jer uz definisanu FK-PK relaciju, mogu koristiti Include u LINQ da kroz ovu klasu dohvatim njen navigation property 
                                  - Ne postoji kao kolona u tabeli jer ne moze kolona biti non primary typa 
                                  - Kada writing to DB, from FE ne saljemo nikad ovo polje, jer ono, uz PK i FK polja, sluzi da poveze 2 tabele. I zato cesto mora imati default vrednost 

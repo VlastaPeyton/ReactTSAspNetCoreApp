@@ -5,14 +5,13 @@ using Api.Models;
 namespace Api.Interfaces
 {
     /* Repository pattern kako bi, umesto u StockController, u StockRepository definisali tela Endpoint metoda tj DB calls smestili u Repository.
-       Koriscenje IStockRepository omogucava testiranje bez koriscenja baze + loose coupling.
+       Koriscenje interface mora zbog SOLID + testiranje(xUnit,Moq/FakeItEasy) bez koriscenja baze + loose coupling.
     
        Ne korisitm StockDTO, vec Stock, jer Repository direkt sa bazom komunicira. 
        
        Objasnjenje za CancellationToken pogledaj u CommentController. 
       
        Za svaku klasu koja predstavlja Service pravim interface pomocu koga radim DI u Controller, dok u Program.cs pisem da prepozna interface kao zeljenu klasu
-
     */
     public interface IStockRepository
     {

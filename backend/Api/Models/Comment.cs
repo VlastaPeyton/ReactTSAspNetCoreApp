@@ -16,7 +16,7 @@ namespace Api.Models
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now; 
         public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je string. Ovo je FK koji gadja Id u AppUser klasi
-        public AppUser AppUser { get; set; } // Navigational property 
+        public AppUser AppUser { get; set; } // Navigational property i moram pomocu Include ili lazy loading da ga dohvatim inace nije automatski kao primitive type
 
         // Navigational property objasnjeje u AppUser ! 
 

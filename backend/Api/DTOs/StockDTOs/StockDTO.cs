@@ -20,7 +20,7 @@ namespace Api.DTOs.StockDTO
         public decimal Dividend { get; set; }
         public string Industry { get; set; } = string.Empty;
         public long MarketCap { get; set; }
-        public List<CommentDTO> Comments { get; set; } // U StockDTO koristim CommentDTO, ne Comment jer je to Entity klasa koja samo u Repository se koristi
+        public List<CommentDTOResponse> Comments { get; set; } // U StockDTO koristim CommentDTO, ne Comment jer je to Entity klasa koja samo u Repository se koristi
 
         // Nema List<Portfolio> polja, jer to ne treba da se posalje to FE
     }
