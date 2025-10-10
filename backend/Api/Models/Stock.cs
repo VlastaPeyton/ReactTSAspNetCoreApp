@@ -29,8 +29,6 @@ namespace Api.Models
         public List<Comment> Comments { get; set; } = new();   // Navigation property
         public List<Portfolio> Portfolios { get; set; } = new List<Portfolio>(); // Navigation property
 
-        // U AppUser objasnjen navigation property ! 
-
         /* Ovo je 1-to-many Stock-Comment veza, jer Stock ima List<Comment> polje, dok Comment ima Stock i StockId polje, pa EF zakljuci ovu vezu na osnovu imena polja bez da moram pisati u OnModelCreating.
            Ovo je 1-to-many Stock-Portfolio veza, jer Stock ima List<Comment> polje, dok Portfolio ima Stock i StockId polje, ali EF NECE zakljuciti ovu vezu, jer u Portfolio neam Id polje, vec ga pravim u OnModelCreate pa moram tamo definisati ovu vezu
          */

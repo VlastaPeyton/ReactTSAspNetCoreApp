@@ -11,17 +11,15 @@ namespace Api.Models
     {
         public CommentId Id { get; set; } // PK and Index by default dok je bio int type, ali sam stavio custom type. Posto je custom type(Value Object) u OnModelCreating moram definisati da je PK.
         public int StockId { get; set; } // FK koji gadja Id u Stock klasi mora biti istog tipa kao Id u Stock klasi.
-        public Stock? Stock { get; set; } // Navigational property
+        public Stock? Stock { get; set; } // Navigational property => Comment.Include(Stock)
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.Now; 
         public string AppUserId { get; set; } // AppUserId je string, jer AppUser.Id je string. Ovo je FK koji gadja Id u AppUser klasi
-        public AppUser AppUser { get; set; } // Navigational property i moram pomocu Include ili lazy loading da ga dohvatim inace nije automatski kao primitive type
-
-        // Navigational property objasnjeje u AppUser ! 
+        public AppUser AppUser { get; set; } // Navigational property => Comment.Include(AppUser)
 
         /*
-          Ovo je 1-to-Many AppUser-Comment relationship jer Comment ima AppUser i AppUserId polje, dok AppUser ima List<Comment> polje, pa EF zakljuci ovu vezu na osnovu imena polja bez da moram pisati u OnModelCreating.
+          Ovo je 1-to-1 AppUser-Comment relationship jer Comment ima AppUser i AppUserId polje, pa EF zakljuci ovu vezu na osnovu imena polja bez da moram pisati u OnModelCreating.
           Ovo je 1-to-Many Stock-Comment relatiosnhip je Comment ima Stock i StockId polje, dok Stocl ima List<Comment> polje, pa EF zakljuci ovu vezu na osnovu imena polja bez da moram pisati u OnModelCreating.
         
           Mora Migration da se odradi nakon dodavanja ovog polja, ali pre toga izbrisati sve iz Comments tabele jer inace greska, pa je onda napunim.

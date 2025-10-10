@@ -63,19 +63,19 @@ namespace Api.Data
                       .WithMany(u => u.Portfolios) // 1 Stock can belong to many Portfolios (Stock ima list<Portoflio> Portfolios polje)
                       .HasForeignKey(p => p.StockId); // FK in Porftolio is StockId koji automatski gadaj Stock.Id (na osnovu imena EF ih mapira), jer Portfolio ima StockId polje
                
-                // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include dohvatam i Portfolio. Ovo se zove Eager loading kad Include radim.
+                // Zbog ova 2 iznad + List<Portfolios> u AppUser/Stock, kada radim LINQ za AppUser/Stock, pomocu Include (eager loading) dohvatam i Portfolio.
             });
 
             /*
              Nisam setovao kao iznad relationship za PK-FK for Stock-Comment, jer:
                 - u Comment.cs postoji StockId i Stock polje, gde StockId je istog tipa kao Id polje u Stock.cs
                 - u Stock.cs postoji List<Comments> polje
-                => EF Core sam da zakljuci da 1 Stock can have Many Comments.
+                => EF Core sam da zakljuci da 1 Stock can have many Comments tj 1-to-many veza.
             
              Nisam setovao kao iznad relationship za PK-FK for AppUser-Comment, jer:
                 - u Comment.cs postoji AppUserId i AppUser polje, gde AppUserId je tipa kao Id polje u AppUser.cs 
                 - u AppUser.cs ne postoji nista za Comment
-                => EF Core sam zakljuci da 1 Comment moze imati samo 1 AppUser
+                => EF Core sam zakljuci da 1 Comment moze imati samo 1 AppUser tj 1-to-1 veza
             
 
             Objasnjene: Neka postoji AppUser1, AppUser2, Stock1, Stock2 i Stock3. 
