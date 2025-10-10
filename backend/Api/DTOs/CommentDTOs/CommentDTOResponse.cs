@@ -2,7 +2,7 @@
 {
     /* Objasnjeno u StockDTO cemu sluzi DTO. 
      
-       Sve isto kao Comment, osim Stock/AppUser polja koje je Navigation Property pa se ne moze dodati odavde nego preko PK-FK referencira zeljenu vrstu Stocks tabele. 
+       Sve isto kao Comment, osim IsDeleted i Stock/AppUser polja koje je Navigation Property, pa se ne moze dodati odavde nego preko PK-FK referencira zeljenu vrstu Stocks tabele. 
        Neam AppUserId iz Comment jer mi ne treba. 
 
        CommentDTO nema annotations za ModelState Validation, jer sluzi samo za prikaz svega iz Comment tj za slanje "Comment" to FE. */

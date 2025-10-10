@@ -2,6 +2,7 @@
 using Api.Models;
 using Api.Value_Objects;
 using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,8 @@ namespace Api.Data
                     id => id.Value,                 // Write to DB  (CommentId -> int)
                     value => CommentId.Of(value)    // Read from DB (int -> CommentId) - pogledaj GetById i Delete metode 
                 ).ValueGeneratedOnAdd(); // Obezbedi da u CommentRepository CreateComment metodi automatski se generise Id vrednost kao dok je Id of Comment bio int tipa.
+                
+                entity.HasQueryFilter(c => !c.IsDeleted); // Soft delete, da automatski ne gleda redove gde IsDeleted=true
             });
 
             // Portfolio configuration stavljam u blok jer lakse je za pratiti
@@ -132,9 +135,10 @@ namespace Api.Data
             });
 
             //Dodaj Outbox/Inbox tabele ručno u EF model, ali Inbox cu da iskljucim jer ovo je publisher microservice 
-            //builder.AddInboxStateEntity();    // InboxMessage tabela sprecava duplu obradu na Consumer message broker strani
-            builder.AddOutboxMessageEntity(); // OutboxMessage tabela sprecava nepotrebno slanje na Publishers message broker strani
-            builder.AddOutboxStateEntity();  
+            //builder.AddInboxStateEntity();  // InboxMessage tabela sprecava duplu obradu na Consumer message broker strani i zbog toga nisam je ovde dodao
+            // Iako neam AddInboxStateEntity, automatski ce napraviti iako mi ne treba => builder.Ignore<InboxState>()
+            builder.AddOutboxMessageEntity(); // OutboxMessage tabela sprecava nepotrebno slanje na Publishers message broker strani i zbog toga sam je ovde dodao
+            builder.AddOutboxStateEntity();
             // Nakon ovoga, migracije uradi
         }
     }

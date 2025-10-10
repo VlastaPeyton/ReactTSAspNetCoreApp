@@ -60,7 +60,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"));
 });
-// Nakon ovoga, u Package Manager Console kucam "Add-Migration CreateTables", pa "Update-Database" da se naprave Stocks, Comments i Portfolios tabele iz ApplicaitonDBContext.cs
+// Nakon ovoga, u Package Manager Console kucam "Add-Migration ime_migracije", pa "Update-Database" da se naprave sve tabele i FK-PK iz OnModelCreating 
 
 // Add IdentityDbContext da bih definisao password kog oblika mora biti i skladistim ga u istu bazu sa Stocks i Comments, stoga mora AddEntityFrameworkStores
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>

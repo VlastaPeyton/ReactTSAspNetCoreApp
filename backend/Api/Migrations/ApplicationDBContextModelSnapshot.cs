@@ -115,6 +115,9 @@ namespace Api.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("StockId")
                         .HasColumnType("int");
 
@@ -219,13 +222,9 @@ namespace Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("varbinary(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Delivered");
 
                     b.ToTable("InboxState");
                 });

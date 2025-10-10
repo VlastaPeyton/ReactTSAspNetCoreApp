@@ -13,10 +13,12 @@ namespace Api.Service
     {   
         private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs mora builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() 
         private IConfiguration _configuration; // Dohvata appsettings.json
-        public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration)
+        private readonly ILogger<FinancialModelingPrepService> _logger;
+        public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration, ILogger<FinancialModelingPrepService> logger)
         {    
             _configuration = configuration;
             _httpClient = httpClient;  // Pogledaj IHttpClientFactory, HttpClient, Resilience.txt 
+            _logger = logger;
         }
 
         public async Task<Stock?> FindStockBySymbolAsync(string symbol, CancellationToken cancellationToken) 
@@ -25,15 +27,17 @@ namespace Api.Service
             // Mora try-catch zbog HttpClient
             try
             {
+                _logger.LogWarning($"Poziva FMP API");
                 var result = await _httpClient.GetAsync($"https://financialmodelingprep.com/api/v3/profile/{symbol}?apikey={_configuration["FMPApiKey"]}", cancellationToken);
                 // U Program.cs dodat AddStandardResilienceHandler() na AddHttpClient cime imam built-in retry, timeout, circuit breaker iz Microsoft.Extensions.Http.Resilience. Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
-
+                _logger.LogWarning($"{result}");
                 // result contains StatusCode, Header, Body ...
                 if (result.IsSuccessStatusCode)
                 {
                     var content = await result.Content.ReadAsStringAsync(cancellationToken); // content = Response Body. Niz objekata jer tako ovaj sajt vraca 
+  
                     var stocks = JsonConvert.DeserializeObject<FinancialModelingPrepStockDTO[]>(content);
-                    // Convert JSON to list of FinancialModelingPrepStock objects, jer FinancialModelingPrep vraca niz tipa FinancialModelingPrepStockDTO, ali nam samo prvi element treba jer 1 element ocemo
+                    // Convert JSON to list of FinancialModelingPrepStock objects, jer FinancialModelingPrep API vraca niz tipa FinancialModelingPrepStockDTO, ali nam samo prvi element treba jer 1 element ocemo
                     var stock = stocks?.FirstOrDefault(); // jer nam samo prvi elem treba posto je to nas stock trazeni. Moze stocks[0] ali ako stocks prazan niz, bice greska, a ovako vrati null
                     
                     if (stock is not null)

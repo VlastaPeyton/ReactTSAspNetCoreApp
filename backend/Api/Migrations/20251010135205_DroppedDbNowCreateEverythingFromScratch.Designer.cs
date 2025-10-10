@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20251007192727_MassTransitOutboxInboxPattern")]
-    partial class MassTransitOutboxInboxPattern
+    [Migration("20251010135205_DroppedDbNowCreateEverythingFromScratch")]
+    partial class DroppedDbNowCreateEverythingFromScratch
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,6 +117,9 @@ namespace Api.Migrations
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("StockId")
                         .HasColumnType("int");
@@ -222,13 +225,9 @@ namespace Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("varbinary(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Delivered");
 
                     b.ToTable("InboxState");
                 });

@@ -63,7 +63,7 @@ namespace Api.Mapper
         public static Stock ToStockFromFinancialModelingPrepStockDTO(this FinancialModelingPrepStockDTO financialModelingPrepStockDTO)
         {
             return new Stock
-            {
+            {   // Ne smem Id jer baza ga automatski dodeli 
                 Symbol = financialModelingPrepStockDTO.symbol,
                 CompanyName = financialModelingPrepStockDTO.companyName,
                 Purchase = financialModelingPrepStockDTO.price,

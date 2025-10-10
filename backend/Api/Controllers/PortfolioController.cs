@@ -16,12 +16,14 @@ namespace Api.Controllers
         private readonly IStockRepository _stockRepository;
         private readonly IPortfolioRepository _portfolioRepository;
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
-        public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository, IFinacialModelingPrepService finacialModelingPrepService)
+        private readonly ILogger<PortfolioController> _logger;
+        public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository, IFinacialModelingPrepService finacialModelingPrepService, ILogger<PortfolioController> logger)
         {   // U Program.cs registrovan IStockRepository/IPortfolioRepository/IFinancialModelingPreprService kao StockRepository/PortfolioRepository/FinancialModelingPreprService 
             _userManager = userManager;
             _stockRepository = stockRepository;
             _portfolioRepository = portfolioRepository;
             _finacialModelingPrepService = finacialModelingPrepService;
+            _logger = logger;
         }
 
         /* 
@@ -86,11 +88,11 @@ namespace Api.Controllers
             var stock = await _stockRepository.GetBySymbolAsync(symbol, cancellationToken); 
             // ako ne postoji Stock u bazi, trazi ga na netu u FininacinalModelingPrep
             if (stock is null)
-            { 
+            {   
                 stock = await _finacialModelingPrepService.FindStockBySymbolAsync(symbol, cancellationToken);
                 /* FMP API u searchCompanies u FE prikazuje sve Stocks i ETFs koji sadrze "tsla",ipak necu moci dodati bilo koji, jer neki od njih su ETF (a ne Stock) zato sto FMP API in FindStockBySymbolAsync pretrazuje samo Stocks ! */
                 if (stock is null) 
-                    return BadRequest("Ovo sto pokusavas dodati nije Stock, vec ETF, iako ga vidis u listu kad search uradis u FE. Jer FMP API u BE pretrazuje samo Stocks (ne i ETFs). Dok SearchCompanies u FE pretrazuje drugaciji FMP API koji prikazuje firme a one mogu biti Stock ili ETF.  ");
+                    return BadRequest("Ovo sto pokusavas dodati nije Stock, vec ETF, iako ga vidis u listu kad search uradis u FE. Jer API u BE pretrazuje samo Stocks (ne i ETFs). Dok SearchCompanies u FE pretrazuje FMP API koji prikazuje firme a one mogu biti Stock ili ETF.  ");
                     // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Nepostojeci stock symbol koji nema ni na netu" u Response Body.
                 else 
                     await _stockRepository.CreateAsync(stock, cancellationToken); // stock je azuriran sa Id poljem, jer u CreateAsync EF tracking je to odradio. Sad stock je azuriran i ovde jer je reference type 
