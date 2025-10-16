@@ -17,7 +17,7 @@ namespace Api.Mapper
                 Content = comment.Content,
                 CreatedOn = comment.CreatedOn,
                 StockId = comment.StockId,
-                CreatedBy = comment.AppUser?.UserName ?? "Nepoznata osoba" // Zbog ovoga mora Include(c=> c.AppUser) u CommentRepository kada dohvatam comment iz baze jer je AppUser navigacioni atribut i nece biti automatic dohvacen
+                CreatedBy = comment.AppUser?.UserName ?? "Nepoznata osoba" // Zbog ovoga mora Include(c=> c.AppUser) u CommentRepository kada dohvatam comment iz baze jer je AppUser navigacioni atribut i nece biti automatic dohvacen isto vazi i za dohvatanje Stock iz baze tj Stock.Include(s => s.AppUser)
                 /* Ne mapiram AppUser,AppUserId,Stock,StockId polja, jer nisu prisutna u CommentDTO, dok AppUser/Stock su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
                  da EF (ili rucno u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };
