@@ -51,7 +51,7 @@ namespace Api.Repository
             var stocks = _dbContext.Stocks.AsNoTracking().Include(c => c.Comments).ThenInclude(c => c.AppUser).AsQueryable(); // Dohvati sve stocks + njihove komentare + AppUser svakog komentara
             // Stock ima List<Comment> polje i FK-PK vezu sa Comment i zato moze include. Bez tog polja, moralo bi kompleksiniji LINQ.
             // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr stocks.Where(...)
-            // Ovde nema EF change tracking jer AsNoTracking, obzirom da ne azuriram ono sto sam dohvatio, pa da neam bespotrebni overhead and memory zbog tracking
+            // Ovde nema EF change tracking zbog AsNoTracking, obzirom da ne azuriram ono sto sam dohvatio, pa da neam bespotrebni overhead and memory zbog tracking
 
             // In if statement no need to AsQueryable again 
             if (!string.IsNullOrWhiteSpace(query.CompanyName))

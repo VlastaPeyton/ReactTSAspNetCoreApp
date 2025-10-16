@@ -32,11 +32,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.9.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Resilience" Version="9.9.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Scrutor" Version="6.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
   </ItemGroup>
 

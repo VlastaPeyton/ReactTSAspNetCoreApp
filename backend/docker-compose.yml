@@ -9,10 +9,10 @@ services:
     depends_on:
       - messagebroker2
 
-  # messagebroker postoji u EshopMicroservices sa 5672 i 15672 vec zauzetim portovima za taj rabbitmq container
+  # messagebroker postoji u EshopMicroservices sa 5672 i 15672 vec zauzetim portovima za taj rabbitmq container, ali sad pravim nov rabbitmq container pa ih mogu koristiti opet
   messagebroker2:
     image: rabbitmq:management # Mora ovako za RabbitMQ
-    container_name: messagebroker2 # Mora kao iznad ime
+    container_name: messagebroker2
     hostname: financeapp-mq # Mora ime da vidim u Chrome kad otvorim
     environment:
       - RABBITMQ_DEFAULT_USER=guest
@@ -21,6 +21,16 @@ services:
     ports:
       - "5673:5672"
       - "15673:15672"
-      # Levi port 5673 je localhost za RabbitMQ (nije mogo 5672 jer je zauzet u EshopMicroservices). Desni port  5672 je default za Docker RabbitMQ.
-      # Levi port 15673 je localhost za RabbitMQ Management Dashboard (u Chrome mu pristupam), a desni port 15672 je default za Docker RabbitMQ Management Dashboard.
+      # Levi port 5673 je localhost port preko koga app komunicira sa RabbitMQ (nije mogo 5672 jer je zauzet u EshopMicroservices). Desni port 5672 je default in Docker RabbitMQ.
+      # Levi port 15673 je localhost port preko koga app komunicira sa RabbitMQ Management Dashboard (u Chrome mu pristupam) (nije mogo 15672 jer je zauzet u EshopMicroservices), a desni port 15672 je default in Docker RabbitMQ Management Dashboard.
+  
+  # redis postoji u EshopMicroservices sa vec zauzetim portovima za taj distributedcache container, ali sad pravim novi distributedcache container pa ih mogu koristiti opet
+  distributedcache2:
+    image: redis # Mora ovako za Redis
+    container_name: distributedcache2 
+    restart: always
+    ports:
+      - "6378:6379"
+      # Levi port 6378 je localhost port preko koga app komunicira sa Redis (nije mogo 6379 jer je zauzet u EshopMicroservices). Desni port 6379 je default in Docker Redis.
 
+    

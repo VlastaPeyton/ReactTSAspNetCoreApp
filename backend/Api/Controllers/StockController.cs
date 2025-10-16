@@ -17,8 +17,8 @@ namespace Api.Controllers
     {    // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly IStockRepository _stockRepository; // Interactions with DB are made inside Repository
         public StockController(IStockRepository repository)
-        {   // U Program.cs registrovan IStockRepository kao StockRepository
-            _stockRepository = repository;
+        {   
+            _stockRepository = repository; // U Program.cs registrovan IStockRepository kao StockRepository, pa sa Scrutor uradjen Decorator pattern za CachedStockRepository koji u sebi sadrzi StockRepository => IStockRepository predstavlja CachedStockRepository
         }
 
         /* 
@@ -52,13 +52,15 @@ namespace Api.Controllers
         CancellationToken se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
         
          Rate Limiter objasnjen u Program.cs
+
+         CachedStockRepository sa Redis objasnjen u Redis, Proxy & Decorator patterns.txt => _stockRepository se odnosi na CachedStockRepository
         */
 
         // Get All Stocks Endpoint
         [HttpGet]   // https://localhost:port/api/stock/
         [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint + FE mora poslati JWT u Authorization header of request
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query, CancellationToken cancellationToken)
-        {   // Mora [FromQuery], jer GET Axios Request u ReactTS ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL), moram proslediti vrednosti za svako polje iz QueryObject (iako neka imaju default value) redosledom i imenom iz QueryObject
+        {   // Mora [FromQuery], jer GET Axios Request u ReactTS ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL) moram proslediti vrednosti za svako polje iz QueryObject (ako ne prosledim, bice default vrednosti) redosledom i imenom iz QueryObject
             // U ReactTS zbog [Authorize] moram proslediti JWT u Request Header. 
             var stocks = await _stockRepository.GetAllAsync(query, cancellationToken); 
             var stockDTOs = stocks.Select(s => s.ToStockDTO()).ToList(); // Nema async, jer stocks nije u bazi, vec in-memory jer smo ga vec dohvatili iz baze

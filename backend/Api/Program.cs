@@ -115,10 +115,17 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 // Add MassTransit (MessageBroker + Outbox pattern) za RabbitMQ Publisher - mora pre repository u kom se koristi
 builder.Services.AddMassTransitRabbitMQAndOutboxInbox<ApplicationDBContext>(builder.Configuration);
 
-// Svaki servis ima interface zbog SOLID + lako se testira sa xUnit, FakeItEasy/Moq itd.
+// Svaki servis ima interface zbog SOLID + lako se testira sa xUnit, FakeItEasy/Moq, FluentAssertions itd.
 
 // Add StockRepository i IStockRepository
 builder.Services.AddScoped<IStockRepository, StockRepository>();
+// Add CachedStockRepository via Scrutor - pogledaj Redis, Proxy & Decorator patterns.txt i pogledaj CachedStockRepository
+builder.Services.Decorate<IStockRepository, CachedStockRepository>(); 
+// Add IDistributedCache za CachedStockRepository from StackExchangeRedis NuGet kako bih povezao Redis with IDistributedCache
+builder.Services.AddStackExchangeRedisCache(config =>
+{   
+    config.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
 // Add CommentRepository i ICommentRepository
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 // Add TokenService i ITokenService

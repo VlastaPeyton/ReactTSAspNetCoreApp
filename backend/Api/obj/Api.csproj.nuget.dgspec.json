@@ -120,6 +120,10 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
+            "Microsoft.Extensions.Caching.StackExchangeRedis": {
+              "target": "Package",
+              "version": "[9.0.10, )"
+            },
             "Microsoft.Extensions.Http.Resilience": {
               "target": "Package",
               "version": "[9.9.0, )"
@@ -139,6 +143,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "Scrutor": {
+              "target": "Package",
+              "version": "[6.1.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

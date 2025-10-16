@@ -80,3 +80,7 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Fl
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Mapster.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Mapster.Core.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\FluentValidation.DependencyInjectionExtensions.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Scrutor.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\StackExchange.Redis.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\bin\Debug\Pipelines.Sockets.Unofficial.dll

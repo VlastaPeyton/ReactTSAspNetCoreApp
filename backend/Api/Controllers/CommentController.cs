@@ -75,7 +75,7 @@ namespace Api.Controllers
         // Get All Comments for desired Stock Endpoint 
         [HttpGet]   // https://localhost:port/api/comment
         [Authorize] // Moram se login i uneti JWT u Authorize dugme u Swagger da bi mogo da pokrenem ovaj Endpoint
-        public async Task<IActionResult> GetAll([FromQuery]CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
         {   /* Mora [FromQuery], jer GET Axios Request u ReactTS ne moze imati Body, vec samo Header, pa ne moze [FromBody]. 
                Kroz Query Parameters u FE (posle ? in URL), moram proslediti vrednosti za svako polje iz CommentQueryObject (iako neka imaju default value) redosledom i imenom iz CommentQueryObject
                U ReactTS Frontend, zbog [Authorize], moram proslediti i JWT kroz Request Header u commentsGetAPI funkciji.

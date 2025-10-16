@@ -397,3 +397,7 @@ C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debu
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Mapster.Core.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MediatR.dll
 C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\MediatR.Contracts.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Pipelines.Sockets.Unofficial.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\Scrutor.dll
+C:\Projects\ReactTSAspNetCoreAppGithub\ReactTSAspNetCoreApp\backend\Api\bin\Debug\net8.0\StackExchange.Redis.dll
