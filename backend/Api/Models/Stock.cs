@@ -9,7 +9,7 @@ namespace Api.Models
     [Table("Stocks")] // Ime tabele u bazi explicitno definisano 
     public class Stock // Entity jer predstavlja tabelu u bazi
     {
-        public int Id { get; set; } // PK and Index by default.
+        public int Id { get; set; } // PK and Index by default. Kad Id postane StockId, moracu da uradim kao za CommentId kod Redis jer JSON serialize/deserialize ne zna automatski custom type da prevede
 
         // Svaki Stock se prepoznaje po symbol (npr Microsoft = MSFT, a Tesla = TSLA)
         public string Symbol { get; set; } = string.Empty; // Ako ne unesem nista, u koloni Symbol bice prazan string 

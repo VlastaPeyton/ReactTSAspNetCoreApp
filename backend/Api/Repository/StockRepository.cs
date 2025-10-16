@@ -12,6 +12,8 @@ namespace Api.Repository
        Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase i zato u Controller koristim mapper extensions da napravim Entity klasu from DTO klase.
       
        Objasnjenje za CancellationToken pogledaj u CommentController. 
+
+       Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
     */
     public class StockRepository : IStockRepository
     {
@@ -73,7 +75,7 @@ namespace Api.Repository
         {  // Objasnjene za Include je u GetAllAsync
            // FirstOrDefaultAsync moze da vrati null ( i to bez if(stock is null)) i zato Stock? return type, da se compiler ne buni. 
            // FindAsync je brze od FirstOrDefaultAsync, ali nakon Include ne moze FindAsync.
-            return await _dbContext.Stocks.AsNoTracking().Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id, cancellationToken); // Dohvati zeljeni stock na osnovu Id polja + njegove komentare
+           return await _dbContext.Stocks.AsNoTracking().Include(c => c.Comments).ThenInclude(s => s.AppUser).FirstOrDefaultAsync(i => i.Id == id, cancellationToken); // Dohvati zeljeni stock na osnovu Id polja + njegove komentare
            // EF track changes after FirstOrDefaultAsync ali mi to ovde ne treba i zato nema znak jednakosti + AsNoTracking ima jer tracking ubaca overhead and memory bespotrebno ovde
         }
 

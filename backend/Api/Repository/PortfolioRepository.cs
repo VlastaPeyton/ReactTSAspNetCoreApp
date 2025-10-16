@@ -8,7 +8,9 @@ namespace Api.Repository
 {   /* Repository pattern kako bi, umesto u PortfolioController, u PortfolioRepository definisali tela Endpoint metoda tj DB calls smestili u Repository.
     
        Ne korisitm DTO klase, vec Entity klase, jer Repository direkt sa bazom komunicira. 
-       Objasnjenje za CancellationToken pogledaj u PortfolioRepository. 
+       Objasnjenje za CancellationToken pogledaj u StockRepository. 
+      
+      Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
     */
     public class PortfolioRepository : IPortfolioRepository
     {   

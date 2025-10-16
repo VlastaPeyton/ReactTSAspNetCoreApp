@@ -5,10 +5,14 @@ using Api.Models;
 
 namespace Api.Mapper
 {
-    // Da napravim Stock Entity klasu od DTO klasa kada pokrecem Repository metode.
-    // Da napravim DTO klasu od Stock Entity klasa kada saljem data to FE in Endpoint
+    // Pogledaj DTO vs entity klase.txt 
+
+    // Da napravim Stock Entity klasu od DTO klasa kada pokrecem Repository metode jer entity se koristi za Repository samo tj za EF Core
+    // Da napravim DTO klasu od Stock entity klase kada saljem data to FE in Endpoint ili u Redis
     public static class StockMapper
     {   
+        // Pogledaj DTO vs entity klase.txt 
+
         // Extension method for Stock.cs, without calling parameters
         public static StockDTO ToStockDTO(this Stock stock)
         {
@@ -21,7 +25,7 @@ namespace Api.Mapper
                 Dividend = stock.Dividend,
                 Industry = stock.Industry,
                 MarketCap = stock.MarketCap,
-                Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() // Ovako mapiram listu
+                Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() // Ovako mapiram List type navigational property, jer polje DTO klase mora biti lista DTO tipa, a ne navigational property entity typa kao u entity klasi
             };
         }
 
@@ -55,7 +59,6 @@ namespace Api.Mapper
                 MarketCap = updateStockRequestDTO.MarketCap,
                 /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u UpdateStockRequestDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
                  Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salje from FE.  */
-
             };
         }
 

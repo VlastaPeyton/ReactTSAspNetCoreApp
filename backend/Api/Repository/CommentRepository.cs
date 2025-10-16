@@ -15,6 +15,8 @@ namespace Api.Repository
        Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase koje predstavljaju tabele i zato u Controller koristim mapper extensions da napravim Entity klasu from DTO klase.
     
        Objasnjenje za CancellationToken pogledaj u CommentController. 
+     
+      Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
     */
     public class CommentRepository : ICommentRepository
     {   

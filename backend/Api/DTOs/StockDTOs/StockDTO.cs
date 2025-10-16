@@ -8,9 +8,13 @@ namespace Api.DTOs.StockDTO
     posto mora pre Entity klase da se validira dok je jos na ulazu u Endpoint kao Request DTO object.
 
        Ne sadrzi Data Annotations jer StockDTO korisitm da Endpoint posalje podatke to FE. 
+      
+       DTO sadrzi samo proste tipove polja ! 
 
       StockDTO nema Data Validation, jer se to odigra u Create/UpdateStockRequestDTO, dok StockDTO sluzi samo za prikaz svega iz Stock tj za slanje "Stock" to FE.
-    */
+    
+      Koristim ovaj DTO  za Redis, jer nije dobro skladisitit entity klase u Redis.
+     */
     public class StockDTO
     {
         public int Id { get; set; } // PK

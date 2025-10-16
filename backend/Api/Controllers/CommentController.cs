@@ -62,7 +62,8 @@ namespace Api.Controllers
          Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
 
          Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.
-         
+         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
+
          Za async endpoints nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
         Zbog nemanja "=default" u async endpoint, ne smem imati ni u await metodama koje se pozivaju u endpointu. 
         Da sam koristio "=default" ovde, .NET ne bi znao da automatski prekine izvrsenje endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...

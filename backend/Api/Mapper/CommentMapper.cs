@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
-using Api.DTOs.CommentDTOs;
+﻿using Api.DTOs.CommentDTOs;
 using Api.Models;
 
 namespace Api.Mapper
@@ -14,12 +12,12 @@ namespace Api.Mapper
         {
             return new CommentDTOResponse
             {
-                Id = comment.Id.Value, // Id mapiram jer mapiram iz Comment to CommentDTO. Id u Comment ima Value polje.
+                Id = comment.Id.Value, // Id mapiram jer mapiram iz Comment to CommentDTO,a Id polje u Comment je ValueObject koji ima Value polje.
                 Title = comment.Title,
                 Content = comment.Content,
                 CreatedOn = comment.CreatedOn,
                 StockId = comment.StockId,
-                CreatedBy = comment.AppUser.UserName // Zbog ovoga mora Include(c=> c.AppUser) u CommentRepository kada dohvatam comment iz baze jer je AppUser navigacioni atribut i nece biti automatic dohvacen
+                CreatedBy = comment.AppUser?.UserName ?? "Nepoznata osoba" // Zbog ovoga mora Include(c=> c.AppUser) u CommentRepository kada dohvatam comment iz baze jer je AppUser navigacioni atribut i nece biti automatic dohvacen
                 /* Ne mapiram AppUser,AppUserId,Stock,StockId polja, jer nisu prisutna u CommentDTO, dok AppUser/Stock su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
                  da EF (ili rucno u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */
             };

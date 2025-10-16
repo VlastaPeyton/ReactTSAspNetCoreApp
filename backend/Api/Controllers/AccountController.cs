@@ -65,6 +65,8 @@ namespace Api.Controllers
          Access Token and Refresh Token objasnjeni u SPA Security Best Practice.txt 
          
          Claims objasnjeno u Authentication middleware.txt
+
+         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
          
          */
 

@@ -104,12 +104,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-/* Add JSON Serialiaziton settings, jer Stock ima List<Comment>, a Comment ima Stock polje koje pokazuje na Stock i to je circular reference koji dovodi do problema u JSON serialization ako ne ugasim to ovde.
-   Isto vazi i za AppUser/Stock - Portfolio.
-*/
+// Objasnjeno u JSON engine.txt 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
-    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; // Kada endpoint vraca odgovor clientu, automatski se pravi JSON i ignorise circular reference
 });
 
 // Add MassTransit (MessageBroker + Outbox pattern) za RabbitMQ Publisher - mora pre repository u kom se koristi

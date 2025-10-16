@@ -45,7 +45,8 @@ namespace Api.Controllers
          Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
          
          Koristim mapper extensions da napravim Stock Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Stock Entity kad saljem data to FE.
-         
+         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
+
          Za async Endpoints, nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
         Zbog nemanja "=default" ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
         Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
@@ -54,15 +55,15 @@ namespace Api.Controllers
          Rate Limiter objasnjen u Program.cs
 
          CachedStockRepository sa Redis objasnjen u Redis, Proxy & Decorator patterns.txt => _stockRepository se odnosi na CachedStockRepository
-        */
+         */
 
         // Get All Stocks Endpoint
         [HttpGet]   // https://localhost:port/api/stock/
         [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint + FE mora poslati JWT u Authorization header of request
-        public async Task<IActionResult> GetAll([FromQuery] QueryObject query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query, CancellationToken cancellationToken) 
         {   // Mora [FromQuery], jer GET Axios Request u ReactTS ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL) moram proslediti vrednosti za svako polje iz QueryObject (ako ne prosledim, bice default vrednosti) redosledom i imenom iz QueryObject
             // U ReactTS zbog [Authorize] moram proslediti JWT u Request Header. 
-            var stocks = await _stockRepository.GetAllAsync(query, cancellationToken); 
+            var stocks = await _stockRepository.GetAllAsync(query, cancellationToken);  // Poziva CachedStockRepository jer je on Decorator over StockRepository
             var stockDTOs = stocks.Select(s => s.ToStockDTO()).ToList(); // Nema async, jer stocks nije u bazi, vec in-memory jer smo ga vec dohvatili iz baze
 
             return Ok(stockDTOs); 
@@ -75,7 +76,7 @@ namespace Api.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken) 
         // Mora bas "id" kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON)
         {
-            var stock = await _stockRepository.GetByIdAsync(id, cancellationToken);
+            var stock = await _stockRepository.GetByIdAsync(id, cancellationToken); 
             if (stock == null)
                 return NotFound(); 
                 // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body je prazan.
