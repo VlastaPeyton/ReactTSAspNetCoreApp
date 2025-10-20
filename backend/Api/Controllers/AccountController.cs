@@ -9,9 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
-{
+{   
     [Route("api/account")] // https://localhost:port/api/account
-    [ApiController]
+    [ApiController]  // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
     public class AccountController : ControllerBase
     {   // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly UserManager<AppUser> _userManager;     // Ovo moze jer AppUser:IdentityUser 
