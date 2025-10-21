@@ -1,5 +1,5 @@
 HttpClient:
-	Otvara novu TCP konekciju za svaki zahtev, a te konkecije se ne zatvore odmah ni sa Dispose(), sto pojede socket resurse (socket exhaustion)
+	Otvara novu TCP konekciju za svaki zahtev, a te konkecije se ne zatvore odmah automatski,a ni rucno sa Dispose(), sto pojede socket resurse (socket exhaustion)
 	=> app usporava, request pocinje da baca greske ako previse HttpClient napravim jer potrose sockets bez da ih ugase nakon poziva
 	U Program.cs registujem builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>();
 	Ovo koristi IHttpClientFactory behind the scenes, ali za moj slucaj kada samo 1 API pozivam mi je dovoljno.

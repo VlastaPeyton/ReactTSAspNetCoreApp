@@ -1,0 +1,48 @@
+Sta je middleware i middleware pipeline:
+	Middleware je .NET komponenta u aplikacionom pipeline koja prima HttpContext (pogledaj HttpContext.txt) objekat koji moze da procita, izmeni ili koristi 
+  i odlucuje da li ce proslediti request sledecem middleware u pipeline ili ce sama zavrsiti obradu i poslati response. 
+    Midleware moze biti built-in ili custom. 
+	Middleware se registruje u Program.cs prilikom cega je bitan redosled registracije (odozgo na dole - request ce prvo uci u najvise pozicionirani middleware
+  u Program.cs i propagirati nizvodno, a response propagira uzvodno).
+	Middleware pipeline je kicma svake ASP.NET Core aplikacije bez koje se ne moze. 
+
+	Svaki middleware, ako ne implementira IMiddleware built-in interface, mora sadrzati:
+		- ctor 
+		- InvokeAsync/Invoke metodu koja vraca Task (koja se poziva automatski refleksijom (pogledaj Reflection.txt)), a prima HttpContext
+		- next polje tipa RequestDelegete je opciono koje pokazuje na sledeci middleware u pipeline na osnovu Program.cs:
+			- ako ga ima, to znaci da nije poslednji middleware u pipeline
+			- ako ga nema, to znaci da jeste poslednji middleware u pipeline
+		- 
+
+	Svaki middleware, ako implementira IMiddleware built-in interface, mora se registrovati kao AddTransient, a mora sadrzati:
+		- InvokeAsync/Invoke metodu koja vrata Task (-||-) i koja prima HttpContext i RequestDelegate 
+	
+	Ako ne korisstim IMiddleware onda treba AddTransient<IMiddleware,CustomInterface> jer UseMiddleware je 
+
+Built-in middleware:
+	- builder.Services.AddControllers(); - sadrzi UseRouting i UseEndpoints koje sam u starijim verzijaam morao rucno registrovati
+	- app.UseHttpRedirection()
+	- app.UseAuthentication()
+	- .... 
+
+Custom middleware:
+	- Svaki middleware koji ja napravim i ubacim u Program.cs
+
+Oba tipa middleware se pozivaju pomocu "app.UseMiddleware<Middleware>", gde Middleware moze biti custom/built-in. 
+Za mnoge built-in ne koristim ovu notaicju, vec ima gotova extension metoda (npr app.UseRouting()) koja unutar sebe poziva app.UseMiddleware<RoutingMiddleware>, 
+gde RoutingMiddleware je built-in. Extension poziv mogu uraditi i za custom slucajeve, ali se generalno ne radi da ne zbuni citaoca koda, vec za custom koristim app.UseMiddleware<CustomMiddleware>.
+Ako koristim IMiddleware zahteva AddTransient explicitno before UseMiddleware.
+
+Posle "app = builder.Build()", se vrsi dodavanje middleware u pipeline odgovarajucim redosledom.
+"app.Run()" kreira pipeline po redosledu i napravi ogroman RequestDelegate koji Kestrel (pogledaj Kestrerl.txt) vidi i zbog toga RequestDelegate polje svakog middleware 
+zna automatski koji mu je sledeci middleware.
+
+Ako je custom middleware mali, onda moze u Program.cs direktno da se definise i doda u pipeline, a to izgleda ovako:
+	app.Use(async (context, next) =>
+	{
+    Console.WriteLine("Logika pre poziva sledeceg middleware-a kada request propagira");
+    await next(); // poziva sledeci middleware 
+    Console.WriteLine("Logika nakon sledecg middleware-a kada response propagira");
+	});
+Ali nije dobra praksa, jer ruzni mi je kod mnogo.
+Vec napraivm CustomMiddleware klasu koju dodam u pipeline pomocu app.UseMiddleware<CustomMiddleware>.

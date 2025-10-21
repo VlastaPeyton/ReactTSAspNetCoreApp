@@ -4,6 +4,7 @@ using Api.Data;
 using Api.Extensions;
 using Api.Interfaces;
 using Api.MessageBroker;
+using Api.Middlewares;
 using Api.Models;
 using Api.Repository;
 using Api.Service;
@@ -20,9 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 Env.Load(); // Loads ".env" from project root pre svega ostalog jer mnogo toga zavisi od Env.GetString(...) pa ne moze se napravi ako ovo nije omoguceno
 
-// Add Controllers classes. Ovo prepoznaje sve iz Controllers foldera.
-builder.Services.AddControllers();
+// Registrovanje servisa koje ce aplikacija koristiti 
 
+builder.Services.AddControllers(); 
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -168,9 +169,12 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-
+// custom middleware koji nasledi IMiddleware mora biti transient
+builder.Services.AddTransient<IMiddleware, GlobalExceptionHandlingMiddleware>(); 
 
 var app = builder.Build();
+
+// Dodavanje middleware u pipeline - pogledaj Middleware.txt 
 
 // Enable Swagger middleware both for Dev and Prod env
 app.UseSwagger();
@@ -180,7 +184,7 @@ app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request
 
 // CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
 app.UseCors(x => x.WithOrigins("https://localhost:3000") // Samo moj Fronted(https ili http) (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
-                 .AllowAnyMethod() // Allows every Request method (GET,POST,PUT,DELETE...)
+                 .AllowAnyMethod() // Allows every Request method (GET, POST, PUT, DELETE...)
                  .AllowAnyHeader() // Allows custom headers, Authorization headers za JWT...
                  .AllowCredentials()); // Da bi FE mogo, kad mu je Access Token blizu isteka , rekao Browseru posalji zahtev za novi Access Token via Cookie(Refresh Token)
 
@@ -209,9 +213,12 @@ app.UseAuthorization();
 // Use Rate Limiter on desired Endpoints 
 app.UseRateLimiter();
 
-// Activate Controllers routing. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
+// Add custom middleware to pipeline 
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+// Ubaci Controlers (+ Routing i Endpoint) middleware u pipeline. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();
 
 await app.SeedAdminAsync(); // Admin user se dodaje iz BE uvek
 
-app.Run();
+app.Run(); // Middleware dodat u pipeline pomocu app.Run() nema next() 

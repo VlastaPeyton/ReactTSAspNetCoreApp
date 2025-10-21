@@ -1,4 +1,4 @@
-Built-in middleware koji uvek se koristi u Program.cs
+Authentication middleware je built-in middleware koji uvek se koristi u Program.cs
 
 UseAuthentication must come before UseAuthorization as it validates user identity when Login/Register.
 UseAuthentication hvata Request, iz Request Authorization header ocita JWT (zbog SPA Security best practice JWT is in Auth header)

@@ -1,0 +1,14 @@
+HttpContext je objekat koji se kreira u Kestrel (videti Kesterl.txt) pre nego sto middleware pipeline krene da se izvrsava 
+(pogleadj Middleware.txt) i sadrzi informacije o:
+	- Incoming request tipa HttpRequest
+	- Outcoming response tipa HttpResponse
+	- Currently authenticated user info tipa ClaimsPrincipal
+	- I jos neke, meni za sada, nebitne info
+
+U kodu, HttpContext je klasa sa poljima: Request, Response, User itd. Gde sva polja imaju svoja neka polja, pa tako mogu npr setovati 
+status code u response kao HttpContext.Response.StatusCode = 500. Kada FE posalje request ka .NET, HttpContext Response polje je prazno, 
+ali se ono popuni kasnije logicno.
+
+
+
+
