@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.Controllers
 {   
     [Route("api/account")] // https://localhost:port/api/account
-    [ApiController]  // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
+    [ApiController] // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
     public class AccountController : ControllerBase
     {   // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
         private readonly UserManager<AppUser> _userManager;     // Ovo moze jer AppUser:IdentityUser 
@@ -108,7 +108,7 @@ namespace Api.Controllers
                     if (roleResult.Succeeded)
                     {
                         var accessToken = _tokenService.CreateAccessToken(appUser);
-                        var refreshToken = _tokenService.CreateRefreshToken(); 
+                        var refreshToken = _tokenService.CreateRefreshToken();
                         var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Hash, jer u DB samo hash refresh token stavljam
 
                         appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide non-hashed refresh token
@@ -129,22 +129,24 @@ namespace Api.Controllers
                         });
 
                         return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
+                        // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
                     }
-                    // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
 
                     else
+                    {
                         return StatusCode(500, roleResult.Errors);
-                    // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
+                        // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
+                    }
                 }
-                else // Ako vec postoji user sa istim EmailAddres ili UserName
+
+                // Ako vec postoji user sa istim EmailAddres ili UserName
+                else
                 {
                     return StatusCode(500, createdUser.Errors);
                     // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
                 }
-
             } catch (Exception ex)
             {   // Iako nigde u try block nema explicitni throw, niti implicitni throw, catch block sluzi zbog runtime unexpected errors.
-
                 return StatusCode(500, ex);
                 // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a exception u Response Body.
             }

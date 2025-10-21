@@ -1,6 +1,7 @@
 ﻿using System.Windows.Input;
 using Api.CQRS;
 using Api.DTOs.CommentDTOs;
+using Api.Exceptions;
 using Api.Interfaces;
 using Api.Mapper;
 using FluentValidation;
@@ -34,7 +35,7 @@ namespace Api.CQRS_and_Validation.Comment.Delete
         {
             var comment = await _commentRepository.DeleteAsync(command.Id, cancellationToken);
             if (comment is null)
-                throw new Exception("Comment does not exist");
+                throw new CommentNotFoundException("Comment does not exist");
 
             return new CommentDeleteResult(comment.ToCommentDTOResponse());  // Posalje u Delete endpoint u CommentController 
         }

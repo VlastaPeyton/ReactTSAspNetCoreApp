@@ -30,7 +30,7 @@ namespace Api.Extensions
                 var createdAdmin = await userManager.CreateAsync(newAdmin, Env.GetString("ADMIN_PASSWORD"));
                 if (createdAdmin.Succeeded)
                 {
-                    var roleResult = await userManager.AddToRoleAsync(newAdmin, "Admin");
+                    await userManager.AddToRoleAsync(newAdmin, "Admin");
                 }
             }
         }

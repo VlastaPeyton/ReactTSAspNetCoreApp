@@ -11,8 +11,8 @@ namespace Api.Service
     // CancellationToken objasnjen u bilo kojoj Controller klasi.
     public class FinancialModelingPrepService : IFinacialModelingPrepService
     {   
-        private HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs mora builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() 
-        private IConfiguration _configuration; // Dohvata appsettings.json
+        private readonly HttpClient _httpClient; // Za sljanje Request to web API. U Program.cs mora builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() 
+        private readonly IConfiguration _configuration; // Dohvata appsettings.json
         private readonly ILogger<FinancialModelingPrepService> _logger;
         public FinancialModelingPrepService(HttpClient httpClient, IConfiguration configuration, ILogger<FinancialModelingPrepService> logger)
         {    

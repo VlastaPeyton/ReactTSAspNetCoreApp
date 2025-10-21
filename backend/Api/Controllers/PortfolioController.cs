@@ -16,14 +16,12 @@ namespace Api.Controllers
         private readonly IStockRepository _stockRepository;
         private readonly IPortfolioRepository _portfolioRepository;
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
-        private readonly ILogger<PortfolioController> _logger;
         public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository, IFinacialModelingPrepService finacialModelingPrepService, ILogger<PortfolioController> logger)
         {   // U Program.cs registrovan IStockRepository/IPortfolioRepository/IFinancialModelingPreprService kao StockRepository/PortfolioRepository/FinancialModelingPreprService 
             _userManager = userManager;
             _stockRepository = stockRepository;
             _portfolioRepository = portfolioRepository;
             _finacialModelingPrepService = finacialModelingPrepService;
-            _logger = logger;
         }
 
         /* 
@@ -139,7 +137,7 @@ namespace Api.Controllers
             var stockInPortfolios = userStocks.Where(s => s.Symbol.ToLower() == symbol.ToLower()).ToList(); // Nema treba async, jer ne pretrazujem u bazu, vec in-memory userStocks varijablu
 
             // Ovaj if-else je dobra praksa za ne daj boze, ali sam vec u AddPortfolio obezbedio da moze samo 1 isti stock biti u listi
-            if (stockInPortfolios.Count() == 1) // is not null jer samo 1 Stock unique stock moze biti u portfolios list, jer AddPortfolio metoda iznad to ogranicila
+            if (stockInPortfolios.Count == 1) // is not null jer samo 1 Stock unique stock moze biti u portfolios list, jer AddPortfolio metoda iznad to ogranicila
                 await _portfolioRepository.DeletePortfolio(appUser, symbol, cancellationToken);
 
             else

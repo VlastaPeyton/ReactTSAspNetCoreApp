@@ -1,5 +1,6 @@
 ﻿using Api.CQRS;
 using Api.DTOs.CommentDTOs;
+using Api.Exceptions;
 using Api.Interfaces;
 using Api.Mapper;
 
@@ -12,7 +13,6 @@ namespace Api.CQRS_and_Validation.Comment
 
     public class CommentGetByIdQueryHandler : IQueryHandler<CommentGetByIdQuery, CommentGetByIdResult>
     {   
-        // 
         private readonly ICommentRepository _commentRepository; 
         public CommentGetByIdQueryHandler(ICommentRepository commentRepository)
         {
@@ -25,7 +25,7 @@ namespace Api.CQRS_and_Validation.Comment
             var comment = await _commentRepository.GetByIdAsync(query.Id, cancellationToken);
 
             if (comment is null)
-                throw new Exception("Pogresan id");
+                throw new WrongIdException("Pogresan id");
 
             return new CommentGetByIdResult(comment.ToCommentDTOResponse()); // Vrati ga u GetById endpoint u CommentController 
         }

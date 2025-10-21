@@ -4,8 +4,9 @@ using Newtonsoft.Json;
 
 namespace Api.Middlewares
 {   
-    /* Posto nisam nigde u kodu imao try-catch iako sam trebao, stoga ako dodje do exception negde u kodu, on se propagira response putanjom 
-     sve do GlobalExceptionHandlingMiddleware koji ga uhvati (pogledaj Exception propagation.txt)
+    /* Ako u kodu nemam nigde try-catch (iako u Controller imam), stoga ako dodje do exception negde u kodu, on se propagira response putanjom 
+     sve do GlobalExceptionHandlingMiddleware koji ga uhvati (pogledaj Exception propagation.txt). Posto imam try-catch u Controller, tamo ceda se 
+     uhvati exception pre nego ovde, ali nema veze, treba uvek postaviti GlobalExceptionHandlingMiddleware.
     */
 
     // Pogledaj Middleware.txt 
@@ -39,6 +40,11 @@ namespace Api.Middlewares
     public class GlobalExceptionHandlingMiddleware : IMiddleware
     {
         private readonly ILogger<GlobalExceptionHandlingMiddleware> _logger;
+
+        public GlobalExceptionHandlingMiddleware(ILogger<GlobalExceptionHandlingMiddleware> logger)
+        {
+            _logger = logger;
+        }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {

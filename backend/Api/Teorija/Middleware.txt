@@ -16,14 +16,15 @@ Sta je middleware i middleware pipeline:
 
 	Svaki middleware, ako implementira IMiddleware built-in interface, mora se registrovati kao AddTransient, a mora sadrzati:
 		- InvokeAsync/Invoke metodu koja vrata Task (-||-) i koja prima HttpContext i RequestDelegate 
-	
-	Ako ne korisstim IMiddleware onda treba AddTransient<IMiddleware,CustomInterface> jer UseMiddleware je 
+		- Ako koristim IMiddleware, treba AddTransient<IMiddleware,CustomInterface> jer, middleware pipeline nije ogranicen samo na Request (AddScoped), vec 
+		 sluzi i za gRPC,SignalR, WebSockets
 
 Built-in middleware:
 	- builder.Services.AddControllers(); - sadrzi UseRouting i UseEndpoints koje sam u starijim verzijaam morao rucno registrovati
 	- app.UseHttpRedirection()
 	- app.UseAuthentication()
 	- .... 
+Built-in middleware,jer nije nasledio IMiddleware, nije registrovan nikako u DI, ali se kao AddTransient ponasaju.
 
 Custom middleware:
 	- Svaki middleware koji ja napravim i ubacim u Program.cs
