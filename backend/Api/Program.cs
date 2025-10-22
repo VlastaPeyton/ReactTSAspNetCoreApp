@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using Api.CQRS_and_Validation;
+using Api.CQRS_and_Validation.Logging;
 using Api.Data;      
 using Api.Extensions;
 using Api.Interfaces;
@@ -146,8 +147,10 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly); // Finds C
 builder.Services.AddMediatR(config =>
 {   // Registruje Handler klase jer registruje IRequestHandler koga implementira ICommand/IQueryHandler
     config.RegisterServicesFromAssemblies(typeof(Program).Assembly); // Nadje sve klase koje implementiraju MediatR interface
-    //Dodam ValidationBehavior to MediatR pipeline
-    config.AddOpenBehavior(typeof(ValidationBehaviour<,>)); // Validation se pokrece automatski kada ISender.send()
+    // Dodam ValidationBehavior to MediatR pipeline 
+    config.AddOpenBehavior(typeof(ValidationBehaviour<,>)); 
+    // DOdam LoggingBehavior to MediatR pipeline koje se pokrece automatski 
+    config.AddOpenBehavior(typeof(LoggingBehaviour<,>));   
 });
 
 // Add Rate Limiter 
