@@ -44,10 +44,12 @@ namespace Api.MessageBroker
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(new Uri(configuration["MessageBroker:Host"]!), host =>
+                    var settings = context.GetRequiredService<MessageBrokerSettings>(); // U Program.cs bindovano appsettings.json to MessageBrokerSettings i upisan u DI
+
+                    cfg.Host(new Uri(settings.Host), host =>
                     {
-                        host.Username(configuration["MessageBroker:UserName"]!);
-                        host.Password(configuration["MessageBroker:Password"]!);
+                        host.Username(settings.UserName); // umesto configuration["MessageBroker:UserName"]
+                        host.Password(settings.Password); // umesto configuration["MessageBroker:Password"]
                     });
 
                     cfg.ConfigureEndpoints(context); // Pravi queueu za svakog consumera

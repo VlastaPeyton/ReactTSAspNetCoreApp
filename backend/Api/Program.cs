@@ -14,14 +14,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models; // Add this using directive
 
 var builder = WebApplication.CreateBuilder(args);
 
-Env.Load(); // Loads ".env" from project root pre svega ostalog jer mnogo toga zavisi od Env.GetString(...) pa ne moze se napravi ako ovo nije omoguceno
+Env.Load(); // Loads ".env" from project root pre svega ostalog, jer mnogo toga (van Program.cs) zavisi od Env.GetString(...)
 
-// Registrovanje servisa koje ce aplikacija koristiti 
+// Registrovanje servisa u DI - pogledaj Dependency Injection.txt
 
 builder.Services.AddControllers(); 
 // Add Swagger services
@@ -169,8 +170,17 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// custom middleware koji nasledi IMiddleware mora biti transient
-builder.Services.AddTransient<IMiddleware, GlobalExceptionHandlingMiddleware>(); 
+// Custom middleware koji nasledi IMiddleware mora biti transient
+builder.Services.AddTransient<IMiddleware, GlobalExceptionHandlingMiddleware>();
+
+// Options pattern for MessageBrokerSettings
+// Registruj u DI IOptions<MessageBrokerSettings> i proveri da l su polja dobro upisana u appsettings.json 
+builder.Services.AddOptions<MessageBrokerSettings>()
+                .Bind(builder.Configuration.GetSection("MessageBroker"))
+                .ValidateDataAnnotations()   
+                .ValidateOnStart();
+// Zbog ovoga, u MassTransitExtensions.cs moze GetRequiredService<MessageBrokerSettings>, a ne mora GetRequiredService<IOptions<MessageBrokerSettings>>().Value
+builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<MessageBrokerSettings>>().Value);
 
 var app = builder.Build();
 

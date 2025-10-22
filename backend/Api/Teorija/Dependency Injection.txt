@@ -1,0 +1,6 @@
+U Clean architecture, svaki sloj je projekat za sebe, stoga samo API layer ima Program.cs (jer je taj projekat Web API tip),
+dok drugi slojevi su Class library (pa nemaju Program.cs, jer samo 1 Program.cs mora postojati na nivou solution). U svakom sloju
+pravim DependencyInjection.cs koja ce sadrzati extension method za IServiceCollection gde cu upisivati sve sto bih inace upisao 
+u Program.cs za svaki layer. Ovo smanjuje kolicinu koda u Program.cs i omogucava da vodim racuna za DI u svakm layer posebno.
+
+U Vertical slice architecture radim DependencyInjection.cs per feature.
