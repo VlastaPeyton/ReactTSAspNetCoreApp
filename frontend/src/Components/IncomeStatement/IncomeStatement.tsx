@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { CompanyIncomeStatement } from '../../company';
+import { CompanyIncomeStatement } from '../../Types/company';
 import { useOutletContext } from 'react-router-dom';
 import { getIncomeStatement } from '../../Axios/api';
 import Table from '../Table/Table';

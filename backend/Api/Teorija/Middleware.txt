@@ -6,28 +6,34 @@ Sta je middleware i middleware pipeline:
   u Program.cs i propagirati nizvodno, a response propagira uzvodno).
 	Middleware pipeline je kicma svake ASP.NET Core aplikacije bez koje se ne moze. 
 
-	Svaki middleware, ako ne implementira IMiddleware built-in interface, mora sadrzati:
-		- ctor 
-		- InvokeAsync/Invoke metodu koja vraca Task (koja se poziva automatski refleksijom (pogledaj Reflection.txt)), a prima HttpContext
-		- next polje tipa RequestDelegete je opciono koje pokazuje na sledeci middleware u pipeline na osnovu Program.cs:
-			- ako ga ima, to znaci da nije poslednji middleware u pipeline
-			- ako ga nema, to znaci da jeste poslednji middleware u pipeline
-		- 
+	Svaki middleware moze biti:
+		1) Conventional - bez implementacije IMiddleware 
+		   => u Program.cs se napise app.UseMiddleware<CustomMiddleware>() 
+		   ovime middleware nije registrovan u servise tj u DI
+		   Svaki conventional middleware  mora sadrzati:
+			- ctor 
+			- InvokeAsync/Invoke metodu koja vraca Task (koja se poziva automatski refleksijom (pogledaj Reflection.txt)), a prima HttpContext
+			- next polje tipa RequestDelegete je opciono koje pokazuje na sledeci middleware u pipeline na osnovu Program.cs:
+				- ako ga ima, to znaci da nije poslednji middleware u pipeline
+				- ako ga nema, to znaci da jeste poslednji middleware u pipeline
 
-	Svaki middleware, ako implementira IMiddleware built-in interface, mora se registrovati kao AddTransient, a mora sadrzati:
-		- InvokeAsync/Invoke metodu koja vrata Task (-||-) i koja prima HttpContext i RequestDelegate 
-		- Ako koristim IMiddleware, treba AddTransient<IMiddleware,CustomInterface> jer, middleware pipeline nije ogranicen samo na Request (AddScoped), vec 
-		 sluzi i za gRPC,SignalR, WebSockets
+		2) Sa IMiddleware implementacijom:
+		   => u Program.cs se napise builder.Services.AddTransient<IMiddleware,CustomMiddleware>() i app.UseMiddleware<CustomMiddleware>()
+		   ovime middleware je registrovan kao servis u DI
+		   Svaki middleware, koji implementira IMiddleware built-in interface, mora se registrovati kao AddTransient, a mora sadrzati:
+				- InvokeAsync/Invoke metodu koja vrata Task (-||-) i koja prima HttpContext i RequestDelegate 
+				- Ako koristim IMiddleware, treba AddTransient<IMiddleware,CustomInterface> jer, middleware pipeline nije ogranicen samo na Request (AddScoped), vec 
+				 sluzi i za gRPC,SignalR, WebSockets
 
 Built-in middleware:
-	- builder.Services.AddControllers(); - sadrzi UseRouting i UseEndpoints koje sam u starijim verzijaam morao rucno registrovati
+	- builder.Services.AddControllers(); - sadrzi UseRouting i UseEndpoints koje sam u starijim verzijama morao rucno registrovati
 	- app.UseHttpRedirection()
 	- app.UseAuthentication()
 	- .... 
 Built-in middleware,jer nije nasledio IMiddleware, nije registrovan nikako u DI, ali se kao AddTransient ponasaju.
 
 Custom middleware:
-	- Svaki middleware koji ja napravim i ubacim u Program.cs
+	- Svaki middleware koji ja napravim i ubacim u Program.cs 
 
 Oba tipa middleware se pozivaju pomocu "app.UseMiddleware<Middleware>", gde Middleware moze biti custom/built-in. 
 Za mnoge built-in ne koristim ovu notaicju, vec ima gotova extension metoda (npr app.UseRouting()) koja unutar sebe poziva app.UseMiddleware<RoutingMiddleware>, 
@@ -35,7 +41,7 @@ gde RoutingMiddleware je built-in. Extension poziv mogu uraditi i za custom sluc
 Ako koristim IMiddleware zahteva AddTransient explicitno before UseMiddleware.
 
 Posle "app = builder.Build()", se vrsi dodavanje middleware u pipeline odgovarajucim redosledom.
-"app.Run()" kreira pipeline po redosledu i napravi ogroman RequestDelegate koji Kestrel (pogledaj Kestrerl.txt) vidi i zbog toga RequestDelegate polje svakog middleware 
+"app.Run()" kreira pipeline po redosledu i napravi ogroman RequestDelegate koji Kestrel (pogledaj Kestrel.txt) vidi i zbog toga RequestDelegate polje svakog middleware 
 zna automatski koji mu je sledeci middleware.
 
 Ako je custom middleware mali, onda moze u Program.cs direktno da se definise i doda u pipeline, a to izgleda ovako:

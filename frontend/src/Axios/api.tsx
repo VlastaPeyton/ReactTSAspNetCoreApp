@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CompanyBalanceSheet, CompanyCashFlow, CompanyIncomeStatement, CompanyKeyMetrics, CompanyProfile, CompanySearch, CompanyTenK } from "../company"; // Jer nema default export u company.d.ts, pa mora {}
+import { CompanyBalanceSheet, CompanyCashFlow, CompanyIncomeStatement, CompanyKeyMetrics, CompanyProfile, CompanySearch, CompanyTenK } from "../Types/company"; // Jer nema default export u company.d.ts, pa mora {}
 import { SearchResponse } from "../Models/SearchResponse";
 
 // interface SearchResponse {

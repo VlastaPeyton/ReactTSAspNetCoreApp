@@ -143,13 +143,13 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // Morao sam FluentValidation.DependencyInjectionExtensions da instalim u BuildingBlocks pre ovoga
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly); // Finds CommandValidator klase koje imeplementiraju AbstractValidator , da ValidationBehaviour moze da ih nadje tokom runtime
 
-// Add Mediator
+// Add Mediator - pogledaj Mediator.txt
 builder.Services.AddMediatR(config =>
 {   // Registruje Handler klase jer registruje IRequestHandler koga implementira ICommand/IQueryHandler
     config.RegisterServicesFromAssemblies(typeof(Program).Assembly); // Nadje sve klase koje implementiraju MediatR interface
-    // Dodam ValidationBehavior to MediatR pipeline 
+    // Dodam ValidationBehavior to MediatR pipeline. Bitan je redosled registracije of behaviours
     config.AddOpenBehavior(typeof(ValidationBehaviour<,>)); 
-    // DOdam LoggingBehavior to MediatR pipeline koje se pokrece automatski 
+    // Dodam LoggingBehavior to MediatR pipeline koje se pokrece automatski iz ValidationBehaviour
     config.AddOpenBehavior(typeof(LoggingBehaviour<,>));   
 });
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CompanyProfile } from '../../company';
+import { CompanyProfile } from '../../Types/company';
 import { getCompanyProfile } from '../../Axios/api';
 import Sidebar from '../../Components/Sidebar/Sidebar';
 import CompanyDashboard from '../../Components/CompanyDashboard/CompanyDashboard';

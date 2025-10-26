@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CompanyCashFlow } from '../../company';
+import { CompanyCashFlow } from '../../Types/company';
 import { useOutletContext } from 'react-router-dom';
 import { getCashflow } from '../../Axios/api';
 import Table from '../Table/Table';

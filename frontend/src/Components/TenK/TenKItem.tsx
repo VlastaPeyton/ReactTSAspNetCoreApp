@@ -1,4 +1,4 @@
-import { CompanyTenK } from '../../company';
+import { CompanyTenK } from '../../Types/company';
 import { Link } from 'react-router-dom';
 
 type Props = {

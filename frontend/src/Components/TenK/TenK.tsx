@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CompanyTenK } from '../../company';
+import { CompanyTenK } from '../../Types/company';
 import { getTenK } from '../../Axios/api';
 import TenKItem from './TenKItem';
 import Spinner from '../Spinner/Spinner';

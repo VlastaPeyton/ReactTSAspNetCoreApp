@@ -36,7 +36,7 @@ namespace Api.Middlewares
         }
     }
 
-    // Ovo koristim, jer se lako testira zbog interface => u Program.cs moram prvo DI registrujem, kao AddTransient, a onda da dodam middleware u pipeline regularno 
+    // Ovo koristim, jer se lako testira zbog interface => u Program.cs moram prvo DI registrujem zbog interface, kao AddTransient, a onda da dodam middleware u pipeline regularno 
     public class GlobalExceptionHandlingMiddleware : IMiddleware
     {
         private readonly ILogger<GlobalExceptionHandlingMiddleware> _logger;

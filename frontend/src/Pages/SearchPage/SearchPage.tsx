@@ -1,5 +1,5 @@
 import { SyntheticEvent, useEffect, useState, useCallback } from 'react'
-import { CompanySearch } from '../../company';
+import { CompanySearch } from '../../Types/company';
 import { searchCompanies } from '../../Axios/api';
 import Hero from '../../Components/Hero/Hero';
 import Search from '../../Components/Search/Search';

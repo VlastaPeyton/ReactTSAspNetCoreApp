@@ -5,7 +5,7 @@
 5) Namesti da se app prilagodjava velicini ekrana kad smanjujem/povecavam ekran za celu APP tj za sve stranice - ReactApp to ima
 6) Kad ugasim app, pa ukljucim, ostaje mi logovan user, jer  u .NET backend 7 dana token traje, a browser ga upamtio - mozda i ne menjati ovo, jer tako radi svaki sajt
 7) After comment submit delete title and content field
-8) Da li u companny.d.ts dodati ocekivan tip i za backend api 
+8) Da li u companny.d.ts dodati ocekivan tip i za backend api ali to sam stavio u Models folder
 9) Kada sam log out, a hocu npr SearchPage da kliknem, baca me na login page (jer SearchPage je ProtectedRoute) i namesti da me vrati na SearchPage odma nakon login 
    tako uradi za svaki ProtectedRoute stranicu
 

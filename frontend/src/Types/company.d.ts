@@ -1,11 +1,9 @@
-/* Ovo je .d.ts file u koji ne ide logika, vec samo tipovi koje axios treba da ocekuje ako sve bude kako treba u request.
-Ovo koristim u Axios folder tj u api.tsx file . */
+/* Pogledaj d.tsx file.txt 
 
-// Ovako export mora kada imam vise od 1 stvari za export.
-// Moze umesto interface biti type, jer je isto.
+   Kada imam vise od 1 stvari za export, svaka stvar mora imati export explicitno ispred sebe.
 
-// Sve ove tipove sam video na financialmodelingprep.com jer tamo stoji tip elementa niza koji dobijam za svaki API njihov koji gadjam.
-
+   Sve ove tipove sam video na financialmodelingprep.com, jer tamo pise tip niza koji dobijam kada pozovem neki FMP endpoint.
+*/
 export interface CompanySearch { 
     currency: string;
     exchangeShortName: string;

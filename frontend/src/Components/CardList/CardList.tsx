@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react'
 import Card from '../Card/Card';
-import { CompanySearch } from '../../company';
+import { CompanySearch } from '../../Types/company';
 
 type Props = {
   searchResults: CompanySearch[];

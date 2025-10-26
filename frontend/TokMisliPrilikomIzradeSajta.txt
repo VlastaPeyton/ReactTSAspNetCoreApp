@@ -1,9 +1,0 @@
-1) Osmisli koje pages ce postajati i svaka page mora imati at least 1 component => Create Pages folder => create .tsx i .css files for each page 
-   Pored HomePage, LoginPage,RegisterPage i SearchPage, imati i ForgotPasswordPage. 
-2) Create Routes folder with Routes.tsx i ProtectedRoute.tsx files.
-   Routes.tsx imace createBrowserRoute gde definisemo koje pages bice protected i koje children component ce imati odredjene pages.
-3) Components koje zelim da postoje na svakoj page stavim u App.tsx, a ne u Routes.tsx
-4) U App.tsx stavi koje components zelim da budu na svakoj stranici prisutne (npr Navbar na svakoj page mora biti) i <UserProvider> koji sluzi za context kako bi
- components unutar <UserProvider> mogle direktno, bez prop drilling, pristupiti svemu iz contexta. 
-    Create Context folder => create useXXXContext.tsx koji ce da omoguci prop passing automatically. 
-5) 

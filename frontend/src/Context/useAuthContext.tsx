@@ -1,33 +1,32 @@
 import { createContext } from "react";
-import { UserProfile } from "../Models/UserProfile";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { registerAPI, loginAPI, forgotPasswordAPI, resetPasswordAPI } from "../Services/AuthService";
-import { toast } from "react-toastify";
 import React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { UserProfile } from "../Models/UserProfile";
+import { registerAPI, loginAPI, forgotPasswordAPI, resetPasswordAPI } from "../Services/AuthService";
 
-// Context je global state which allows me to share data across components (inside <UserProvider> in App.tsx) without passing props manually to them 
+// Context je global state which allows me to share data across components (koje se nalaze inside <UserProvider> in App.tsx) without passing props manually to them 
 
 type UserContextType = {
     user: UserProfile | null; 
-    //token: string | null; // When you are NOT logged in this is NULL. Ne treba mi ovo, jer component nikad ne zavise direktno od njega, vec or ovih funkcija ispod navedenih.
+    //token: string | null; // When you are NOT logged in this is NULL. Ne treba mi ovo, jer component nikad ne zavise direktno od njega, vec od ovih funkcija ispod navedenih.
     registerUser: (email: string, username: string, password: string) => void; // Register metoda u .NET zahteva ove parametre
     loginUser: (username: string, password: string) => void;                   // Login metoda u .NET zahteva ove parametre 
     logout: () => void;
     isLoggedIn: () => boolean;
-    forgotPassword: (email: string) => void;
+    forgotPassword: (email: string) => void;                                   // ForgotPassword metoda u .NET zahteva ovaj parametar
     resetPassword: (newPassword: string, confirmPassword: string, email: string) => Promise<boolean>;
-    // Ova imena mora da se poklope sa imenima u UserProvider + kod metoda mora da se poklopi redosled argumenata kao u UserProvider.
+    // Ova imena mora da se poklope sa imenima u UserProvider + u metodama mora da se poklopi redosled argumenata kao u UserProvider.
     // Sve navedeno ovde, moram da posaljem kroz value u UserContext.Provider ispod na dnu koda.
 }
 
-type Props = {children: React.ReactNode} // Mora ovako, jer u App.tsx izmedju <UserProvider> i </UserProvider> bice <Navbar/>, <Outlet /> i <ToastContainer />. Isto objasnjenje kao u ProtectedRoute.tsx 
-                                         // React.ReactNode je 0,1 ili vise Components koju napisem izmedju <UserProvider> i </UserProvider> u App.tsx. Moze biti vise Components unutar <UserProvider>
+type Props = {children: React.ReactNode} // Zbog components koje ce biti unutar <UserProvider> u App.tsx, jer React.ReactNode je 0,1 ili vise components koje mogu biti unutar <UserProvider>
 
 const UserContext = createContext<UserContextType>({} as UserContextType); // Ovo u zagradi mora zbog TS da se ne buni. 
-// createContext create empty box that holds shared data onih Components (Navbar, Outlet i ToastContainer) koje ce, u App.tsx, biti izmedju <UserProvider> i </UserProvider> 
+// createContext create empty box that holds shared data onih components koje ce u App.tsx biti unutar <UserProvider>
 
-// Dobra praksa da JWT(Access Token) bude in-memory, a ne u localStorage. Objasnjeno u "SPA Security Best Practice.txt". 
+// Dobra praksa da JWT(Access Token) bude in-memory, a ne u localStorage - pogledaj SPA Security Best Practice.txt
 let inMemoryToken: string | null = null;
 export const getInMemoryToken = () => inMemoryToken; // export obezbedi da mogu ovome da pristupim globalno
 export const setInMemoryToken = (newToken: string | null) => {
@@ -36,7 +35,6 @@ export const setInMemoryToken = (newToken: string | null) => {
 
 // This Component mounts on app start up as it is placed in App.tsx
 export const UserProvider = ({children} : Props) => {
-    // childer se odnosi na children u Props 
 
     const navigate = useNavigate(); 
     const [token, setToken] = useState<string | null>(null); // null ako se nismo logovali jos 
@@ -46,16 +44,16 @@ export const UserProvider = ({children} : Props) => {
     useEffect(() => {
         const user = localStorage.getItem("user"); 
         //const token = localStorage.getItem("token");  ne treba mi vise jer nije dobro imati token u localStorage => i u ostalim fajlovima, ovo brisem i menjam sa getInMemoryToken
+        
         // Ako user i token nisu null (svaki put nakon very first time login) onda izvrsi ovo ispod, a to se desi samo ako smo ostali ulogovani i startovali app opet, jer on 7dana pamti login valjda
         if (user && token) { 
-            setUser(JSON.parse(user)); // JSON.parse mora, jer ispod je skladisteno kao JSON.Stringify(user) u localStorage, posto localStorage samo string prihvata.
-            setToken(token); // Jer ispod je skladisteno kao string u localStorage, jer localStorage samo string prihvata.
-            //axios.defaults.headers.common["Authorization"] = "Bearer" + token; // Za svaki Axios request made to .NET backend, jer mora tako posto BE trazi JWT. Ali sam izbrsiao ovu liniju, jer nesto me zezalo, pa sam u svakom api Request dodao rucno token ili koristio AxiosWithJWTForBackend.tsx koji sam dodaje JWT to Authorize header
-            inMemoryToken = token; // Necu vise koristiti localStorage za JWT, jer nesigurno 
+            setUser(JSON.parse(user)); // UserProfile je objekat, ne string, pa JSON.parse mora, jer ispod je skladisteno kao JSON.Stringify(user) u localStorage, posto localStorage samo string prihvata
+            setToken(token); // token je string, pa JSON.parse ne mora, jer ispod je skladisteno kao string u localStorage, jer localStorage samo string prihvata.
+            inMemoryToken = token; 
         }               
         setIsReady(true); 
     }, []); /* Ne sme da bude [user, token], jer setUser/setToken je unutar useEffect i onda ce uci u infinite loop.
-             useEffect se pokrece only kad UserProvider is mounted on app start up. */
+             useEffect se pokrece samo kad UserProvider is mounted (on app start up). */
 
     const registerUser = async (email: string, username: string, password: string) => {
         // Then-catch je isto kao da sam pisao try-catch. Catch mora ako dodje go greske u registerAPI koji je Frontend.

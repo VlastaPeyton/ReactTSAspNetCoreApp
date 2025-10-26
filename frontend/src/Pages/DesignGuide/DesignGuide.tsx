@@ -1,6 +1,6 @@
 import Table from '../../Components/Table/Table';
 import RatioList from '../../Components/RatioList/RatioList';
-import { CompanyKeyMetrics } from '../../company';
+import { CompanyKeyMetrics } from '../../Types/company';
 import { testIncomeStatementData } from '../../Components/Table/testData'; //testIncomeStatementData samo za "AAPL" imam i zato ovde ne ocitavam preko api.tsx (kao u CompanyProfile npr), jer imam offline podatke.
 
 type Props = {}

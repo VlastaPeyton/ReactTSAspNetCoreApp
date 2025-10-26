@@ -1,4 +1,4 @@
-import { CompanySearch } from "../company"
+import { CompanySearch } from "../Types/company"
 
 export type SearchResponse = {
     data: CompanySearch[]

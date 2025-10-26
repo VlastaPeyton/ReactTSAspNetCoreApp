@@ -1,5 +1,7 @@
 // src/serviceWorkerRegistration.ts
-// Based on CRA default setup
+// Based on CRA default setup 
+
+// Ovo koristim zbog PWA funkcionalnosti.
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||

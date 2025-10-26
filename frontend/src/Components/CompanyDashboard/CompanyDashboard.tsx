@@ -2,7 +2,7 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'; // Isto kao u App.tsx gde sam import from 'react-router'
 
 type Props = {
-  children: React.ReactNode; /*Da bih mogo 0, 1 ili vise Components (tj Tile.tsx) staviti izmedju <CompanyDashboard> i </CompanyDashboard>
+  children: React.ReactNode; /*Da bih mogo 0, 1 ili vise Components (tj Tile.tsx) staviti unutar <CompanyDashboard>
                              Moze i <CompanyDashboard children={<Component/>}...> ali to se ne radi nikad. */
   ticker: string; 
 }

@@ -1,25 +1,25 @@
--1) Kada se ovaj projekat pull-uje from Github, moram da u terminal navigiram to "frontend" folder i ukucam "npm install" kako bi instalirao sve packages from package.json 
-jer sam njih u koracima 0-43 instalirao dok sam pravio frontend deo tj u node_modules, ali u .gitignore node_modules ne ide jer veliki, vec sve je u package.json zapisano
-sta moram putem "npm install" da uradim.
+-1) Onaj ko pulluje from Github ovaj projekat, morace u terminal navigirati to "frontend" folder i ukucati "npm install" kako bi instalirao sve packages from package.json,
+    jer sam te biblioteke u koracima 0-X instalirao dok sam pravio frontend deo, tacnije u node_modules su se istalirali kodovi biblioteka, dok u packages.json samo je 
+    upisano koje biblioteke sam instalirao. U .gitignore moram dodati node_modules folder, jer je ogroman, pa kada se pulluje projekat from Github, komandom "npm install" 
+    ce sve iz package.json instalira i kreira node_modules folder.
 
-0) Ovo je React TypeScript + .NET Core Finance projekat. Pored mog backend, koristim free FinancialModelingPrep API.
-   Pre ovoga, naucio sam sve iz ReactJS foldera.
+0) Ovo je React TypeScript + .NET Core Finance projekat. Pored mog backend (.NET), koristim free FinancialModelingPrep API.
 
-1) Kreiram "react_ts_and_aspnetcore_app" folder i vodim racuna da su sve mala slova, jer, zbog npm and package.json, ne moze da se kreira React App velikim slovima.
+1) Kreiram "ReactTSAspNetCoreAppGithub" folder u kome cu kreirati "frontend" i "backend" foldere.
 
-2) U VSC otvorim taj folder. Pa otvorim CMD i kucam "npx create-react-app frontend --template typescript"
-i u "react_ts_and_aspnetcore_app" folderu dobijem "frontend" folder koji sadrzi sve kao i za React JS app da sam kreirao. 
-Kao i ReactJS, dobijem node_modules, public i src foldere + .gitignore, package-lock.json, package.json i tsconfig.json files.
-Za razliku od ReactApp, necu brisati nista iz src za sada. 
-Kad push ovaj frontend folder na github, it wont push "node_modules" folder as normal behaviour, because it is too large and everything is written in package.json
+2) U VSC otvorim taj folder, pa otvorim CMD i kucam "npx create-react-app frontend --template typescript"
+   i u "ReactTSAspNetCoreAppGithub" folderu dobijem "frontend" folder koji sadrzi sve sto treba za pokretanje React app (pogledaj Kreiranje i pokretanje React app.txt).
+   Kad push ovaj frontend folder to Github, it wont push "node_modules" folder as normal behaviour, because it is too large and everything is written in package.json, so 
+   node_modules is gonna be put in .gitignore (objasnjeno u -1 koraku). 
 
-3) Bolje koristiti .tsx file, nego .ts file, jer nekad compiler kuka ako je .ts file i za obican .ts file koji nema React component.
+3) Za svaki kod, bolje koristiti .tsx file, nego .ts file, jer nekad compiler kuka ako je .ts file i za obican .ts file koji nema React component, pa ce kukati sigurno 
+   kada u kodu ima React delova.
 
-4) Instaliram VSC Extension "ES7+ React/Redux/React-Native snippets" from dsznajder publisher, da mogu da koristim u .tsx file
-"rafce" za JS ili "tsrafce" za TS kad pravim React components da ne kucam onaj pocetni kod svaki put. 
+4) Instaliram VSC Extension "ES7+ React/Redux/React-Native snippets" from dsznajder publisher, da mogu da koristim u .tsx file "tsrafce" za TS kad pravim React components
+   (da ne kucam onaj pocetni kod svaki put). ES7+ su najnovije JS paradigme da jezik bude moderan.
 
 5) U src folder dodam Components i Pages foldere. 
-   U Components stavljam sve React components, dok u Pages stavljam web pages koje sadrze pojedine Components. 
+   U Components stavljam sve React components, dok u Pages stavljam web pages koje sadrze odgovarajuce Components. 
    Za svaki Component imacu .tsx i .css file istog imena. U .tsx kucam sve, dok u .css samo CSS styling. Medjutim, koristicu Tailwind CSS, pa mi .css i ne treba.
    U Components pravim Card folder gde pravim Card.css i Card.tsx files.
    
@@ -34,14 +34,13 @@ Kad push ovaj frontend folder na github, it wont push "node_modules" folder as n
 10) U Components folder pravim Search folder with Search.tsx i Search.css files.
 
 11) Terminal navigiram u "frontend" folder i kucam "npm install axios --save" i "npm install --save-dev @types/axios" jer ocu axios sa tipovima (iako 
-ne mora u TS tj moze i obican axios kao u ReactJS jer axios version > 0.14.x podrzava TS). Pa kucam "npm install dotenv --save" jer kad napravim .env file (u root lavel as package.json), 
-moram imati ovo instalirano da bih mogo u ReactTS ocitati varijable iz .env file. Svaka .env variable mora imati "REACT_APP_" prefix.
+   ne mora u TS tj moze i obican axios kao u ReactJS jer axios version > 0.14.x podrzava TS). Pa kucam "npm install dotenv --save" jer kad napravim .env file 
+   (u root lavel as package.json), moram imati ovo instalirano da bih mogo u ReactTS ocitati varijable iz .env file. Svaka .env variable mora imati "REACT_APP_" prefix.
 
 12) U frontend folder dodam .env file, ali necu pisati API KEY za onaj sajt u njega, jer to je u api.tsx stavljeno 
 
 13) u src folder dodam api.tsx file i company.d.ts file jer gadjam API sa nekog sajta dok u company.d.ts stavljam sve moguce tipove od tog API get
-.d.ts je TS Declaration file koji govori axios biblioteci u kom formatu ce biti podaci koje dohvata/salje i u .d.ts file se ne stavlja logika, vec 
-samo tipovi.
+   .d.ts je TS Declaration file koji govori axios biblioteci u kom formatu ce biti podaci koje dohvata/salje i u .d.ts file se ne stavlja logika, vec samo tipovi.
 
 14) U frontend folder "npm install --save-dev @types/uuid"
 
@@ -50,10 +49,11 @@ samo tipovi.
 
 16) U frontend folderu kucam "npm install -D tailwindcss@^3.4.1", a onda "npx tailwindcss init" sto ce da nam napravi tailwind.config.js koji nam treba
 
-17) u Components dodam Navbar (Navbar.tsx/css) and Hero folder (Hero.tsx/css) koje sa tailwindcss kodiram 
+17) u Components dodam Navbar (Navbar.tsx/css) and Hero folder (Hero.tsx/css) koje sa tailwindcss kodiram.
 
-18) Dodajem React Router Dom da napravim zeljene stranice unutar app. U terminal navigiram "frontend" folder i kucam "npm install -save react-router-dom", pa "npm install --save @types/react-router-dom" 
-i pravim Routes folder i Pages folder. U terminal kucam "npm install react-router-dom@latest" da moze createBrowserRouter from "react-router-dom".
+18) Dodajem React Router Dom da napravim zeljene stranice unutar app. U terminal navigiram "frontend" folder i kucam "npm install -save react-router-dom", pa 
+    "npm install --save @types/react-router-dom" i pravim Routes folder i Pages folder. U terminal kucam "npm install react-router-dom@latest" da moze 
+    createBrowserRouter from "react-router-dom".
 
 19) U Pages folder dodam zeljene foldere gde svaki prestavlja stranicu neku.
 
@@ -116,38 +116,29 @@ i pravim Routes folder i Pages folder. U terminal kucam "npm install react-route
 ErrorBoundary se inace stavlja oko Component koja mzoe da erroruje pa da ne pukne app, nego da prikaze zeljenu poruku na ekranu.
 
 45) Want make this FE as PWA: 
-   PWA web app osobine:
-      1) Installable - can be added to desktop
-      1) No app store required - can install it from browser
-      2) Offline-capable - via caching works without internet collection but cannot make api request
-      3) Fast - loads fast even on slow network
-      4) Responsive - works on mobile, tablet and desktop
-      5) Secure - over HTTPS radi
-      6) Push notifications
 
-   Technologies behind PWA:
-      1) Service workers - ackground script that handles caching, offline mode, push notifications
-      2) Web App Manifest - JSON file defining app name, icon, theme, install behavior
-      3) HTTPS - security
+   Pogledaj PWA.txt 
 
    As i made react app via Create React App it is partially PWA already.
-   I need to add serviceWorkerRegistration.ts in src folder sa kodom koji sam naso na netu. Moze se napravi da Create React App ne brise ovaj kod prilikom kreiranja. 
+   I need to add serviceWorkerRegistration.ts in src folder sa kodom koji sam naso na netu (moze se napravi da Create React App ne brise ovaj kod prilikom kreiranja)
    U src/index.tsx dodajem zeljeni kod sa neta da registrujem serviceWorkerRegistration.
-   U terminal kucam "npm run build" jer sam kao spreman da deploy my app to production. Svaki put kad azuriram app, moram da ukucam ovo da bi se azurirao i production app.
-   Nakon "npm run build " kucam "npm install serve" pa "npx serve -s build" da se ovo pokrene na serveru koji nije localhost da vidim kako production izgleda.
+   U terminal kucam "npm run build" jer sam kao spreman da deploy my app to production. Svaki put kad azuriram app, moram da ukucam "npm run build" da bi se azurirao i production code.
+   Nakon "npm run build " kucam "npm install serve"(samo jednom) pa "npx serve -s build" da se production code pokrene da vidim kako production izgleda.
 
-46) U Pages napravim ForgotPasswordPage koju otvaram kad u LoginPage kliknem "Forgot Password". Zatim u .NET sam napravio ForgotPassword endpoint i namestio u Gamil smtp password da moze .NET da pristupa mom gmailu
-Na email stize link koji vodi u reset password page.
+46) U Pages napravim ForgotPasswordPage koju otvaram kad u LoginPage kliknem "Forgot Password". Zatim u .NET sam napravio ForgotPassword endpoint i namestio u Gamil smtp
+    password da moze .NET da pristupa mom gmailu, pa na email stize link koji vodi u reset password page.
 
-47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password. Onda u BE napravim ResetPassword endpoint koji ce obradjivati zahteve sa ove stranice
+47) Napravim ResetPasswordPage da mogu da otvorim link iz email. Ova stranica imace formu new password and confirm password. Onda u BE napravim ResetPassword endpoint 
+    koji ce obradjivati zahteve sa ove stranice
 
 48) Na Homepage dodam Google mapu sa lokacijom zeljenom
 
 49) Route level code splitting (Procitaj u Routes folderu sta je) dodajem u Routes.tsx 
 
 50) React.memo() for child component 
-      Do sada nisam koristio React.memo(), stoga kada parent component re-renders zbog promene varijable od koje zavisi, child component automatically re-renders iako se prop (koji mu parent poslao) of child komponent mozda i ne menja.
-   Zato, koristim React.memo() da se child component re-render samo ako mu se prop (koji mu je parent poslao) menja.
+      Do sada nisam koristio React.memo(), stoga kada parent component re-renders zbog promene varijable od koje zavisi, child component automatically re-renders iako se
+    prop (koji mu parent poslao) of child komponent mozda i ne menja. Zato, koristim React.memo() da se child component re-render samo ako mu se prop (koji mu je parent 
+    poslao) menja.
       Use React.memo() only if: 0) child component have props
                                 1) child component DOESNT use context/state/Redux koje ga re-renderuju kad se zamene van tog component
                                 2) props(value or functions) passed to child component RARELY changes
