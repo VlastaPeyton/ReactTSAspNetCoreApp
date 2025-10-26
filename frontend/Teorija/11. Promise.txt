@@ -1,0 +1,9 @@
+Promise je isto kao Task u C#.
+
+new Promise((resolve, reject) => {
+    .....
+})
+
+resolve i reject su argumenti lambda funkcije,a oni su tipa built-in funkcija
+resolve je funkcija koju pozivam da uspesno zavrsim Promise
+reject je funkcija koju pozivam da oznacim gresku

@@ -71,6 +71,8 @@ namespace Api.Controllers
          
         U 2 endpoint koristim CQRS, pa bih onda morao i svuda da ga koristim i da neam repository ovde, vec samo u Handler klasama, ali nema veze, CQRS mi i ne treba ovde, vec samo da pokazem
          Rate Limiter objasnjen u Program.cs
+        
+        Endpoint koji sadrzi "User.GetUserName" zahteva od FE da posalje JWT jer u JWT su upisane claims (user info) bez obzira da li ima [Authorize] ili nema.
         */
 
         // Get All Comments for desired Stock Endpoint 
@@ -118,7 +120,8 @@ namespace Api.Controllers
         //[EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
-        [Authorize] 
+        [Authorize] // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
+
         public async Task<IActionResult> Create([FromRoute] string symbol, [FromBody] CreateCommentRequestDTO createCommentRequestDTO, CancellationToken cancellationToken)
         // U FE commentPostAPI funkciji, symbol kroz URL prosledim, a kroz Body saljem polja imenom i redosledom kao u CreateCommentRequestDTO (nisam stavio [FromBody] jer se to podrazumeva za complex type in POST request)
         {
@@ -141,7 +144,7 @@ namespace Api.Controllers
                     await _stockRepository.CreateAsync(stock, cancellationToken); 
             }
 
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, jer User je ClaimsPrincipal i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase, jer User je ClaimsPrincipal i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze i zahteva od FE da posalje JWT jer su u njemu claims
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
             // _userManager methods does not use cancellationToken
 

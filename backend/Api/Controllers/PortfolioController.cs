@@ -60,13 +60,15 @@ namespace Api.Controllers
         CT se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
          
          Rate Limiter objasnjen u Program.cs
+         
+         Endpoint koji sadrzi "User.GetUserName" zahteva od FE da posalje JWT jer u JWT su upisane claims (user info) bez obzira da li ima [Authorize] ili nema.
          */
 
         [HttpGet]
         [Authorize] // U Swagger Authorize dugme moram uneti JWT from Login kako bih mogo da pokrenem ovaj Endpoint
         public async Task<IActionResult> GetUserPortfolios(CancellationToken cancellationToken)
-        {   
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz request nego iz baze
+        {   // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal i odnose se na current logged user jer mnogo je lakse uzeti UserName/Email iz request nego iz baze i zahteva od FE da posalje JWT jer su u njemu claims
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazuje AspNetUsers tabelu da nadje AppUser 
             // userManager metode nemaju cancellationToken 
 
@@ -78,10 +80,11 @@ namespace Api.Controllers
 
         //[EnableRateLimiting("fast")] // Jer cesto koristim ovu metodu
         [HttpPost]
-        [Authorize]
+        [Authorize] // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
+
         public async Task<IActionResult> AddPortfolio([FromQuery] string symbol, CancellationToken cancellationToken)  // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
         {   // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioAddApi u FE moram poslati symbol nakon ? in URL
-            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal tj user info from request 
+            var userName = User.GetUserName(); // User i GetUserName come from ControllerBase ClaimsPrincipal tj user info from request i zahteva od FE da posalje JWT jer su u njemu claims
             var appUser = await _userManager.FindByNameAsync(userName); // Ne moze cancellationToken ovde
 
             // Kada u search ukucan npr "tsla" izadje mi 1 ili lista Stocks ili ETFs koji pocinju sa "tsla" i zelim kliknuti Add da dodam bilo koji stock u portfolio, pa prvo provera da li je zeljeni stock u bazi
@@ -126,7 +129,7 @@ namespace Api.Controllers
         [HttpDelete]
         [Authorize]
         public async Task<IActionResult> DeletePortfolio([FromQuery] string symbol, CancellationToken cancellationToken) // 1 Portfolio = 1 Stock, a glavna stvar Stock-a je Symbol polje
-        {   // I da nisam stavio [Authorize], zbog User.GetUserName moral bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
+        {   // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
             // Da nema [FromQuery], obzirom da symbol je string, .NET bi prihvatamo i [FromRoute], [FromQuery] i [FromBody]. Zbog [FromQuery] u portfolioDeleteApi u FE moram poslati symbol nakon ? in URL
             
             var userName = User.GetUserName(); // Objasnjeno iznad
