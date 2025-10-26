@@ -95,7 +95,7 @@ apiBackendWithJWT.interceptors.request.use(
                         if (isRefreshing){
                             // Ostali Requests cekaju until resolve(config) (zbog Promise), dok se onRefreshed(newToken) ne zavrsi i tek tada nastavljaju sa azuriranim tokenom
                             // Promise is same as Task in ASP.NET Core. Promise blokira slanje request dok se ne pozove resolve ili reject i axios ceka Promise da zavrsi tj dok ne stignu novi JWT i refresh token
-                            return new Promise((resolve, reject) => {
+                            return new Promise((resolve, reject) => { // interceptor vraca Promise u axios, a axios interno resolvuje ili rejectuje Promise tj izvadi payload tj config pomocu promise.then
                                 // i svaki od njih pozove subscribeTokenRefresh kome prosledi telo funkcije koju jos uvek nije aktivirao
                                 subscribeTokenRefresh((newToken: string) =>{ //newToken iz onRefreshed(newToken)
                                     config.withCredentials = true; // When you use new Promise() in your interceptors, you need to explicitly preserve withCredentials
@@ -140,7 +140,7 @@ apiBackendWithJWT.interceptors.request.use(
         // DOUBLE CHECK: Always ensure withCredentials is true
         config.withCredentials = true;
 
-        return config;
+        return config; // interceptor ovo vrati u axios samo ako JWT nije blizu isteka (>30s ostalo), u suprotnom vrati iz Promise gore
     },
     // Arrow function called if error is present, while modifying config object, before Request is sent. Error is automatically passed to arrow function by the Axios interceptor
     (error) =>{
@@ -153,7 +153,7 @@ apiBackendWithJWT.interceptors.request.use(
  Npr ako sam poslao 10 Requests, a token vec istekao, svih 10 ce da dobije 401 status pre toga, ali samo prvi ce da pozove refreshAccessToken,a ostalih 9 cekaju da se dobije novi token*/
 apiBackendWithJWT.interceptors.response.use(
     // Success handler after axios finishes successfuly. Response is automatically passed by Axios interceptor.
-    (response) => response,  // response is returned to the original caller of axios request tj kad negde u kodu axios.post/get to BE. Interceptor ne modifikuje response vec samo ga vrati tj ode u then block of axios call jer je sve u redu.
+    (response) => response,  // response is returned to the original caller of request (axios instance). Interceptor ne modifikuje response vec samo ga vrati tj ode u then block of axios call jer je sve u redu.
     // Error handler. If Response is 401 tj ako axios.interceptors.request dobije 401 jer je token expired. Error is automatically passed by the Axios interceptor
     async (error) => {
 
@@ -167,7 +167,7 @@ apiBackendWithJWT.interceptors.response.use(
             if (isRefreshing) {
                 // If already refreshing (1st Request activated refreshAccessToken), pause all waiting requests until the new token is set
                 // Promise blokira slanje request dok se ne pozove resolve ili reject i axios ceka Promise da zavrsi tj dok ne stignu novi JWT i refresh token
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve, reject) => { // interceptor vraca Promise u axios, a axios interno izvadi payload tj apiBackendWithJWT(originalRequest) iz promise pomocu promise.then 
                     subscribeTokenRefresh((newToken: string) => {
                         // CRITICAL: Preserve withCredentials when retrying .When you use new Promise() in your interceptors, you need to explicitly preserve withCredentials
                         originalRequest.withCredentials = true;
@@ -196,7 +196,7 @@ apiBackendWithJWT.interceptors.response.use(
             }
         }
         
-        return Promise.reject(error);
+        return Promise.reject(error); // Ako nije vratio Promise gore, znaci da nije 401 ili je _retry=true, pa vrati gresku u axios call koji je pozvao apiBackendWithJWT
     }
 );
 
