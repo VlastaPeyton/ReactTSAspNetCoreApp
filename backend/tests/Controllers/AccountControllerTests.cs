@@ -29,11 +29,11 @@ namespace tests.Controllers
         {
             _fakeUserManager = A.Fake<UserManager<AppUser>>();
             _fakeSignInManager = A.Fake<SignInManager<AppUser>>();
-            _fakeTokenService = A.Fake<ITokenService>();
+            //_fakeTokenService = A.Fake<ITokenService>(); moram drugacije da testiram jer sam EmailService injectovao kroz [FromServices] direkt u endpoint
             _fakeEmailService = A.Fake<IEmailService>();
             _fakeLogger = A.Fake<ILogger<AccountController>>();
 
-            _controller = new AccountController(_fakeUserManager, _fakeSignInManager, _fakeTokenService, _fakeEmailService, _fakeLogger);
+            _controller = new AccountController(_fakeUserManager, _fakeSignInManager, _fakeTokenService, _fakeLogger);
 
         }
         // Async Endpoint u AccountController mora i ovde biti async, a tip mora biti Task i bez RegisterDTO argumenta jer cu ga kreirati u metodi

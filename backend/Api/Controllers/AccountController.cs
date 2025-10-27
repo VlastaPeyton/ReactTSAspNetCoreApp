@@ -13,20 +13,20 @@ namespace Api.Controllers
     [Route("api/account")] // https://localhost:port/api/account
     [ApiController] // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
     public class AccountController : ControllerBase
-    {   // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
+    {   // Interface za sve klase zbog DI, dok u Program.cs registrujem da prepozna interface kao tu klasu + zbog testabilnosti - pogledaj Dependency Injection.txt
         private readonly UserManager<AppUser> _userManager;     // Ovo moze jer AppUser:IdentityUser 
         private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
         // Zbog AppUser updating via UserManager i SignInManager, automatski je implementiran Race Condition using ConcurrencyStamp kolonu of IdentityUser
-        private readonly ITokenService _tokenService; // U Program.cs definisali da prepozna ITokenService kao TokenService
-        private readonly IEmailService _emailService;  // U Program.cs definisali da prepozna IEmailSender kao EmailService
+        private readonly ITokenService _tokenService; 
+        //private readonly IEmailService _emailService; - registrovacu ga samo za ForgotPassword endpoint - pogledaj Dependency Injection.txt
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService, ILogger<AccountController> logger)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
-            _emailService = emailService;
+            //_emailService = emailService;
             _logger = logger;
         }
 
@@ -206,7 +206,7 @@ namespace Api.Controllers
         }
 
         [HttpPost("forgotpassword")] // https://localhost:port/api/account/forgotpassword
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO, [FromServices] IEmailService _emailService)
         // Email se obicno salje u Request Body from FE (moze i FromQuery, ali nije dobra praksa)
         {
             if (!ModelState.IsValid)

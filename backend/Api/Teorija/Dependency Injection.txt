@@ -4,3 +4,18 @@ pravim DependencyInjection.cs koja ce sadrzati extension method za IServiceColle
 u Program.cs za svaki layer. Ovo smanjuje kolicinu koda u Program.cs i omogucava da vodim racuna za DI u svakm layer posebno.
 
 U Vertical slice architecture radim DependencyInjection.cs per feature.
+
+Svaki servis (built-in ili custom) predstavlja klasu koja se registruje u Program.cs (ako je custom) ili je vec registrovana u DI (ako je built-in).
+Servis se naziva dependency kada se injektuje u neku klasu da ga ta klasa koristi.
+
+Injection of dependencies u controller ima 2 nacina:
+	1) Klasika - inject dependencies kroz cto. Ako imam previse servisa, ctor postane ogroman (samim tim i gomila fields mi treba) i kod je nepregledam 
+	             + zauzima vise memorije, jer je skoro nemoguce da svaki endpoint koristi sve servise. 
+				 Controller instance is created per request. 
+				 Services live for duration of the request (or their registered lifetime in Program.cs which is mainly scoped lifetime).
+	
+	2) Napredno - kroz ctor injectujem servise koji se koriste u vecini endpoints, dok servise koji se koriste u pojedinacnim endpointsima injectujem 
+				  kroz argumente metode pomocu [FromService] keyword. Ovime postizem da kod klasa manje memoriju zauzima jer se odredjeni servisi injectuju
+				  pozivom odredjong endpointa + lakse se testira endpoint + brisanjem endpointa brise se i njegov dependency pa onda klasa nece imati 
+				  nekoriscen dependency.
+				  Memorijski ovo nije nista bolje, jer servisi su light mainly + GC pocisti sve kad se request zavrsi + sto dependency lifetime is scoped mainly.
