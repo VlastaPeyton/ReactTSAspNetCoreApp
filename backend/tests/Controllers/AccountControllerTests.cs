@@ -2,10 +2,10 @@
 using Api.DTOs.Account;
 using Api.Interfaces;
 using Api.Models;
+using Api.Services;
 using DotNetEnv;
 using FakeItEasy;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +23,8 @@ namespace tests.Controllers
         private readonly ITokenService _fakeTokenService;
         private readonly IEmailService _fakeEmailService;
         private readonly ILogger<AccountController> _fakeLogger;
-        
+        private readonly IAccountService _fakeAccountService;
+
         // Ctor nema argumente za razliku od originalnog
         public AccountControllerTests()
         {
@@ -32,8 +33,9 @@ namespace tests.Controllers
             //_fakeTokenService = A.Fake<ITokenService>(); moram drugacije da testiram jer sam EmailService injectovao kroz [FromServices] direkt u endpoint
             _fakeEmailService = A.Fake<IEmailService>();
             _fakeLogger = A.Fake<ILogger<AccountController>>();
+            _fakeAccountService = A.Fake<AccountService>();
 
-            _controller = new AccountController(_fakeUserManager, _fakeSignInManager, _fakeTokenService, _fakeLogger);
+            _controller = new AccountController(_fakeAccountService);
 
         }
         // Async Endpoint u AccountController mora i ovde biti async, a tip mora biti Task i bez RegisterDTO argumenta jer cu ga kreirati u metodi

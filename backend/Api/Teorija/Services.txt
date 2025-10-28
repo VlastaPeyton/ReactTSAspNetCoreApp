@@ -1,0 +1,19 @@
+Servise predstavlja svaku klasu koju controller koristi. 
+Moze biti custom ili built-in. Custom se mora rucno registrovati u DI container u Program.cs, dok built-in ne mora.
+Svaki servis mora imati interface koji implementira zbog SOLID (visoki nivoi zavise od apstrakcija) + zbog testiranja. 
+
+Nije dobra praksa da kontroler ima logiku, vec da poziva service, a service ima logiku i poziva repository i sve ostalo. 
+Controller/endpoint samo prima, validira, poziva servise i salje klijentu.
+Ovime se postize S of SOLID + lakse se testira (mock only service, not DbContext ) + lakse se koristi logika na vise mesta (samo injectuj servise gde treba)
+
+Controller + validacija -> Service -> Repository -> DbContext
+
+Services je application layer koji sadrzi poslovnu logiku, dok EmailService, FMPService i TokenService su infrastructure layer jer su pomocne stvari.
+Service prima DTO iz Controller, jer Controller prima/salje DTO u service/klijentu, a servis salje DTO u repository, a repository prima DTO ali ga mapira u Entity klasu 
+jer jedino Repository sme da vidi Entity klase, dok ostali slojevi samo DTO.
+
+Service baca explicitne custom greske i implicitne built-in, ali svakako oba tipa moram uhvatiti u controller ili globalexceptionhandler ili result pattern.
+Implicitnu mogu uhvatiti kao Exception klasu.
+Service treba try-catch samo ako:
+	1) se u njemu hvatam built-in exception koju prevodim u moj custom exception i bacam je dalje da propagira u controller i GlobalExceptionHandler 
+	2) catch blok koristim za recovery usleg exception(greske) u try block

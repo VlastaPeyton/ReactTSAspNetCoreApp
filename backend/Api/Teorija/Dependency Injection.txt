@@ -5,10 +5,11 @@ u Program.cs za svaki layer. Ovo smanjuje kolicinu koda u Program.cs i omogucava
 
 U Vertical slice architecture radim DependencyInjection.cs per feature.
 
-Svaki servis (built-in ili custom) predstavlja klasu koja se registruje u Program.cs (ako je custom) ili je vec registrovana u DI (ako je built-in).
+Svaki servis (built-in ili custom - pogledaj Services.txt) predstavlja klasu koja se registruje u Program.cs (ako je custom) ili je vec registrovana u DI container (ako je built-in).
 Servis se naziva dependency kada se injektuje u neku klasu da ga ta klasa koristi.
+Svaki controller koristi sebi svojstvene servise (mainly custom) jer logika ne sme biti u endpoint, vec u services koji se iz endpoint pozivaju.
 
-Injection of dependencies u controller ima 2 nacina:
+Injection of dependencies u conttroller ima 2 nacina:
 	1) Klasika - inject dependencies kroz cto. Ako imam previse servisa, ctor postane ogroman (samim tim i gomila fields mi treba) i kod je nepregledam 
 	             + zauzima vise memorije, jer je skoro nemoguce da svaki endpoint koristi sve servise. 
 				 Controller instance is created per request. 

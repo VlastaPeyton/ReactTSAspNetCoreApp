@@ -1,8 +1,0 @@
-﻿
-2) Napravi StockId i CommentId posebno da budu klase sa Value poljem kao u Microservices
-
-4) Route atributi (id ili stockId) da budu GUID, a ne int
-
-5) U DTO klasama, Data Validation napravi kao u Microservices ali i ne mora, jer vec imam ModelState 
-
-PRENESI SVE STO MOZES IZ EShopMicroservices OVDE, JER OVO ZA SAD JE SAMO OSNOVNI .NET KOJI RADI ali MORAM DA NABUDZIM DA BUDE STATE OF ART

@@ -133,10 +133,12 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Add IPortfolioRepository i PortfolioRepository 
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+
 // Add HttpClient for FinancialModelingPrepService 
 builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() // Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
                 .AddStandardResilienceHandler(); // Dodaje defaultne retry, timeout, circuit breaker. Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
 //builder.Services.AddFMPHttpClientWithCustomResilience();  - ako zelim custom Resilience
+
 // Add EmailService as IEmailSender after Env.Load()
 builder.Services.AddScoped<IEmailService, EmailService>();
 
@@ -187,13 +189,16 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<M
 
 var app = builder.Build();
 
-// Dodavanje middleware u pipeline - pogledaj Middleware.txt 
+// Dodavanje middleware u pipeline bitan redosled jer request ide nizvodno ovde, a response uzvodno - pogledaj Middleware.txt 
 
 // Enable Swagger middleware both for Dev and Prod env
 app.UseSwagger();
 app.UseSwaggerUI(); // Default UI at /swagger
 
 app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045 jer je sigurnije
+
+// Add custom middleware to pipeline on top da bi uhvatio sve greske iz middleware koji su ispod 
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
 app.UseCors(x => x.WithOrigins("https://localhost:3000") // Samo moj Fronted(https ili http) (od svih sajtova na netu) moze slati Request to my Api (Backend ovaj)
@@ -225,9 +230,6 @@ app.UseAuthorization();
 
 // Use Rate Limiter on desired Endpoints 
 app.UseRateLimiter();
-
-// Add custom middleware to pipeline 
-app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Ubaci Controlers (+ Routing i Endpoint) middleware u pipeline. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.
 app.MapControllers();

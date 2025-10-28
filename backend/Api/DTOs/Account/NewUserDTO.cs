@@ -7,5 +7,8 @@
         public string UserName { get; set; }
         public string EmailAddress { get; set; }
         public string Token { get; set; }
+
+        // Ne ide u response, vec iz AccountService se salje u AccountController da bi ga endpoint poslao klijentu kroz Cookie
+        public string? RefreshToken { get; set; }  // pozeljno imati ? jer pre slanja klijentu moram ga setovati na null
     }
 }

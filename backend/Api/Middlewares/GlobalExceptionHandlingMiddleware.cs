@@ -1,15 +1,20 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
+using Api.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Api.Middlewares
-{   
-    /* Ako u kodu nemam nigde try-catch (iako u Controller imam), stoga ako dodje do exception negde u kodu, on se propagira response putanjom 
-     sve do GlobalExceptionHandlingMiddleware koji ga uhvati (pogledaj Exception propagation.txt). Posto imam try-catch u Controller, tamo ceda se 
-     uhvati exception pre nego ovde, ali nema veze, treba uvek postaviti GlobalExceptionHandlingMiddleware.
+{
+    /* 
+     U pocetku, moj kod je radio ovako: Middleware- > Controller -> Service -> Repository.
+     U Repository nisam explicitno bacio greske jer tu se podrazumevaju implicitne built-in + neam try-catch.
+     U Service sam explicitno bacio greske + iz Repository implicitne su se propagirale u Service, ali neam try-catch. 
+     U Controller imam try-catch, pa ce sve greske iz Repository/Service da se propagiraju ovde i tu da se uhvate i da se klijentu posalje i odgovor i greska. 
+     Bolja solucija je GlobalExceptionHandlingMiddleware koji ce da hvata greske, pa nema vise potrebe za try-catch u Controller stoga 
+    klijentu iz Controller saljem samo odgovor, a gresku iz GlobalExceptionHandlingMiddleware.
+     
+     Pogledaj Middleware.txt i Exception driven error handling.txt
     */
-
-    // Pogledaj Middleware.txt 
 
     // Ovo moze i cesto je, ali se tesko testira, pa necu da koristim => U Program.cs: app.UseMiddleware<GlobalExceptionHandlingMiddlewareBezInterface>();
     public class GlobalExceptionHandlingMiddlewareBezInterface
@@ -50,25 +55,60 @@ namespace Api.Middlewares
         {
             try
             {
-                await next(context);
+                await next(context); // propusta request dalje do controllera, servisa ....
             }
+            // Svaki custom exception je nasledio Exception i zato ce, kao i Exception, biti ovde uhvacen i kreiran odgovorajuci response 
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                _logger.LogError(ex, "GlobalExceptionHandlerMiddleware uhvatio exception thrown from services or repository");
 
-                ProblemDetails problemDetails = new ProblemDetails
+                // Ako neki middleware, registrovan ispod GlobalExceptionHandlingMiddleware, krene slati odgovor pre nego ovde uhvati se greska - pogledaj Middleware.txt
+                if (context.Response.HasStarted)
                 {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Type = "Server Error",
-                    Title = "Server Error",
-                    Detail = "An internal server has ocurred"
-                };
-
-                string problemdDetailsJson = JsonConvert.SerializeObject(problemDetails);
-                await context.Response.WriteAsync(problemdDetailsJson);
+                    _logger.LogWarning("Response already started in other middleware, cannot modify response.");
+                    throw;
+                }
 
                 context.Response.ContentType = "application/json";
+                context.Response.StatusCode = ex switch
+                {
+                    // Register endpoint je za ove exceptions slao klijentu StatusCode 500 
+                    UserCreatedException or RoleAssignmentException => StatusCodes.Status500InternalServerError,
+
+                    // Login endpoint je za ove exceptions slao klijentu StatusCode 401 
+                    //WrongPasswordException or WrongUsernameException => StatusCodes.Status401Unauthorized, - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
+
+                    // ForgotPassword endpoint je za ovaj exception slao klijentu StatusCode 200
+                    ForgotPasswordException => StatusCodes.Status200OK,
+
+                    // ResetPassword endpoint je za ove exceptions slao klijentu StatusCode 200
+                    ResetPasswordException => StatusCodes.Status200OK,
+
+                    // RefreshToken endpoint je za ovaj exception slao klijentu StatusCode 401 
+                    RefreshTokenException => StatusCodes.Status401Unauthorized,
+
+                    // Svaki endpoint je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository 
+                    _ => StatusCodes.Status500InternalServerError
+                };
+
+                // Pogledaj ProblemDetails.txt
+                ProblemDetails problemDetails = new ProblemDetails 
+                { 
+                    Status = context.Response.StatusCode,
+                    Title = ex switch
+                    {
+                        UserCreatedException or RoleAssignmentException => "Implicit internal server error u service/repository",
+                        // WrongPasswordException or WrongUsernameException => "Unauthorized", - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
+                        ForgotPasswordException => "Saljem 200OK da zavaram trag i da si zamenio i da nisi password",
+                        ResetPasswordException => "Saljem 200OK da zavaram trag i da si resetovao i da nisi password",
+                        RefreshTokenException => "Unauthorized",
+                        _ => "Implicit internal server error u service/repository"
+                    },
+                    Detail = ex.Message,
+                    Instance = context.Request.Path // Koji endpoint je izazvao gresku
+                };
+                
+                await context.Response.WriteAsJsonAsync(problemDetails); // response.HasStarted = true
             }
         }
     }

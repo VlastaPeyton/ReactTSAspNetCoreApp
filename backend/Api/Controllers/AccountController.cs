@@ -1,34 +1,16 @@
-﻿using System.Net;
-using System.Text.Encodings.Web;
-using Api.DTOs.Account;
+﻿using Api.DTOs.Account;
 using Api.Interfaces;
-using Api.Models;
-using DotNetEnv;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {   
     [Route("api/account")] // https://localhost:port/api/account
     [ApiController] // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
     public class AccountController : ControllerBase
-    {   // Interface za sve klase zbog DI, dok u Program.cs registrujem da prepozna interface kao tu klasu + zbog testabilnosti - pogledaj Dependency Injection.txt
-        private readonly UserManager<AppUser> _userManager;     // Ovo moze jer AppUser:IdentityUser 
-        private readonly SignInManager<AppUser> _signInManager; // Ovo moze jer AppUser:IdentityUser 
-        // Zbog AppUser updating via UserManager i SignInManager, automatski je implementiran Race Condition using ConcurrencyStamp kolonu of IdentityUser
-        private readonly ITokenService _tokenService; 
-        //private readonly IEmailService _emailService; - registrovacu ga samo za ForgotPassword endpoint - pogledaj Dependency Injection.txt
-        private readonly ILogger<AccountController> _logger;
+    {
+        private readonly IAccountService _accountService; // Pogledaj Services.txt i Dependency Injection.txt
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, ILogger<AccountController> logger)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _tokenService = tokenService;
-            //_emailService = emailService;
-            _logger = logger;
-        }
+        public AccountController(IAccountService accountService) => _accountService = accountService;
 
         /* 
            Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor kontrolera doda zeljeni servis i kad se 
@@ -66,8 +48,9 @@ namespace Api.Controllers
          
          Claims objasnjeno u Authentication middleware.txt
 
-         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-         
+         Controller ne sme sadrzati logiku, vec samo primati zahtev, validaciju, rukovanje cookie, statuscodess, poziva service koji sadrzi logiku da obradi zahtev i slati odgovor, hvata greske bacene u servisu (ako ne postoji GlobalExceptionHandler ili Result pattern) - videti Services.txt
+         Koristim Result pattern za ocekivane(biznis) greske i GlobalExceptionHandlingMiddleware za neocekivane greske- pogledaj Result pattern.txt i GlobalExceptionHandlingMiddleware.txt
+         Service radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
          */
 
         //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
@@ -82,74 +65,33 @@ namespace Api.Controllers
                Kad pozivam iz React FE ovaj endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
              */
 
-            // Try-Catch, jer cesto se desava server error when using UserManager, a to je runtime error, pa obzirom da nista u try ne baca gresku cak ni implicitno stavi
-            try
+            // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu njihovih annotations.
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
+
+            // Odavde saljem samo odgovore, a greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
+            
+            var newUserDTO = await _accountService.RegisterAsync(registerDTO);
+
+            string refreshToken = newUserDTO.RefreshToken;
+
+            // Refresh Token (not hashed !) is sent to Browser(not to FE) from Controller via highly-secured Cookie to prevent CSRF attack. 
+            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
-                // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu njihovih annotations.
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-                    // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
+                HttpOnly = true,
+                Secure = true, // Mora zbog SameSite=None, ali FE mora u HTTPS
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7), // Mora isto kao appUser.RefreshTokenExpiryTime
+                Path = "/", // Allow cookie to be sent to all endpoints, not just to refresh-token endpoint. If FE axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
+                IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
+            });
 
-                var appUser = new AppUser
-                {
-                    UserName = registerDTO.UserName,
-                    Email = registerDTO.EmailAddress
-                };
+            // Ne saljem refreshToken to FE i zato ga brisem iz NewUserDTO
+            newUserDTO.RefreshToken = null;
 
-                var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password!); // Dodaje novog usera u AspNetUsers (IdentityUser) tabelu 
-                /* Dodaje AppUser polja (UserName i Email) i registerDTO.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
-                   CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program.cs da definisem rucno u AddIdentity)
-                   CreateAsync behing the scenes attaches appUser to EF Core and populates every column of AspNetUsers table regarding ConcurrencyStamp column koja sprecava race conditions
-                 */
-                if (createdUser.Succeeded)
-                {
-                    var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogu samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom u OnModelCreating u AspNetRoles tabelu
-
-                    if (roleResult.Succeeded)
-                    {
-                        var accessToken = _tokenService.CreateAccessToken(appUser);
-                        var refreshToken = _tokenService.CreateRefreshToken();
-                        var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Hash, jer u DB samo hash refresh token stavljam
-
-                        appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide non-hashed refresh token
-                        appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived 
-                        appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom register, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
-                        // Moram azurirati appUser u bazi zbog RefreshToken
-                        await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser prevents overwriting if another request wanna update the same user right after registration => race condition prevented
-
-                        // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
-                        Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true, // Mora zbog SameSite=None, ali FE mora u HTTPS
-                            SameSite = SameSiteMode.None,
-                            Expires = DateTime.UtcNow.AddDays(7), // Mora isto kao appUser.RefreshTokenExpiryTime
-                            Path = "/", // Allow cookie to be sent to all endpoints, not just to refresh-token endpoint. If FE axios instance tries to send the refresh request from an interceptor that was triggered by a different protected endpoint (npr /api/stocks), the browser might not send the cookie
-                            IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
-                        });
-
-                        return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
-                        // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
-                    }
-
-                    else
-                    {
-                        return StatusCode(500, roleResult.Errors);
-                        // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
-                    }
-                }
-
-                // Ako vec postoji user sa istim EmailAddres ili UserName
-                else
-                {
-                    return StatusCode(500, createdUser.Errors);
-                    // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a roleResult.Errors u Response Body.
-                }
-            } catch (Exception ex)
-            {   // Iako nigde u try block nema explicitni throw, niti implicitni throw, catch block sluzi zbog runtime unexpected errors.
-                return StatusCode(500, ex);
-                // Frontendu ce biti poslato StatusCode=500 u Response Status Line, a exception u Response Body.
-            }
+            return Ok(newUserDTO);
+            // Frontendu ce biti poslato NewUserDTO u Response Body, a StatusCode=200 u Response Status Line.
         }
 
         [HttpPost("login")] // https://localhost:port/api/account/login
@@ -166,31 +108,17 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) u "errors" delu poruke
 
-            var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
-            // appUser je ocitao sve kolone iz zeljene vrste AspNetUsers tabele, medju kojima je i ConcurrencyStamp koji sprecava race conditions
+            // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
+             
+            var result = await _accountService.LoginAsync(loginDTO); // result pattern 
+            if (result.IsFailure)
+                return Unauthorized(new { message = result.Error }); // Salje objekat da bi se automatski napravio u JSON jer response body uvek JSON treba biti
 
-            if (appUser is null)
-                return Unauthorized("Invalid UserName");
-                // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid UserName" u Response Body.
+            var appUser = result.Value;
 
-            // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash zbog sigurnosti
-            var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false);
+            string refreshToken = appUser.RefreshToken; 
 
-            if (!result.Succeeded)
-                return Unauthorized("Invalid Password");
-                // Frontendu ce biti poslato StatusCode=401 u Response Status Line, a "Invalid Password" u Response Body.
-
-            var accessToken = _tokenService.CreateAccessToken(appUser);
-            var refreshToken = _tokenService.CreateRefreshToken();
-            var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Before putting it in DB dobro je hashovati ga
-
-            appUser.RefreshTokenHash = hashedRefreshToken; // U DB ide hash, dok u Cookie ide obican refresh token
-            appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Refresh token is long lived. 
-            appUser.LastRefreshTokenUsedAt = new DateTime(2000, 1, 1); // Prilikom login, user nije nijednom jos uvek koristio Refresh Token, pa mu dodajem neku idiotsku vrednost koja simulira nikad korisceno
-            // Moram azurirati appUser u bazi zbog Refresh Token
-            await _userManager.UpdateAsync(appUser); // ConcurrencyStamp column of IdentityUser stops a race where two logins for the same account try to update refresh token fields at the same time - race condition sprecen. 
-
-            // Refresh Token (not hashed !) is sent to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
+            // Refresh Token (not hashed !) is sent from Controller to Browser(not to FE) via highly-secured Cookie to prevent CSRF attack
             Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -201,12 +129,15 @@ namespace Api.Controllers
                 IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
             });
 
-            return Ok(new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken });
-            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a NewUserDTO u Response Body.
+            // Ne saljem refreshToken to FE i zato ga brisem iz NewUserDTO
+            appUser.RefreshToken = null; 
+
+            return Ok(appUser);
+            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a NewUserDTO u Response Body.     
         }
 
         [HttpPost("forgotpassword")] // https://localhost:port/api/account/forgotpassword
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO, [FromServices] IEmailService _emailService)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO forgotPasswordDTO)
         // Email se obicno salje u Request Body from FE (moze i FromQuery, ali nije dobra praksa)
         {
             if (!ModelState.IsValid)
@@ -215,30 +146,10 @@ namespace Api.Controllers
 
             // Ako user namerno unese email koji nije u bazi, BE vraca OK("Reset password link is sent to your email") zbog sigurnosti jer onda je user ustvari napadac i da ne provali da taj mejl ne postoji pa da ne predje na drugi email koji mozda postoji. Ovako zbunimo napadaca.
 
-            var user = await _userManager.FindByEmailAsync(forgotPasswordDTO.EmailAddress);
-            // If email is not found, just send "success" mesage to FE da zavaramo trag napadacu.
-            // user sadrzi celu vrstu iz AspNetUsers tabele medju kojom je ConcurrencyStamp kolona koja sprecava race conditions 
+            // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
-            if (user is null)
-                return Ok("Reset password link is sent to your email");
-                // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a "Reset password link is sent to your email" in Body.
-
-            // If email found, generate a secure & time-limited (by default to 1day) reset token, send email and success message to FE
-            var passwordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user); // token je samo za ovog usera validan i nije skladisten u bazi 
-            // Encode token to safely include in URL later
-            var encodedToken = WebUtility.UrlEncode(passwordResetToken); // Encode before putting in URL
-            // Create frontend reset-password url 
-            string frontendBaseUrl = Env.GetString("frontendBaseURL"); // U Program.cs sam Env.Load() i zato ovo moze.
-            var resetUrl = $"{frontendBaseUrl}/reset-password?token={encodedToken}&email={user.Email}"; // Ne treba email biit poslat, rizicno je !
-            // frontendBaseUrl/reset-password mora da postoji u FE kao route da bi ovo moglo !
-            // Send email to user.Email containing "Reset Password" subject and message containing reset-password url 
-            await _emailService.SendEmailAsync(user.Email, "Reset Password", $"Click <a href='{HtmlEncoder.Default.Encode(resetUrl)}'>here</a> to reset your password."); 
-            // URL je oblika http://localhost:port/reset-password?token=sad8282s9&email=adresa@gmail.com. Iako imam ovaj Query Parameter, ReactTS svakako otvara ResetPassword endpoint tj http://localhost:port/reset-password (ResetPasswordPage)         
-            
-            // Kada .NET sends rest password url, odma zaboravi kakav je token, jer token nije skladisten nigde. Onda user klikne na link u mejlu, cime aktivira ResetPassword endpoint, a .NET ima mehanizam u ResetPasswordAsync, koji decodes token iz linka i vidi user credentials u tokenu
-            
-            // Send success message to FE 
-            return Ok("Reset password link is sent to your email"); 
+            await _accountService.ForgotPasswordAsync(forgotPasswordDTO);
+            return Ok("Reset password link is sent to your email");
         }
 
         [HttpPost("reset-password")] // https://localhost:port/reset-password
@@ -248,36 +159,11 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ResetPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
 
-            // Find user by email
-            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.EmailAddress); // Ocitane sve kolone ove vrste, pa i ConcurrencyStamp koja sprecava race conditions
+            // Always return success to prevent email enumeration attack ! But only actually reset if user exists
 
-            // Always return success to prevent email enumeration attack ! 
-            // But only actually reset if user exists
-            if (user is not null)
-            {
-                _logger.LogInformation("User found: {Email}", resetPasswordDTO.EmailAddress);
-                var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
-                /* Kada user kliknuo Forgot Password, dobio je reset password link u email, a kad kliknuo na link on pokrenuo je ovaj endpoint.
-                 ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword endpoint encodovao token.
-                 Proveri da l je za ovaj user generisan resetPasswordToken u ForgotPassword endpoint i da li NewPassword se slaze sa zahtevima u Program.cs
-                 Due to ConcurrencyStamp column of IdentityUser, ResetPasswordAsync azurira tu kolonu cime prevents overwriting if another request has updated the user since the reset token was issued - race condition sprecen
-                */
-                if (!result.Succeeded)
-                {
-                    _logger.LogError("Password reset failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+            // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
-                    return Ok("If the email exists in our system, the password has been reset"); // Iako nije uspeo, foliram da jeste da napadaca ometem.
-                }
-                else
-                {
-                    _logger.LogInformation("Password reset successful for {Email}", resetPasswordDTO.EmailAddress);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("User not found: {Email}", resetPasswordDTO.EmailAddress);
-            }
-
+            await _accountService.ResetPasswordAsync(resetPasswordDTO);
             // Always return the same response regardless of whether user exists or reset succeeded as this prevents timing attacks and email enumeration
             return Ok("If the email exists in our system, the password has been reset.");
         }
@@ -294,33 +180,13 @@ namespace Api.Controllers
             // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken)) // U Login/Register sam nazvao refreshToken i zato ovde ga ocitavam
                 return Unauthorized("No refresh token provided");
-                
-            _logger.LogInformation("BE primio refreshtoken cookie");
-                
-            var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Jer u bazi skladistim Hash Refresh Token, dok u Cookie je obican Refresh Token
-            
-            var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshTokenHash == hashedRefreshToken);
 
-            if (appUser is null || appUser.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                return Unauthorized("Invalid refresh token");
+            // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
-            // Prevent double use:  poredim sa DateTime(2000,1,1) jer je to za LastRefreshTokenUsedAt u Login/Register postavljeno kao inicijalna vrednost oznavajuci da RefreshToken nije koriscen ni jednom do tada
-            if (appUser.LastRefreshTokenUsedAt > new DateTime(2000, 1, 1) && (DateTime.UtcNow - appUser.LastRefreshTokenUsedAt)?.TotalSeconds < 10)
-            {   /* Uslov je 10s za real-world apps koji osigurava da ne moze unutar 10s 2 ili vise puta da ovaj endpoint bude pozvan. Sprecavam abuse ovim. 
-                 Ovo je u skladu sa 30s JWT expiry time u AxiosWithJWTForBackend.tsx u FE, jer ako nije, onda problem. */
-                return Unauthorized("Refresh token used too frequently");
-            }
+            var newAccessAndRefreshTokenDTO = await _accountService.RefreshTokenAsync(refreshToken);
 
-            // Token rotation
-            var newAccessToken = _tokenService.CreateAccessToken(appUser);
-            var newRefreshToken = _tokenService.CreateRefreshToken();
-            var newHashedRefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
-
-            appUser.RefreshTokenHash = newHashedRefreshToken;
-            appUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            appUser.LastRefreshTokenUsedAt = DateTime.UtcNow;
-            // Update appUser in DB
-            await _userManager.UpdateAsync(appUser); // Prevents a race condition, jer azurira automatski ConcurrencyStamp kolonu, wheen two refresh requests try to update refresh token field simultaneously.
+            string newAccessToken = newAccessAndRefreshTokenDTO.AccessToken;
+            string newRefreshToken = newAccessAndRefreshTokenDTO.RefreshToken;
 
             // Salje secured Cookie to Browser koji mora imati isti key "refreshToken" kao Cookie poslat iz Login/Register kako bi na pocetku ovog Endpoint mogo uvek da dohvatim refresh token nebitno da l je novi ili inicijalni
             Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
@@ -333,8 +199,7 @@ namespace Api.Controllers
                 IsEssential = true, // Ne kapiram zasto ali ovo nekad mora.
             });
 
-            return Ok( new { accessToken = newAccessToken } ); // Access Token se salje kroz Response Body
+            return Ok(new { accessToken = newAccessToken }); // Access Token se salje kroz Response Body i bas mora kao anonimna klasa, a ne samo string, jer se klasa automatski pretvori u JSON i FE onda lakse pristupa tome
         }
-
     }
 }

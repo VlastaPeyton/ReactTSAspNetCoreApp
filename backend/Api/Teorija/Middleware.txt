@@ -1,6 +1,13 @@
+
+Request flow: Request -> Kestrel -> Middlewre -> Code 
+Response flow: Code -> Middleware -> Kestrel -> Client
+
 Sta je middleware i middleware pipeline:
 	Middleware je .NET komponenta u aplikacionom pipeline koja prima HttpContext (pogledaj HttpContext.txt) objekat koji moze da procita, izmeni ili koristi 
   i odlucuje da li ce proslediti request sledecem middleware u pipeline ili ce sama zavrsiti obradu i poslati response. 
+    Isto ima ulogu i u slanju odgovora klijentu. 
+	Kada klijent posalje request, on prvo ide u Kestrel koji od http poruke napravi HttpContext, a onda HttpContext ide u middleware pipeline. 
+	Kada BE salje response, on se obrnutim putem od request propagira takodje kroz middleware pipeline i na kraju Kestrel ga pravi kao http poruku i salje klijentu.
     Midleware moze biti built-in ili custom. 
 	Middleware se registruje u Program.cs prilikom cega je bitan redosled registracije (odozgo na dole - request ce prvo uci u najvise pozicionirani middleware
   u Program.cs i propagirati nizvodno, a response propagira uzvodno).
@@ -53,3 +60,13 @@ Ako je custom middleware mali, onda moze u Program.cs direktno da se definise i 
 	});
 Ali nije dobra praksa, jer ruzni mi je kod mnogo.
 Vec napraivm CustomMiddleware klasu koju dodam u pipeline pomocu app.UseMiddleware<CustomMiddleware>.
+
+U Program.cs, bitno je gde middleware registrujem jer reqeust propagira nizvodno u Program.cs, a response uzvodno.
+Svaki middleware, nebitno gde je registrovan, moze poslati odgovor klijentu bez da saceka da middleware registrovani iznad njega zavrse. 
+Ovo je problem kojim moram da proverim u svakom custom middleware sa "if(context.Response.HasStarted)" jer ako je 
+ovo true, onda odgovor je vec krenuo da se salje u nekom middleware ispod mog trenutnog middleware, pa trenutni ne moze poslati odgvor. 
+Ovo se desava retko, ali moze. 
+GlobalExceptionHandlingMiddleware je registrovan aman na vrhu (odma ispod Swagger i HttpsRedirection) jer 
+ova 2 ne smeju biti wrapped with custom middleware i onda on hvata greske svih middleware ispod njega.
+Ovo slanje iz nize registrovanog middleware se ne mzoe desi u obicno REST API koji je 90% sajtova.
+
