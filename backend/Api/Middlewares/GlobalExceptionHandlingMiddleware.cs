@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using Api.Exceptions;
+using Api.Exceptions_i_Result_pattern.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Middlewares
@@ -14,6 +15,8 @@ namespace Api.Middlewares
     klijentu iz Controller saljem samo odgovor, a gresku iz GlobalExceptionHandlingMiddleware.
      
      Pogledaj Middleware.txt i Exception driven error handling.txt
+     
+     Ovo isto radi za svaki controller.
     */
 
     // Ovo moze i cesto je, ali se tesko testira, pa necu da koristim => U Program.cs: app.UseMiddleware<GlobalExceptionHandlingMiddlewareBezInterface>();
@@ -71,7 +74,9 @@ namespace Api.Middlewares
 
                 context.Response.ContentType = "application/json";
                 context.Response.StatusCode = ex switch
-                {
+                {   
+                    // Account:
+
                     // Register endpoint je za ove exceptions slao klijentu StatusCode 500 
                     UserCreatedException or RoleAssignmentException => StatusCodes.Status500InternalServerError,
 
@@ -87,7 +92,18 @@ namespace Api.Middlewares
                     // RefreshToken endpoint je za ovaj exception slao klijentu StatusCode 401 
                     RefreshTokenException => StatusCodes.Status401Unauthorized,
 
-                    // Svaki endpoint je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository 
+                    // Comment:
+
+                    // GetById endpoint 
+                    CommentNotFoundException => StatusCodes.Status404NotFound,
+                    // Delete endpoint 
+                    NotYourCommentException => StatusCodes.Status401Unauthorized,
+
+                    // Stock:
+
+                    // Portfolio:
+
+                    // Svaki endpoint, u bilo kom controlleru, je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository 
                     _ => StatusCodes.Status500InternalServerError
                 };
 
@@ -96,12 +112,23 @@ namespace Api.Middlewares
                 { 
                     Status = context.Response.StatusCode,
                     Title = ex switch
-                    {
+                    {   
+                        // Account: 
+
                         UserCreatedException or RoleAssignmentException => "Implicit internal server error u service/repository",
                         // WrongPasswordException or WrongUsernameException => "Unauthorized", - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
                         ForgotPasswordException => "Saljem 200OK da zavaram trag i da si zamenio i da nisi password",
                         ResetPasswordException => "Saljem 200OK da zavaram trag i da si resetovao i da nisi password",
                         RefreshTokenException => "Unauthorized",
+
+                        // Comment:
+                        CommentNotFoundException => "Comment not found",
+                        NotYourCommentException => "Ne mozes brisati tudji komentar",
+
+                        // Stock:
+
+                        // Portfolio: 
+
                         _ => "Implicit internal server error u service/repository"
                     },
                     Detail = ex.Message,

@@ -9,15 +9,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repository
 {
-    /* Repository pattern kako bi, umesto u CommentController, u CommentRepository definisali tela endpoint metoda + DB calls u Repository se stavljaju i zato
-    ovde ne ide CommentDTO, vec samo Comment, jer (Models) Entity klase se koriste za EF Core.
+    /* Repository pattern kako bi, umesto u CommentController/CommentService, u CommentRepository definisali tela endpoint metoda + DB calls u Repository se stavljaju i zato
+    ovde ne ide CommentDTO, vec samo Comment, jer (Models) Entity klase se koriste za EF Core tj Repository radi sa entity klasam jer direktno interaguje sa bazom.
                
-       Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase koje predstavljaju tabele i zato u Controller koristim mapper extensions da napravim Entity klasu from DTO klase.
+       Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase koje predstavljaju tabele i zato u CommentService koristim mapper extensions da napravim Entity klasu from DTO klase i obratno.
     
        Objasnjenje za CancellationToken pogledaj u CommentController. 
      
-      Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-    */
+      CommentService radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
+        
+      Repository ne baca exception niti Result pattenr, vec vraca null ako nema necega u bazi. Service/CQRS Handler baca exception/Result pattern u zavisnosti sta mu repository vrati. 
+     Repository moze baciti implicitni exception ako pukne nesto u bazi sto nije do nas.
+     */
     public class CommentRepository : ICommentRepository
     {   
         private readonly ApplicationDBContext _dbContext;
@@ -65,7 +68,7 @@ namespace Api.Repository
             // Umesto Remove, koristim Soft delete 
             comment.IsDeleted = true; // Zbog HasQueryFilter u OnModelCreating, selektuje redove gde IsDeleted=false
 
-            await _dbContext.SaveChangesAsync(cancellationToken); // comment is no longer tracked by EF, izbrisan u bazi, ali comment objekat ostaje do kraja ove metode da zivi
+            await _dbContext.SaveChangesAsync(cancellationToken); // zbog _dbContext.Comments.Remove(comment), comment is no longer tracked by EF, izbrisan u bazi, ali comment objekat ostaje do kraja ove metode da zivi
 
             return comment;
         }

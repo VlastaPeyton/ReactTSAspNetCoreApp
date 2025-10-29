@@ -22,15 +22,19 @@ namespace Api.Services
         private readonly IEmailService _emailService; 
         private readonly ILogger<AccountService> _logger;
 
-        public AccountService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, ILogger<AccountService> logger)
+        public AccountService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, ILogger<AccountService> logger, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _logger = logger;
+            _emailService = emailService;
         }
-
-        // Metode nemaju try-catch - pogledaj Services.txt
+        /* UserManager i SignInManager metode ne prihvataju cancellationToken i zato ga nema
+           Metode nemaju try-catch - pogledaj Services.txt
+           Servis prima DTO iz kontroler, mapira DTO->Entity, salje Entity u Repository, Repository vraca Entity, servis mapira Entity->DTO i salje DTO kontroleru
+           AKo koristim Service, ne koristim CQRS i obratno. Service proverava i baca excpetion/result pattern, dok Repository samo vraca null ako nije naso u bazi.
+         */
         public async Task<NewUserDTO> RegisterAsync(RegisterDTO registerDTO)
         {
             

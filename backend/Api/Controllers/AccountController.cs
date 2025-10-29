@@ -35,7 +35,7 @@ namespace Api.Controllers
 
          Ako endpoint nema [Authorize],FE ne treba slati JWT in Request Header.
          
-         Ne koristim CancellationToken jer neam pure async endpoint (iako pise async), zato sto await metode u njima ne prihvataju CancellationToken jer nisu custom, vec built-in tipa koji ne prihvata CancellationToken jer nema potrebe za tim. Mogu da im uradim extension, ali nema poente.
+         Ne koristim CancellationToken jer neam pure async endpoint (iako pise async), zato sto built-in UserManager/SignInManager await metode ne prihvataju ga. Mogu da im uradim extension, ali nema poente.
          
          Rate Limiter objasnjen u Program.cs
          
@@ -51,12 +51,13 @@ namespace Api.Controllers
          Controller ne sme sadrzati logiku, vec samo primati zahtev, validaciju, rukovanje cookie, statuscodess, poziva service koji sadrzi logiku da obradi zahtev i slati odgovor, hvata greske bacene u servisu (ako ne postoji GlobalExceptionHandler ili Result pattern) - videti Services.txt
          Koristim Result pattern za ocekivane(biznis) greske i GlobalExceptionHandlingMiddleware za neocekivane greske- pogledaj Result pattern.txt i GlobalExceptionHandlingMiddleware.txt
          Service radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
+         
          */
 
         //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
         [HttpPost("register")] // https://localhost:port/api/account/register
         // Ne ide [Authorize] jer ovo je Register, posto ovaj endpoint mora biti svima dostupan
-        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
+        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO, CancellationToken cancellationToken)
         {   /* Pre ove metode, pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije.
                
                Kad novi User ukuca Email i Password, AspNetCoreIdentity ga upise u DB kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
@@ -70,8 +71,8 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
 
-            // Odavde saljem samo odgovore, a greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
-            
+            // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
+
             var newUserDTO = await _accountService.RegisterAsync(registerDTO);
 
             string refreshToken = newUserDTO.RefreshToken;
