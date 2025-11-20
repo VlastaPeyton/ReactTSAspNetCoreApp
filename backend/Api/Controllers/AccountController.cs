@@ -3,9 +3,10 @@ using Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
-{   
+{
+
     [Route("api/account")] // https://localhost:port/api/account
-    [ApiController] // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., ali koristicu jer citljiviji je kod sa ovim !
+    [ApiController]        // Zbog ovoga ne mora !ModelState.IsValid, [FromQuery], [FromBody] itd., jer je to implicitno, ali pisacu explicitno, jer citljiviji je kod sa ovim !
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService; // Pogledaj Services.txt i Dependency Injection.txt
@@ -13,34 +14,17 @@ namespace Api.Controllers
         public AccountController(IAccountService accountService) => _accountService = accountService;
 
         /* 
-           Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor kontrolera doda zeljeni servis i kad se 
-          response posalje u FE, GC unistava kontroler, ali zivot servisa zavisi da li je Singleton, Transient ili Scoped.
+         Pogledaj Controller.txt 
 
-           Svaki Endpoint:
-            - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
-            - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
-            - salje to FE Response koji ima polja Status, Headers i Body. 
-              Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
-              Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
-              Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u FE try block, vec ide u catch block i onda response=undefined u ReactTS.
+         Pogledaj Endpoint.txt 
          
-         Data validation when writing to DB: 
-            Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
-            If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
-            Validation can be done:
-                1) using ModelState - default validation logic. U write to DB endpoint, stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object tog endpointa.
-                2) using FluentValidation - ako zelim custom validation logic. 
-         
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
-
-         Ako endpoint nema [Authorize],FE ne treba slati JWT in Request Header.
-         
-         Ne koristim CancellationToken jer neam pure async endpoint (iako pise async), zato sto built-in UserManager/SignInManager await metode ne prihvataju ga. Mogu da im uradim extension, ali nema poente.
+         Ne koristim CancellationToken ni u jednom endpoint, jer nemam pure async endpoint iako pise async, zato sto built-in UserManager/SignInManager await metode ne prihvataju CancellationToken. 
+          Mogu da im uradim extension, ali nema poente.
          
          Rate Limiter objasnjen u Program.cs
          
-         Race conditions regarding AppUser je automatski odradjen u Register/Login/ResetPassword/RefreshToken endpoint, jer IdentityUser sadrzi ConcurrencyStamp polje koje se automatski menja svaki put kad azuriramo usera (vrstu AspNetUsers tabele) tako sto
-        _userManage.UpdateAsync/ResetPasswordAsync automatski zameni ConcurrencyStamp kolonu i sprecava da se u "isto vreme" zameni neko user polje - pogledaj Race Conditions.txt
+         Race conditions regarding AppUser je automatski odradjen u Register/Login/ResetPassword/RefreshToken endpoint, jer IdentityUser sadrzi ConcurrencyStamp polje koje se automatski menja svaki put 
+        kad azuriram user ( AspNetUsers tabela) tako sto _userManage.UpdateAsync/ResetPasswordAsync automatski zameni ConcurrencyStamp kolonu i sprecava da se u "isto vreme" zameni neko user polje - pogledaj Race Conditions.txt
          
          Race conditions regarding Refresh Token in RefreshToken endpoint je sredjen rucno - pogledaj Race Conditions.txt
 
@@ -48,28 +32,27 @@ namespace Api.Controllers
          
          Claims objasnjeno u Authentication middleware.txt
 
-         Controller ne sme sadrzati logiku, vec samo primati zahtev, validaciju, rukovanje cookie, statuscodess, poziva service koji sadrzi logiku da obradi zahtev i slati odgovor, hvata greske bacene u servisu (ako ne postoji GlobalExceptionHandler ili Result pattern) - videti Services.txt
-         Koristim Result pattern za ocekivane(biznis) greske i GlobalExceptionHandlingMiddleware za neocekivane greske- pogledaj Result pattern.txt i GlobalExceptionHandlingMiddleware.txt
-         Service radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-         
+         Koristim Result pattern za ocekivane (biznis) greske i GlobalExceptionHandlingMiddleware za neocekivane greske - pogledaj Result pattern.txt i GlobalExceptionHandlingMiddleware.txt 
+        
+         AccountController nece imati CQRS endpointe, dok ostali controllers oce. 
          */
 
         //[EnableRateLimiting("fast")] - nesto nije htelo kad sam imao ovaj ratelimiter ukljucen
         [HttpPost("register")] // https://localhost:port/api/account/register
-        // Ne ide [Authorize] jer ovo je Register, posto ovaj endpoint mora biti svima dostupan
-        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO, CancellationToken cancellationToken)
+        // Ne ide [Authorize], jer ovo je Register endpoint koji mora biti svim userima dostupan
+        public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
         {   /* Pre ove metode, pokrenuto je OnModelCreating iz ApplicationDBContext i napunjena je AspNetRoles tabela prilikom Migracije.
                
-               Kad novi User ukuca Email i Password, AspNetCoreIdentity ga upise u DB kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
+               Kad novi user ukuca Email i Password, AspNetCoreIdentity ga upise u DB kroz ApplicationDbContext tj
             pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz Identity tabela ako treba. 
             
-               Kad pozivam iz React FE ovaj endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
+               Kad pozivam iz React FE ovaj endpoint, moram polja da nazovem i prosledim redosledom kao u RegisterDTO, jer RegisterDTO je tip input argumenta, a zbog [FromBody] moram u body of POST Request ih staviti.
              */
 
             // ModelState pokrene validation za RegisterDTO tj za zeljena RegisterDTO polja proverava na osnovu njihovih annotations.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu
+                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu i bice auto JSON serializovan
 
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
@@ -77,7 +60,7 @@ namespace Api.Controllers
 
             string refreshToken = newUserDTO.RefreshToken;
 
-            // Refresh Token (not hashed !) is sent to Browser(not to FE) from Controller via highly-secured Cookie to prevent CSRF attack. 
+            // Refresh Token (not hashed!) is sent to Browser(not to FE) from Controller via highly-secured Cookie to prevent CSRF attack. 
             Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -96,9 +79,9 @@ namespace Api.Controllers
         }
 
         [HttpPost("login")] // https://localhost:port/api/account/login
-        // Ne ide [Authorize] jer je ovo Login
+        // Ne ide [Authorize], jer je ovo Login endpoint
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
-        {   /* Kad existing User ukuca Email i Password, AspNetCoreIdentity ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
+        {   /* Kad existing user ukuca Email i Password, AspNetCoreIdentity ga nadje u bazi kroz ApplicationDbContext : IdentityDbContext<AppUser> tj
             pretrazuje AspNetUsers tabelu i poredi uneti password sa stvarnim u toj tabeli. Moze da return i podatke iz Identity tabela ako treba. 
             
             Kad pozivam iz ReactTS Frontenda ovaj Endpoint, moram polja da nazovem i prosledim redosledom kao u LoginDTO jer LoginDTO je tip input argumenta. Zbog [FromBody] moram u body of Request ih staviti.
@@ -145,11 +128,12 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ForgotPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
 
-            // Ako user namerno unese email koji nije u bazi, BE vraca OK("Reset password link is sent to your email") zbog sigurnosti jer onda je user ustvari napadac i da ne provali da taj mejl ne postoji pa da ne predje na drugi email koji mozda postoji. Ovako zbunimo napadaca.
+            // Ako user namerno unese email koji nije u bazi, BE vraca Ok("Reset password link is sent to your email") zbog sigurnosti jer onda je user ustvari napadac i da ne provali da taj mejl ne postoji pa da ne predje na drugi email koji mozda postoji. Ovako zbunimo napadaca.
 
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
             await _accountService.ForgotPasswordAsync(forgotPasswordDTO);
+
             return Ok("Reset password link is sent to your email");
         }
 
@@ -175,7 +159,7 @@ namespace Api.Controllers
         */
         [HttpGet("refresh-token")]
         //[EnableRateLimiting("slow")] // To prevent attacks
-        // Nema [Authorize], jer kad istekne JWT, user vise ne moze da se prepozna u BE, i onda nikad RefreshToken endpoint ne bi mogo da se aktivira
+        // Nema [Authorize], jer kad istekne JWT, user vise ne moze da se prepozna u BE i onda nikad RefreshToken endpoint ne bi mogo da se aktivira
         public async Task<IActionResult> RefreshToken()
         {   
             // Access Cookies sent by the Browser( when client wanted it). Isti ovaj Cookie je Login/Register Endpoint poslao Browseru

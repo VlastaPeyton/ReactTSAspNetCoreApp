@@ -1,0 +1,7 @@
+
+Built-in middleware koji se koristi u Program.cs
+
+Mora se registrovati nakon Authentication middleware u pipeline u Program.cs - pogledaj Authentication middleware.txt
+
+Enforces access rules based on user (HttpContext.User koji je UseAuthentication popunio - pogledaj Authentication middleware.txt) identity.
+Controller:ControllerBase, a ControllerBase pruza User(HttpContext.User) polje koje omogucava stateless da ocitam user info bez gledanja u bazu.

@@ -1,108 +1,76 @@
-﻿using Api.CQRS_and_Validation.Comment;
+﻿using Api.CQRS_and_behaviours.Comment.Create;
+using Api.CQRS_and_behaviours.Comment.GetAll;
+using Api.CQRS_and_behaviours.Comment.Update;
+using Api.CQRS_and_Validation.Comment;
 using Api.CQRS_and_Validation.Comment.Delete;
 using Api.DTOs.CommentDTOs;
 using Api.Extensions;
 using Api.Helpers;
 using Api.Interfaces;
-using Api.Mapper;
-using Api.Models;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
-    // Postman/Swagger/FE gadja Endpoints ovde definisane
-
+    
     [Route("api/comment")] // https://localhost:port/api/comment
     [ApiController]
     public class CommentController : ControllerBase
     {
         private readonly ICommentService _commentService;
-        public CommentController(ICommentService commentService) => _commentService = commentService;
+        private readonly ISender _sender;
+        public CommentController(ICommentService commentService, ISender sender)
+        {
+            _commentService = commentService;
+            _sender = _sender;
+        }
 
         /* 
-           Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor kontrolera doda zeljeni servis i kad se 
-          response posalje u FE, GC unistava kontroler, ali zivot servisa zavisi da li je Singleton, Transient ili Scoped. 
-
-         HttpContext je objekat koji nosi info o Request, Response, logged in User, Session itd. ControllerBase pruza polja vezana za HttpContext kao sto je User(HttpContext.User) koji sadrzi sve user info from request (stateless) - pogledaj Authentication middleware.txt
+           Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor of controller doda zeljeni servis i kad se 
+         response posalje u FE, GC unistava kontroler, ali zivot servisa zavisi da li je Singleton, Transient ili Scoped. 
         
-         Svaki Endpoint:
-            - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
-            - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
-            - salje to FE Response koji ima polja Status Line, Headers i Body. 
-              Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
-              Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
-              Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u FE try block, vec ide u catch block i onda response=undefined u ReactTS.
-         
-         Data validation when writing to DB: 
-            Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
-            If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
-            Validation can be done:
-                1) using ModelState - default validation logic. U write to DB endpoint, stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object tog endpointa.
-                2) using FluentValidation - ako zelim custom validation logic. 
-         
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
+         Pogledaj AccountController, Endpoint.txt, HttpContext.txt, Authentication middleware.txt, CancellationToken.txt, Dependency Injection.txt, DTO vs entity klase.txt
+         Sve vezano za GlobalExceptionHandler i Result pattern i Services je objasnjeno u AccountConttroller.
 
-         Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
+         Koristim mapper extensions da napravim Comment Entity klasu from DTO zbog Repository i napravim DTO from Comment Entity kad saljem data to FE.
 
-         Koristim mapper extensions da napravim Comment Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Comment Entity kad saljem data to FE.
-         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-
-         Za async endpoints nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
-        Zbog nemanja "=default" u async endpoint, ne smem imati ni u await metodama koje se pozivaju u endpointu. 
-        Da sam koristio "=default" ovde, .NET ne bi znao da automatski prekine izvrsenje endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
-        CancellationToken se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
-         
-        U 2 endpoint koristim CQRS, pa bih onda morao i svuda da ga koristim i da neam repository ovde, vec samo u Handler klasama, ali nema veze, CQRS mi i ne treba ovde, vec samo da pokazem
-         Rate Limiter objasnjen u Program.cs
-        
-        Endpoint koji sadrzi "User.GetUserName" zahteva od FE da posalje JWT jer u JWT su upisane claims (user info) bez obzira da li ima [Authorize] ili nema.
-        
-        Sve vezano za GlobalExceptionHandler i Result pattern i Services je objasnjeno u AccountConttroller.
+         Svaki endpoint uradicu na 2 nacina: CQRS i Service. Zato sto se mora izabrati jedan od njih samo, ne sme mesano. Oba tipa u istom endpoint moraju sadrzati isti Result/Exception pattern. 
         */
 
-        // Get All Comments for desired Stock Endpoint 
+        // Service endpoints 
+
         [HttpGet]   // https://localhost:port/api/comment
         [Authorize] // Moram se login i uneti JWT u Authorize dugme u Swagger da bi mogo da pokrenem ovaj Endpoint
-        public async Task<IActionResult> GetAll([FromQuery] CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] CommentQueryObject query, CancellationToken cancellationToken)
         {   /* Mora [FromQuery], jer GET Axios Request u ReactTS ne moze imati Body, vec samo Header, pa ne moze [FromBody]. 
                Kroz Query Parameters u FE (posle ? in URL), moram proslediti vrednosti za svako polje iz CommentQueryObject (iako neka imaju default value) redosledom i imenom iz CommentQueryObject
-               U ReactTS Frontend, zbog [Authorize], moram proslediti i JWT kroz Request Header u commentsGetAPI funkciji.
+               U ReactTS, zbog [Authorize], moram proslediti i JWT kroz Request Header u commentsGetAPI funkciji.
+               .NET automatski napravi CommentQueryObject iz URL query params.
             */
-            var commentDTOs = await _commentService.GetAllAsync(commentQueryObject, cancellationToken);
+            
+            var commentDTOs = await _commentService.GetAllAsync(query, cancellationToken);
 
             return Ok(commentDTOs); 
            // Frontendu ce biti poslato commentDTOs lista u Response Body, a StatusCode=200 u Response Status Line.
         }
 
-        // Get Comment By Id Endpoint
         [HttpGet("{id:int}")] // https://localhost:port/api/comment/{id}
         [Authorize]
-        public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken, [FromServices] ISender _sender)
+        public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken)
         // Mora bas "id" ime kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON) ili Query
         {
-            // Koristim CQRS, a ne Service cisto da pokazem znanje.
+            var commentResponseDTO = await _commentService.GetByIdAsync(id, cancellationToken);
 
-            // Ne mapiram Request to Query, jer Request nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
-            var result = await _sender.Send(new CommentGetByIdQuery(id)); // result = CommentGetByIdResult
-            if (result.IsFailure)
-                return NotFound(new {message = result.Error});
-
-            // MediatR ne poziva ValidationBehavior jer Validation samo za ICommand napravljeno, pa onda odma zove CommentGetByIdQueryHandler Handle metodu
-            var response = result.Adapt<CommentGetByIdResponse>(); // Mapster auto mapira jer su polja istog imena i tipa u obe klase. Mogo sam i bez Response, ali cisto da vidite kako izgleda.
-            return Ok(response.commentDTOResponse);
+            return Ok(commentResponseDTO);
         }
 
         //[EnableRateLimiting("slow")]
         [HttpPost("{symbol:alpha}")] // https://localhost:port/api/comment/{symbol} 
         // Ne sme [HttpPost("{symbol:string}")] jer gresku daje, obzirom da za string mora ili [HttpPost("{symbol:alpha}")] ili [HttpPost("{symbol}")] 
         [Authorize] // I da nisam stavio [Authorize], zbog User.GetUserName() moralo bi da se JWT prosledi sa Frontend prilikom gadjanja ovog Endpoint, ali treba staviti [Authorize] jer osigurava da userName!=null, jer forsira Frontend da salje JWT.
-
-        public async Task<IActionResult> Create([FromRoute] string symbol, [FromBody] CreateCommentRequestDTO createCommentRequestDTO, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromRoute] string symbol, [FromBody] CreateCommentRequestDTO dto, CancellationToken cancellationToken)
         // U FE commentPostAPI funkciji, symbol kroz URL prosledim, a kroz Body saljem polja imenom i redosledom kao u CreateCommentRequestDTO (nisam stavio [FromBody] jer se to podrazumeva za complex type in POST request)
         {
             // ModelState pokrene validation za CreateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
@@ -110,16 +78,21 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status, a ModelState ce biti poslat u Response Body sa CreateCommentRequestDTO poljima u "errors" delu of Response
 
-            /* User i GetUserName come from ControllerBase, jer User je ClaimsPrincipal i odnosi se na current logged user (HttpContext.User) jer mnogo je lakse uzeti UserName/Email iz Claims (in-memory) nego iz baze i zahteva od FE da posalje JWT jer su u njemu claims
-               User i GetUserName su http sloj, i ne mogu se proslediti u CreateAsync metodu servisa, vec userName prosledim. */
-            var userName = User.GetUserName();
+            var userName = User.GetUserName(); // Pogledaj HttpContext.txt
 
-            var result = await _commentService.CreateAsync(userName, symbol, createCommentRequestDTO, cancellationToken);
-            if (result.IsFailure)
-                return BadRequest("Nepostojeci stock symbol koji nema ni na netu ili FMP API ne radi mozda");
+            // Write to DB endpoint, pa mapiram CreateCommentRequestDTO u CommandModel - pogledaj Services.txt + DTO vs entity klase.txt 
+            var command = new CreateCommentCommandModel
+            {
+                Title = dto.Title,
+                Content = dto.Content
+            };
 
-            var commentDTOResponse = result.Value; 
+            var resultPattern = await _commentService.CreateAsync(userName, symbol, command, cancellationToken);
+            if (resultPattern.IsFailure)
+                return BadRequest(resultPattern.Error);
 
+            var commentDTOResponse = resultPattern.Value; 
+             
             return CreatedAtAction(nameof(GetById), new { id = commentDTOResponse.Id }, commentDTOResponse); // Id property of Comment ima Value polje jer strongly-id type
             /* Prva 2 su route of GetById endpoint i endpoint's argument, jer GetById endpoint zahteva id argument.
                Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/comment/{id} u Response Header.
@@ -128,39 +101,142 @@ namespace Api.Controllers
 
         [HttpDelete("{id:int}")] // https://localhost:port/api/comment/{id}
         [Authorize]
-        public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken, [FromServices] ISender _sender)
-        {
-            // Koristim CQRS, a ne Service cisto da pokazem znanje.
+        public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
+        {   
+            // Iako je write to DB, nema mapiranje, jer samo id je argument 
 
             // Zbog authorization u CQRS kako user moze samo svoj komentar brisati 
-            var userName = User.GetUserName(); 
+            var userName = User.GetUserName(); // Pogledaj HttpContext.txt
 
-            // Ne mapiram Request to Query, jer Request nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
-            var result = await _sender.Send(new CommentDeleteCommand(id, userName));
-            // MediatR poziva ValidationBehaviour (ubacen u pipeline kroz u Program.cs) jer je ovo Command i jos neke pipeline behaviours ako ih ima (a nema), pa tek na kraju CommentDeleteCommandHandler's Handle metodu
-            // Ne treba mi CommentDeleteResult to CommentDeleteResponse mapping 
-            return Ok(result.commentDTOResponse);
+            var resultPattern = await _commentService.DeleteAsync(id, userName, cancellationToken);
+            if (resultPattern.IsFailure)
+                return BadRequest(resultPattern.Error);
+
+            var commentDTOResponse = resultPattern.Value;
+
+            return Ok(commentDTOResponse);
         }
 
         [HttpPut("{id:int}")]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO updateCommentRequestDTO, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO dto, CancellationToken cancellationToken)
         // U FE, id uvek saljem in URL, dok complex type kroz Body kao sto znam
         {
             // ModelState pokrene validation za UpdateCommentRequestDTO tj za zeljena CreateCommentRequestDTO polja proverava na osnovu njihovih annotations. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat  biti poslat u Response Body sa UpdateCommentRequestDTO poljima u "errors" delu of Response
-            
-            var result = await _commentService.UpdateAsync(id, updateCommentRequestDTO, cancellationToken);
-            if (result.IsFailure)
+
+            // Write to DB endpoint, pa mapiram UpdateCommentRequestDTO u CommandModel - pogledaj Services.txt + DTO vs entity klase.txt 
+            var commandModel = new UpdateCommentCommandModel
+            {
+                Title = dto.Title,
+                Content = dto.Content,
+            };
+
+            var resultPattern = await _commentService.UpdateAsync(id, commandModel, cancellationToken);
+            if (resultPattern.IsFailure)
                 return NotFound("Comment not found");
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a "Comment not found" u Response Body.
 
-            var commentDTOResponse = result.Value;
+            var commentDTOResponse = resultPattern.Value;
 
             return Ok(commentDTOResponse);
             // Frontendu ce biti poslato comment.ToCommentDTO() (tj CommentDTO objekat) u Response Body, a StatusCode=200 u Response Status Line.
+        }
+
+        // CQRS endpoints
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAllCqrs([FromQuery] CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
+        {
+            // Nemam CommetGetAllRequest objekat, jer zelim da GetAllCqrs i GetAll endpoints budu istog zaglavlja + da ista GetAll Repository metoda opsluzi Service i CQRS! 
+            var result = await _sender.Send(new CommentGetAllQuery(commentQueryObject), cancellationToken); // Aktivira samo Handler, jer nema validacija za Query
+            var response = result.Adapt<CommentGetAllResponse>(); // Mapirace dobro i polje tipa CommentQueryObject unutar Result i Request objekata.
+
+            return Ok(response.commentResponseDTOs);
+        }
+
+        [HttpGet("{id:int}")] // Ne moze ista route kao za GetById, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> GetByIdCqrs([FromRoute] int id, CancellationToken cancellationToken)
+        {
+            // Ne mapiram Request to Query, jer Request object nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
+            var result = await _sender.Send(new CommentGetByIdQuery(id), cancellationToken);
+            var response = result.Adapt<CommentGetByIdResponse>(); // Mapster auto mapira jer su polja istog imena i tipa u obe klase. Mogo sam i bez Response, ali cisto da vidite kako izgleda mapiranje sa Result pattern.
+
+            return Ok(response.commentDTOResponse);
+        }
+
+        [HttpPost("{symbol:alpha}")] // Ne moze ista route kao za Create, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS 
+        [Authorize]
+        public async Task<IActionResult> CreateCqrs([FromRoute] string symbol, [FromBody] CreateCommentRequestDTO request, CancellationToken cancellationToken)
+        {
+            // Write to DB endpoint, pa mapiram CreateCommentRequestDTO u CommandModel da razdvojim slojeve lepo.
+            var commandModel = new CreateCommentCommandModel
+            {
+                Title = request.Title,
+                Content = request.Content
+            };
+
+            var userName = User.GetUserName(); // Pogledaj HttpContext.txt
+            
+            // Necu pravim novi CommentCreateRequest object da sadrzi symbol + polja iz CreateCommentRequestDTO, jer ocu da potpis bude isti kao u Create endpoint
+            var command = new CommentCreateCommand(userName, symbol, commandModel);
+
+            var resultPattern = await _sender.Send(command, cancellationToken); // Aktivira se prvo Validacija, pa Handler 
+            if (resultPattern.IsFailure)
+                return BadRequest(new { message = resultPattern.Error });
+
+            var result = resultPattern.Value!;
+            // Ne treba mi CommentCreateResponse 
+
+            return CreatedAtAction(nameof(GetById), new { id = result.CommentDTOResponse.Id }, result.CommentDTOResponse);
+        }
+
+        [HttpDelete("{id:int}")] // Ne moze ista route kao za Create, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS 
+        [Authorize]
+        public async Task<IActionResult> DeleteCqrs([FromRoute] int id, CancellationToken cancellationToken)
+        {
+            // Iako je write to DB, nema mapiranje, jer samo id je argument 
+
+            // Zbog authorization da user moze samo svoj komentar brisati 
+            var userName = User.GetUserName(); 
+
+            // Ne mapiram Request to Query, jer Request nema potrebe da postoji zbog jednog argumenta primitivnog tipa da postoji jer endpoint prima id direktno, vec odma Query objekat pravim i saljem u MediatR pipeline
+            var resultPattern = await _sender.Send(new CommentDeleteCommand(id, userName)); // Prvo pokrene validaciju, pa Handler 
+            if (resultPattern.IsFailure)
+                return NotFound(new { message = resultPattern.Error });
+
+            var result = resultPattern.Value; // CommentDeleteResult ima ista polja kao CommentDTOResponse 
+            // Ne treba mi CommentDeleteResponse 
+
+            return Ok(result);
+        }
+
+        [HttpPut("{id:int}")] // Ne moze ista route kao za Update, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> UpdateCqrs([FromRoute] int id, [FromBody] UpdateCommentRequestDTO request, CancellationToken cancellationToken)
+        {
+            // Write to DB endpoint, pa mapiram UpdateCommentRequestDTO u CommandModel da razdvojim slojeve lepo.
+            var commandModel = new UpdateCommentCommandModel
+            {
+                Title = request.Title,
+                Content = request.Content
+            };
+
+            // Necu pravim novi CommentUpdateRequest object da sadrzi symbol + polja iz CreateCommentRequestDTO, jer ocu da potpis bude isti kao u Create endpoint
+            var command = new CommentUpdateCommand(id, commandModel);
+
+            var resultPattern = await _sender.Send(command, cancellationToken);
+            if (resultPattern.IsFailure)
+                return NotFound(resultPattern.Error);
+
+            var result = resultPattern.Value.CommentDTOResponse; // CommentDTOResponse
+            // Ne treba mi CommentDeleteResponse
+
+            return Ok(result);
         }
     }
 }

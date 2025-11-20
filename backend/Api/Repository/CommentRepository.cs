@@ -9,17 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repository
 {
-    /* Repository pattern kako bi, umesto u CommentController/CommentService, u CommentRepository definisali tela endpoint metoda + DB calls u Repository se stavljaju i zato
-    ovde ne ide CommentDTO, vec samo Comment, jer (Models) Entity klase se koriste za EF Core tj Repository radi sa entity klasam jer direktno interaguje sa bazom.
+    /* Repository pattern kako bi, umesto u CommentController/CommentService, u CommentRepository definisali tela endpoint metoda + DB calls u Repository se rade i zato
+      ovde ne ide CommentDTO, vec samo Comment, jer (Models) Entity klase se koriste za EF Core tj Repository radi sa entity klasam jer direktno interaguje sa bazom.
                
-       Repository interaguje sa bazom i ne zelim da imam DTO klase ovde, vec Entity klase koje predstavljaju tabele i zato u CommentService koristim mapper extensions da napravim Entity klasu from DTO klase i obratno.
-    
-       Objasnjenje za CancellationToken pogledaj u CommentController. 
-     
-      CommentService radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-        
-      Repository ne baca exception niti Result pattenr, vec vraca null ako nema necega u bazi. Service/CQRS Handler baca exception/Result pattern u zavisnosti sta mu repository vrati. 
-     Repository moze baciti implicitni exception ako pukne nesto u bazi sto nije do nas.
+      Service prima/vraca DTO iz/u controller, mapira DTO u Entity i obratno, a Repository prima/vraca Entity iz/u Service !
+                 
+      Repository ne baca custom exception niti vraca Result pattern, vec vraca null ako nema necega u bazi. Repository moze baciti implicitni exception ako pukne nesto u bazi sto nije do nas, ali to cu uhvatiti kao Exception u GlobalExceptionHandlingMiddleware.
+      Service/CQRS Handler baca exception ili vraca Result pattern u zavisnosti sta mu repository vrati. 
      */
     public class CommentRepository : ICommentRepository
     {   
@@ -36,6 +32,41 @@ namespace Api.Repository
            Metoda koja ima Task<Comment?>, zato sto compiler warning ce prikaze ako method's return moze biti null jer FirstOrDefault/FindAsync moze i null da vrati
           Ovo je dobra praksa da compiler ne prikazuje warning.
          */
+        public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
+        {   // Iako Repository prima/vraca samo Entity objekte, CommentQueryObject nisam mogao mapirati u odgovarajuci Entity objekat
+            // Sada koristim Soft delete, definisan u OnModelCreating da ocitava samo redove koji imaju IsDeleted=false
+
+            var comments = _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).Include(c => c.Stock).AsQueryable();  // Include is Eager loading
+            // Comment ima AppUser polje i PK-FK vezu sa AppUser, pa zato moze Include(c => c.AppUser)
+            // AsQueryable mora nakon Include kako bih zadrzao LINQ osobine, da mogu kasnije npr comments.Where(...), comments.OrderByDescending(...) itd.
+            // Ovde nema EF tracking jer sam stavio AsNoTracking posto necu da modifikujem/brisem comments nakon ocitavanja iz baze, pa da ne dodajem overhead and memory zbog tracking
+
+            // In if statement no need to AsQueryable again
+            if (!string.IsNullOrWhiteSpace(commentQueryObject.Symbol))
+                comments = comments.Where(s => s.Stock.Symbol == commentQueryObject.Symbol);
+            // Ovaj Endpoint koristim cesto jer gledam Company profile za zeljeni Stock, a ta stranica ocitava sve komentare za njega, pa Stock.Symbol sam stavio ko Index da brze ocitava - pogledaj OnModelCreating
+
+            if (commentQueryObject.IsDescending)
+                comments = comments.OrderByDescending(c => c.CreatedOn);
+            else
+                comments = comments.OrderBy(c => c.CreatedOn);
+
+            return await comments.ToListAsync(cancellationToken); // Mora ToListAsync, jer comments je AsQueryable (LINQ tipa tj SQL)
+        }
+
+        public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        {   // Sada koristim Soft delete, definisan u OnModelCreating da ocitava samo redove koji imaju IsDeleted=false
+            // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
+            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == CommentId.Of(id), cancellationToken); //  Mora ovako poredjenje jer Id je tipa CommentId
+            // Id je PK i Index tako da pretrazuje bas brzo O(1) ili O(logn) u zavisnosti koja je struktura za index uzeta
+            // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam/brisem objekat pa sam dodao AsNoTracking, jer tracking dodaje overhead and uses memory
+            
+            if (existingComment is null) // Nepotrebno, jer FirstOrDefaultAsync vrati null ako ne nadje
+                return null;
+
+            return existingComment;
+        }
+
         public async Task<Comment> CreateAsync(Comment comment, CancellationToken cancellationToken)
         {
             await _dbContext.Comments.AddAsync(comment, cancellationToken); 
@@ -71,37 +102,6 @@ namespace Api.Repository
             await _dbContext.SaveChangesAsync(cancellationToken); // zbog _dbContext.Comments.Remove(comment), comment is no longer tracked by EF, izbrisan u bazi, ali comment objekat ostaje do kraja ove metode da zivi
 
             return comment;
-        }
-
-        public async Task<List<Comment>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
-        {   // Sada koristim Soft delete, definisan u OnModelCreating da ocitava samo redove koji imaju IsDeleted=false
-
-            var comments = _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).AsQueryable();  // Include is Eager loading
-            // Comment ima AppUser polje i PK-FK vezu sa AppUser, pa zato moze Include(c => c.AppUser)
-            // AsQueryable zadrzava LINQ osobine, pa mogu kasnije npr comments.Where(...), comments.OrderByDescending(...) itd.
-            // Ovde nema EF tracking jer sam stavio AsNoTracking posto necu da modifikujem/brisem comments nakon ocitavanja iz baze, pa da ne dodajem overhead and memory zbog tracking
-
-            // In if statement no need to AsQueryable again
-            if (!string.IsNullOrWhiteSpace(commentQueryObject.Symbol))
-                comments = comments.Where(s => s.Stock.Symbol == commentQueryObject.Symbol); 
-                // Ovaj Endpoint koristim cesto jer gledam Company profile za zeljeni Stock, a ta stranica ocitava sve komentare za njega, pa Stock.Symbol sam stavio ko Index da brze ocitava - pogledaj OnModelCreating
-                
-            if(commentQueryObject.IsDescending == true)
-                comments = comments.OrderByDescending(c => c.CreatedOn); 
-
-            return await comments.ToListAsync(cancellationToken); // Mora ToListAsync, jer comments je AsQueryable (LINQ tipa tj SQL)
-        }
-
-        public async Task<Comment?> GetByIdAsync(int id, CancellationToken cancellationToken)
-        {   // Sada koristim Soft delete, definisan u OnModelCreating da ocitava samo redove koji imaju IsDeleted=false
-            // FindAsync pretrazuje samo by Id i brze je od FirstOrDefaultAsync, ali ne moze ovde jer ima Include, pa mora FirstOrDefaultASync
-            var existingComment = await _dbContext.Comments.AsNoTracking().Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == CommentId.Of(id), cancellationToken); //  Mora ovako poredjenje jer Id je tipa CommentId
-            // Id je PK i Index tako da pretrazuje bas brzo O(1) ili O(logn) u zavisnosti koja je struktura za index uzeta
-            // EF start tracking changes done in existingComment after FirstOrDefaultAsync, ali ovde ne menjam/brisem objekat pa sam dodao AsNoTracking jer tracking dodaje overhead and uses memory
-            if (existingComment is null)
-                return null;
-
-            return existingComment;
         }
 
         public async Task<Comment?> UpdateAsync(int id, Comment comment, CancellationToken cancellationToken)

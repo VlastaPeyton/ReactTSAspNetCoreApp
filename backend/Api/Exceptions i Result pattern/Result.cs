@@ -33,7 +33,7 @@
             Error = error;
         }
 
-        public static Result<T> Success(T value) => new Result<T>(true, value, null); // izbegavam direknto pozivanje konstruktora + lepse 
-        public static Result<T> Fail(string error) => new Result<T>(false, default, error); // izbegavam direknto pozivanje konstruktora + lepse
+        public static Result<T> Success(T value) => new Result<T>(true, value, null); 
+        public static Result<T> Fail(string error) => new Result<T>(false, default, error); 
     }
 }

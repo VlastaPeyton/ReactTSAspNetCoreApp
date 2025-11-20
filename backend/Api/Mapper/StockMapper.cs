@@ -14,9 +14,9 @@ namespace Api.Mapper
         // Pogledaj DTO vs entity klase.txt 
 
         // Extension method for Stock.cs, without calling parameters
-        public static StockDTO ToStockDTO(this Stock stock)
+        public static StockDTOResponse ToStockDtoResponse(this Stock stock)
         {
-            return new StockDTO
+            return new StockDTOResponse
             {
                 Id = stock.Id, // Id mapiram, jer mapiram iz Stock to DTO
                 Symbol = stock.Symbol,
@@ -30,33 +30,33 @@ namespace Api.Mapper
         }
 
         // Extension method for CreateStockRequestDTO.cs, without calling parameters
-        public static Stock ToStockFromCreateStockRequestDTO(this CreateStockRequestDTO createStockRequestDTO)
+        public static Stock ToStockFromCreateStockRequestDTO(this CreateStockCommandModel command)
         {
             return new Stock
             {   // Ne mapiram Id iz DTO, jer se prilikom dodavanja u bazu sam generise 
-                Symbol = createStockRequestDTO.Symbol,
-                CompanyName = createStockRequestDTO.CompanyName,
-                Purchase = createStockRequestDTO.Purchase,
-                Dividend = createStockRequestDTO.Dividend,
-                Industry = createStockRequestDTO.Industry,
-                MarketCap = createStockRequestDTO.MarketCap,
+                Symbol = command.Symbol,
+                CompanyName = command.CompanyName,
+                Purchase = command.Purchase,
+                Dividend = command.Dividend,
+                Industry = command.Industry,
+                MarketCap = command.MarketCap,
                 /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u CreateStockRequestDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
                 Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salju from FE. */
             };
         }
 
         // Extension method for UpdateStockRequestDTO, without calling parameters
-        public static Stock ToStockFromUpdateStockRequestDTO(this UpdateStockRequestDTO updateStockRequestDTO)
+        public static Stock ToStockFromUpdateStockRequestDTO(this UpdateStockCommandModel command)
         {
             return new Stock
             {
                 // Ne mapiram Id iz DTO, jer se prilikom dodavanja u bazu sam generise 
-                Symbol = updateStockRequestDTO.Symbol,
-                CompanyName = updateStockRequestDTO.CompanyName,
-                Purchase = updateStockRequestDTO.Purchase,
-                Dividend = updateStockRequestDTO.Dividend,
-                Industry = updateStockRequestDTO.Industry,
-                MarketCap = updateStockRequestDTO.MarketCap,
+                Symbol = command.Symbol,
+                CompanyName = command.CompanyName,
+                Purchase = command.Purchase,
+                Dividend = command.Dividend,
+                Industry = command.Industry,
+                MarketCap = command.MarketCap,
                 /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u UpdateStockRequestDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
                  Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salje from FE.  */
             };

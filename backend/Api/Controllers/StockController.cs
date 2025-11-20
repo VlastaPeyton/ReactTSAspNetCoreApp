@@ -1,148 +1,226 @@
-﻿using Api.Data;
+﻿
+using Api.CQRS_and_behaviours.Stock.Create;
+using Api.CQRS_and_behaviours.Stock.Delete;
+using Api.CQRS_and_behaviours.Stock.GetAll;
+using Api.CQRS_and_behaviours.Stock.GetById;
+using Api.CQRS_and_behaviours.Stock.Update;
+using Api.CQRS_and_Validation.Comment;
 using Api.DTOs.Stock;
+using Api.DTOs.StockDTOs;
 using Api.Helpers;
 using Api.Interfaces;
 using Api.Mapper;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {   
-    // Postman/Swagger/FE gadja Endpoints ovde definisane
-
     [Route("api/stock")] // https://localhost:port/api/stock
     [ApiController]
     public class StockController : ControllerBase
-    {    // Interface za sve klase zbog DI, dok u Program.cs napisem da prepozna interface kao tu klasu
-        private readonly IStockRepository _stockRepository; // Interactions with DB are made inside Repository
-        public StockController(IStockRepository repository)
-        {   
-            _stockRepository = repository; // U Program.cs registrovan IStockRepository kao StockRepository, pa sa Scrutor uradjen Decorator pattern za CachedStockRepository koji u sebi sadrzi StockRepository => IStockRepository predstavlja CachedStockRepository
+    {   
+        private readonly IStockService _stockService;
+        private readonly ISender _sender;
+        public StockController(IStockService stockService, ISender sender)
+        {
+            _stockService = stockService;
+            _sender = sender;
         }
 
         /* 
-           Za svaki Request pravi se automatski nova instanca kontrolera (AddTransient fakticki), onda DI automatski, na osnovu AddTransient/Scoped/Singleton<IService,Service>() iz Program.cs, u ctor kontrolera doda zeljeni servis i kad se 
-          response posalje u FE, GC unistava kontroler, ali zivot servisa zavisi da li je Singleton, Transient ili Scoped.
+           Objasnjeno u Account/CommentController.
+           U ReactTS zbog [Authorize] moram proslediti JWT u Request Header. 
+           CachedStockRepository sa Redis objasnjen u Redis, Proxy & Decorator patterns.txt => _stockRepository se odnosi na CachedStockRepository
+        */
 
-          Svaki Endpoint:
-            - koristi DTO kao argumente i DTO za slanje objekata to FE, jer dobra praksa je ne dirati Models (Entity) klase (koje predstavljaju tabele u bazi) koje su namenjene za Repository tj EF Core.
-            - bice tipa Task<IActionResult<T>> jer IActionResult<T> omoguci return of StatusCode + Data of type T, dok Task omogucava async. 
-            - salje to FE Response koji ima polja Status Line, Headers i Body. 
-              Status i Body najcesce definisem ja, a Header mogu ja u CreatedAtAction, ali najcesce to automatski .NET radi.
-              Ako u objasnjenju return naredbe ne spomenem Header, to znaci da je on automatski popunjem podacima.
-              Endpoint kad posalje Frontendu StatusCode!=2XX i mozda error data uz to, takav Response nece ostati u FE try block, vec ide u catch block i onda response=undefined u ReactTS.
-         
-         Data validation when writing to DB: 
-            Request object je Endpoint argument koji stize from FE in order to write/read DB. Request object is never Entity class, but DTO class as i want to split api from domain/infrastructure layer. 
-            If Endpoint exhibits write to DB, i have to validate Request DTO object fields before it is mapped to Entity class and written to DB. 
-            Validation can be done:
-                1) using ModelState - default validation logic. U write to DB endpoint, stavim ModelState koji zna da treba da validira annotated polja iz Request DTO object tog endpointa.
-                2) using FluentValidation - ako zelim custom validation logic. 
-         
-         Ne koristim FluentValidation jer za sad nema potrebe, a samo ce da mi napravi more complex code. Koristim ModelState. 
+        // Service endpoints
 
-         Ako endpoint nema [Authorize], FE ne treba slati JWT in Request Header.
-         
-         Koristim mapper extensions da napravim Stock Entity klasu from DTO kad pokrecem Repository metode ili napravim DTO from Stock Entity kad saljem data to FE.
-         Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-
-         Za async Endpoints, nisam koristio cancellationToken = default, jer ako ReactTS pozove ovaj Endpoint, i user navigates away or closes app, .NET ce automtaski da shvati da treba prekinuti izvrsenje i dodelice odgovarajucu vrednost tokenu. 
-        Zbog nemanja "=default" ovde, ne smem imati ni u await metodama koje se pozivaju u Endpointu. 
-        Da sam koristio =default ovde, .NET ne bi znao da automatski prekine izvrsenje Endpointa, pa bih morao u FE axios metodi da prosledim i controller.signal...
-        CancellationToken se stavlja za time-consuming await metode npr duga ocitavanja u bazi, ali ja cu staviti na sve, zlu ne trebalo.
-        
-         Rate Limiter objasnjen u Program.cs
-
-         CachedStockRepository sa Redis objasnjen u Redis, Proxy & Decorator patterns.txt => _stockRepository se odnosi na CachedStockRepository
-         */
-
-        // Get All Stocks Endpoint
         [HttpGet]   // https://localhost:port/api/stock/
         [Authorize] // Mora u Swagger Authorize dugme da unesemo JWT token koji sam dobio prilikom login/register da bih mogo da pokrenem ovaj Endpoint + FE mora poslati JWT u Authorization header of request
-        public async Task<IActionResult> GetAll([FromQuery] QueryObject query, CancellationToken cancellationToken) 
+        public async Task<IActionResult> GetAll([FromQuery] StockQueryObject query, CancellationToken cancellationToken) 
         {   // Mora [FromQuery], jer GET Axios Request u ReactTS ne moze da ima body, vec samo Header, pa ne moze [FromBody]. Kroz Query Parameters u FE (posle ? in URL) moram proslediti vrednosti za svako polje iz QueryObject (ako ne prosledim, bice default vrednosti) redosledom i imenom iz QueryObject
-            // U ReactTS zbog [Authorize] moram proslediti JWT u Request Header. 
-            var stocks = await _stockRepository.GetAllAsync(query, cancellationToken);  // Poziva CachedStockRepository jer je on Decorator over StockRepository
-            var stockDTOs = stocks.Select(s => s.ToStockDTO()).ToList(); // Nema async, jer stocks nije u bazi, vec in-memory jer smo ga vec dohvatili iz baze
-
+            
+            var stockDTOs = await _stockService.GetAllAsync(query, cancellationToken); 
+            
             return Ok(stockDTOs); 
             // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stockDTOs u Response Body.
         }
 
-        // Get Stock Endpoint
         [HttpGet("{id:int}")] // https://localhost:port/api/stock/{id}
         [Authorize]
         public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken) 
         // Mora bas "id" kao u liniji iznad i moze [FromRoute] jer id obicno prosledim kroz URL, a ne kroz Request body (JSON)
         {
-            var stock = await _stockRepository.GetByIdAsync(id, cancellationToken); 
-            if (stock == null)
-                return NotFound(); 
-                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body je prazan.
+            var result = await _stockService.GetByIdAsync(id, cancellationToken);
+            if (result.IsFailure)
+                return NotFound(new { message = result.Error });
+                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body je JSON "message":"Nije pronadjen Stock by zeljeni id"
 
-            return Ok(stock.ToStockDTO()); 
+            var stockDTOResponse = result.Value;
+
+            return Ok(stockDTOResponse); 
             // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stock.ToStockDTO (tj StockDTO objekat) u Response Body.
         }
 
-        // Post Stock Endpoint
         [HttpPost] // https://localshost:port/api/stock
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] CreateStockRequestDTO createStockRequestDTO, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateStockRequestDTO dto, CancellationToken cancellationToken)
         // Mora [FromBody] jer ne prosledjujem argumente kroz URL (posto ih ima vise od 1 non primary tipa), vec kroz Postman body (JSON).
         // Mora CreateStockRequestDTO, jer Request gadja Endpoint, stoga u Request body kucam polja iz CreateStockRequestDTO imenom i redosledom kao u CreateStockRequestDTO
         {
-            // ModelState pokrene validation za CreateStockRequestDTO tj za zeljena CreateStockRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje. ModelState se koristi za Writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa CreateStockRequestDTO poljima u "errors" delu of Response
 
-            var stock = createStockRequestDTO.ToStockFromCreateStockRequestDTO(); // Bez vrednosti u Id polju za sada 
-            await _stockRepository.CreateAsync(stock, cancellationToken); // Iako CreateAsync ima return, ne treba "var result = _stockRepository.CreateAsync(stock), jer stock je Reference type, stoga promena stock u CreateAsync uticace i ovde
-            
-            return CreatedAtAction(nameof(GetById), new { id = stock.Id }, stock.ToStockDTO());
-            // Iz nekog razloga id ne prati redosled, ali radi kako treba. 
-            /* Prva 2 su route i route argument, jer GetById zahteva id argument.
-               Frontendu ce biti poslato stock.ToStockDTO() (tj StockDTO objekat) u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/stock/{id} u Response Header.
+            // Nakon validiranja dto, mapiram ga u CreateStockCommandModel - pogledaj CommentController
+            var command = new CreateStockCommandModel
+            {
+                Symbol = dto.Symbol,
+                CompanyName = dto.CompanyName,
+                Purchase = dto.Purchase,
+                Dividend = dto.Dividend,
+                Industry = dto.Industry,
+            };
+
+            var stockResponseDto = await _stockService.CreateAsync(command, cancellationToken);
+
+            return CreatedAtAction(nameof(GetById), new { id = stockResponseDto.Id }, stockResponseDto);
+            /* Iz nekog razloga id ne prati redosled, ali radi kako treba. 
+               Prva 2 su route i route argument, jer GetById zahteva id argument.
+               Frontendu ce biti poslato stockResponseDto u Response Body, StatusCode=201 u Response Status Line, a https://localhost:port/api/stock/{id} u Response Header.
             */
         }
 
         // Update entire Stock Endpoint i zato PUT, a ne PATCH (jer PATCH je update samo za zeljena polja)
         [HttpPut("{id:int}")] // https://localhost:port/api/stock/{id}
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDTO updateStockRequestDTO, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDTO dto, CancellationToken cancellationToken)
         // Id kroz URL obicno saljem iz FE i zato [FromRoute], dok objekte (JSON) moram kroz Body (ili kroz Query Parameters ako je Axios.GET u pitanju jer one podrzava Body).
         {
             // ModelState pokrene validation za UpdateStockRequestDTO tj za zeljena UpdateStockRequestDTO polja proverava na osnovu onih annotation iznad polja koje stoje.ModelState se koristi za writing to DB.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body u "errors" delu.
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat sa poljima EmailAddress, UserName i Password i svakom polju pisace koja je greska u njemu u Response Body u "errors" delu.
 
-            var stock = await _stockRepository.UpdateAsync(id, updateStockRequestDTO.ToStockFromUpdateStockRequestDTO(), cancellationToken);
+            var command = new UpdateStockCommandModel
+            {
+                Symbol = dto.Symbol, 
+                CompanyName = dto.CompanyName, 
+                Dividend = dto.Dividend, 
+                Industry = dto.Industry, 
+                MarketCap = dto.MarketCap, 
+                Purchase = dto.Purchase,  
+            };
 
-            if (stock is null)
-                return NotFound();
-                // Frontendu ce biti poslato StatusCode=404 u Response Sttus Line, a Response Body prazan.
+            var resultPattern = await _stockService.UpdateAsync(id, command, cancellationToken);
+            if (resultPattern.IsFailure)
+                return NotFound(new { message = resultPattern.Error });
 
-            return Ok(stock.ToStockDTO());
-            // Frontendu ce biti poslato StatusCode=200 u Response Status Line, a stock.ToStockDTO (tj StockDTO object) u Response Body.
+            var stockDtoResponse = resultPattern.Value;
+            return Ok(stockDtoResponse);
         }
 
-        // Delete Stock Endpoint 
         [HttpDelete("{id:int}")] // https://localhost:port/api/stock/{id}
         [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
         // Id kroz URL se obicno salje iz FE i zato [FromRoute]
         {
-            var stock = await _stockRepository.DeleteAsync(id, cancellationToken);
+            // Iako je write to DB, nema mapiranje, jer samo id je argument 
 
-            if (stock is null)
-                return NotFound();
-                // Frontendu ce biti poslato StatusCode=404 u Response Status Line, a Response Body prazan.
+            var stockDtoResponse = await _stockService.DeleteAsync(id, cancellationToken);
 
             return NoContent();
             // Frontendu ce biti poslato StatusCode=204 u Response Status Line, a Response Body prazan.
         }
-    }
 
+        // CQRS endpoints
+
+        [HttpGet]   // Ne moze ista route kao za Update, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize] 
+        public async Task<IActionResult> GetAllCqrs([FromQuery] StockQueryObject query, CancellationToken cancellationToken)
+        {
+            // Nemam StocktGetAllRequest objekat, jer zelim da GetAllCqrs i GetAll endpoints budu istog zaglavlja + da ista GetAll Repository metoda opsluzi Service i CQRS! 
+            var result = await _sender.Send(new StockGetAllQuery(query), cancellationToken);
+            // Ne treba StockGetAllResponse objekat 
+
+            return Ok(result.StockDTOResponses);
+        }
+
+        [HttpGet("{id:int}")] // Ne moze ista route kao za GetAll, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> GetByIdCqrs([FromRoute] int id, CancellationToken cancellationToken)
+        {
+            // Ne mapiram Request to Query, jer Request object nema potrebe zbog jednog argumenta primitivnog tipa da postoji, vec odma Query objekat pravim i saljem u MediatR pipeline
+            var resultPattern = await _sender.Send(new StockGetByIdQuery(id), cancellationToken);
+            if (resultPattern.IsFailure)
+                return NotFound(new { message = resultPattern.Error });
+
+            var result = resultPattern.Value!;
+
+            return Ok(result.StockDTOResponse);
+        }
+
+        [HttpPost]    // Ne moze ista route kao za GetById, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> CreateCqrs([FromBody] CreateStockRequestDTO dto, CancellationToken cancellationToken)
+        {
+            // Write to DB endpoint, pa mapiram CreateStockRequestDTO u CommandModel da razdvojim slojeve lepo.
+            var commandModel = new CreateStockCommandModel
+            {
+                Symbol = dto.Symbol,
+                CompanyName = dto.CompanyName,
+                Purchase = dto.Purchase,
+                Dividend = dto.Dividend,
+                Industry = dto.Industry,
+                MarketCap = dto.MarketCap,
+            };
+
+            var command = new StockCreateCommand(commandModel);
+
+            var result = await _sender.Send(command);
+
+            var stockDtoResponse = result.StockDTOResponse;
+
+            return CreatedAtAction(nameof(GetById), new { id = stockDtoResponse.Id }, stockDtoResponse);
+        }
+
+        [HttpPut("{id:int}")] // Ne moze ista route kao za Create, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> UpdateCqrs([FromRoute] int id, [FromBody] UpdateStockRequestDTO dto, CancellationToken cancellationToken)
+        {
+            // Write to DB endpoint, pa mapiram UpdateStockRequestDTO u CommandModel da razdvojim slojeve lepo.
+            var commandModel = new UpdateStockCommandModel
+            {
+                Symbol = dto.Symbol,
+                CompanyName = dto.CompanyName,
+                Purchase = dto.Purchase,
+                Dividend = dto.Dividend,
+                Industry = dto.Industry,
+                MarketCap = dto.MarketCap,
+            };
+
+            var command = new StockUpdateCommand(id, commandModel);
+
+            var resultPattern = await _sender.Send(command, cancellationToken);
+            if (resultPattern.IsFailure)
+                return NotFound(new { message = resultPattern.Error });
+
+            var result = resultPattern.Value; 
+            // Ne treba mi StockUpdateResponse object 
+
+            return Ok(result.StockDTOResponse);
+        }
+
+        [HttpDelete("{id:int}")] // Ne moze ista route kao za Delete, jer nece moci se testirati u Postman, ali ovo je samo moja nadmoc da pokazem da znam i CQRS
+        [Authorize]
+        public async Task<IActionResult> DeleteCqrs([FromRoute] int id, CancellationToken cancellationToken)
+        {
+            // Iako je write to DB, nema mapiranje, jer samo id je argument 
+
+            var result = await _sender.Send(new StockDeleteCommand(id), cancellationToken);
+            // ne treba Resposne object
+
+            return Ok(result.StockDTOResponse);
+        }
+    }
 }

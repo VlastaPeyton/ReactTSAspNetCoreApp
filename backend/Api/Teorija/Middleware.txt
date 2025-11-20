@@ -6,17 +6,18 @@ Sta je middleware i middleware pipeline:
 	Middleware je .NET komponenta u aplikacionom pipeline koja prima HttpContext (pogledaj HttpContext.txt) objekat koji moze da procita, izmeni ili koristi 
   i odlucuje da li ce proslediti request sledecem middleware u pipeline ili ce sama zavrsiti obradu i poslati response. 
     Isto ima ulogu i u slanju odgovora klijentu. 
-	Kada klijent posalje request, on prvo ide u Kestrel koji od http poruke napravi HttpContext, a onda HttpContext ide u middleware pipeline. 
+	Kada klijent posalje request, on prvo ide u Kestrel koji od http poruke napravi HttpContext objekat, a onda HttpContext ide u middleware pipeline. 
 	Kada BE salje response, on se obrnutim putem od request propagira takodje kroz middleware pipeline i na kraju Kestrel ga pravi kao http poruku i salje klijentu.
     Midleware moze biti built-in ili custom. 
 	Middleware se registruje u Program.cs prilikom cega je bitan redosled registracije (odozgo na dole - request ce prvo uci u najvise pozicionirani middleware
   u Program.cs i propagirati nizvodno, a response propagira uzvodno).
 	Middleware pipeline je kicma svake ASP.NET Core aplikacije bez koje se ne moze. 
+	Middleware pipeline je Singleton, jer se kreira pri pokretanju aplikacije i ne menja se.
 
 	Svaki middleware moze biti:
 		1) Conventional - bez implementacije IMiddleware 
-		   => u Program.cs se napise app.UseMiddleware<CustomMiddleware>() 
-		   ovime middleware nije registrovan u servise tj u DI
+		   => u Program.cs se napise "app.UseMiddleware<CustomMiddleware>();"
+		   ovime middleware nije registrovan u servise tj u DI, ali je implicitno kao AddSingleton dodat u pipeline
 		   Svaki conventional middleware  mora sadrzati:
 			- ctor 
 			- InvokeAsync/Invoke metodu koja vraca Task (koja se poziva automatski refleksijom (pogledaj Reflection.txt)), a prima HttpContext
@@ -25,8 +26,8 @@ Sta je middleware i middleware pipeline:
 				- ako ga nema, to znaci da jeste poslednji middleware u pipeline
 
 		2) Sa IMiddleware implementacijom:
-		   => u Program.cs se napise builder.Services.AddTransient<IMiddleware,CustomMiddleware>() i app.UseMiddleware<CustomMiddleware>()
-		   ovime middleware je registrovan kao servis u DI
+		   => u Program.cs se napise "builder.Services.AddTransient<IMiddleware,CustomMiddleware>()" i "app.UseMiddleware<CustomMiddleware>()"
+		   ovime middleware je registrovan kao servis u DI  explicitno kao AddTransient u pipeline, jer IMiddleware koristi IMiddlewareFactory koji zahteva DI registraciju
 		   Svaki middleware, koji implementira IMiddleware built-in interface, mora se registrovati kao AddTransient, a mora sadrzati:
 				- InvokeAsync/Invoke metodu koja vrata Task (-||-) i koja prima HttpContext i RequestDelegate 
 				- Ako koristim IMiddleware, treba AddTransient<IMiddleware,CustomInterface> jer, middleware pipeline nije ogranicen samo na Request (AddScoped), vec 
@@ -37,13 +38,13 @@ Built-in middleware:
 	- app.UseHttpRedirection()
 	- app.UseAuthentication()
 	- .... 
-Built-in middleware,jer nije nasledio IMiddleware, nije registrovan nikako u DI, ali se kao AddTransient ponasaju.
+Built-in middleware,jer nije nasledio IMiddleware, nije registrovan nikako u DI, ali se kao AddSingleton ponasaju.
 
 Custom middleware:
-	- Svaki middleware koji ja napravim i ubacim u Program.cs 
+	- Svaki middleware koji ja napravim i ubacim u Program.cs i zavisi da li koristim IMiddleware ili ne.
 
 Oba tipa middleware se pozivaju pomocu "app.UseMiddleware<Middleware>", gde Middleware moze biti custom/built-in. 
-Za mnoge built-in ne koristim ovu notaicju, vec ima gotova extension metoda (npr app.UseRouting()) koja unutar sebe poziva app.UseMiddleware<RoutingMiddleware>, 
+Za mnoge built-in ne koristim ovu notaciju, vec ima gotova extension metoda (npr app.UseRouting()) koja unutar sebe poziva app.UseMiddleware<RoutingMiddleware>, 
 gde RoutingMiddleware je built-in. Extension poziv mogu uraditi i za custom slucajeve, ali se generalno ne radi da ne zbuni citaoca koda, vec za custom koristim app.UseMiddleware<CustomMiddleware>.
 Ako koristim IMiddleware zahteva AddTransient explicitno before UseMiddleware.
 
@@ -58,15 +59,15 @@ Ako je custom middleware mali, onda moze u Program.cs direktno da se definise i 
     await next(); // poziva sledeci middleware 
     Console.WriteLine("Logika nakon sledecg middleware-a kada response propagira");
 	});
-Ali nije dobra praksa, jer ruzni mi je kod mnogo.
-Vec napraivm CustomMiddleware klasu koju dodam u pipeline pomocu app.UseMiddleware<CustomMiddleware>.
+Ali nije dobra praksa, jer ruzni mi je kod mnogo, vec napraivm CustomMiddleware:IMiddleware klasu koju registrujem kao AddTransient Service i dodam u pipeline pomocu app.UseMiddleware<CustomMiddleware>.
 
-U Program.cs, bitno je gde middleware registrujem jer reqeust propagira nizvodno u Program.cs, a response uzvodno.
-Svaki middleware, nebitno gde je registrovan, moze poslati odgovor klijentu bez da saceka da middleware registrovani iznad njega zavrse. 
-Ovo je problem kojim moram da proverim u svakom custom middleware sa "if(context.Response.HasStarted)" jer ako je 
-ovo true, onda odgovor je vec krenuo da se salje u nekom middleware ispod mog trenutnog middleware, pa trenutni ne moze poslati odgvor. 
+U Program.cs, bitno je kojim redosledom middleware registrujem, jer reqeust propagira nizvodno u Program.cs, a response uzvodno.
+Svaki middleware, nebitno gde u pipeline je registrovan, moze poslati odgovor klijentu bez da saceka da middleware koji su registrovani iznad njega zavrse. 
+Ovo je problem kojim moram da proverim u svakom custom middleware sa "if(context.Response.HasStarted)", jer ako je ovo true, onda odgovor je vec krenuo da se salje 
+u nekom middleware ispod mog trenutnog middleware, pa trenutni middleware ne moze poslati odgvor. 
 Ovo se desava retko, ali moze. 
-GlobalExceptionHandlingMiddleware je registrovan aman na vrhu (odma ispod Swagger i HttpsRedirection) jer 
-ova 2 ne smeju biti wrapped with custom middleware i onda on hvata greske svih middleware ispod njega.
-Ovo slanje iz nize registrovanog middleware se ne mzoe desi u obicno REST API koji je 90% sajtova.
+
+GlobalExceptionHandlingMiddleware je registrovan aman na vrhu (odma ispod Swagger i HttpsRedirection), jer ova 2 ne smeju biti wrapped with custom middleware i onda on 
+hvata greske svih middleware ispod njega.
+Ovo slanje iz nize registrovanog middleware se ne mzoe desi u obicnom REST API koji je 90% sajtova.
 

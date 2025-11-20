@@ -4,7 +4,7 @@
      posle ? in URL) u FE prosledim ova polja ovim imenima i redosledom. U FE necu proslediti nikad sva polja odjednom (kao sto vidim u klasi)
      iako mogu, pa za neprosledjena polja se automatski koristi default vrednost koja moze biti implicitna ili explicitna kao u mom slucaju.
       */
-    public class QueryObject
+    public class StockQueryObject
     {
         // Zbog https://localhost:port/api/stock/?symbol=tsla 
         public string? Symbol { get; set; } = null;

@@ -9,6 +9,7 @@ using Api.Middlewares;
 using Api.Models;
 using Api.Repository;
 using Api.Service;
+using Api.Services;
 using DotNetEnv;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,7 +59,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add DbContext 
+// Add DbContext (AddScoped by default)
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"));
@@ -118,6 +119,8 @@ builder.Services.AddMassTransitRabbitMQAndOutboxInbox<ApplicationDBContext>(buil
 
 // Svaki servis ima interface zbog SOLID + lako se testira sa xUnit, FakeItEasy/Moq, FluentAssertions itd.
 
+// Add StockService i IStockService
+builder.Services.AddScoped<IStockService, StockService>(); 
 // Add StockRepository i IStockRepository
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 // Add CachedStockRepository via Scrutor - pogledaj Redis, Proxy & Decorator patterns.txt i pogledaj CachedStockRepository
@@ -127,10 +130,16 @@ builder.Services.AddStackExchangeRedisCache(config =>
 {   
     config.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
+// Add AccountService i IAccountService 
+builder.Services.AddScoped<IAccountService, AccountService>(); 
+// Add CommentService i ICommentService
+builder.Services.AddScoped<ICommentService, CommentService>();
 // Add CommentRepository i ICommentRepository
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 // Add TokenService i ITokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
+// Add EmailService as IEmailSender after Env.Load()
+builder.Services.AddScoped<IEmailService, EmailService>();
 // Add IPortfolioRepository i PortfolioRepository 
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 
@@ -138,9 +147,6 @@ builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 builder.Services.AddHttpClient<IFinacialModelingPrepService, FinancialModelingPrepService>() // Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
                 .AddStandardResilienceHandler(); // Dodaje defaultne retry, timeout, circuit breaker. Pogledaj IHttpClientFactory, HttpClient, Resilience.txt
 //builder.Services.AddFMPHttpClientWithCustomResilience();  - ako zelim custom Resilience
-
-// Add EmailService as IEmailSender after Env.Load()
-builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Morao sam FluentValidation.DependencyInjectionExtensions da instalim u BuildingBlocks pre ovoga
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly); // Finds CommandValidator klase koje imeplementiraju AbstractValidator , da ValidationBehaviour moze da ih nadje tokom runtime
@@ -175,7 +181,7 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// Custom middleware koji nasledi IMiddleware mora biti transient
+// Custom middleware koji nasledi IMiddleware mora biti registrovan AddTransient u DI
 builder.Services.AddTransient<IMiddleware, GlobalExceptionHandlingMiddleware>();
 
 // Options pattern for MessageBrokerSettings
@@ -197,7 +203,7 @@ app.UseSwaggerUI(); // Default UI at /swagger
 
 app.UseHttpsRedirection(); // Forces HTTP to become HTTPS ako FE posalje Request na http://localhsto:5110 umesto https://localhost:7045 jer je sigurnije
 
-// Add custom middleware to pipeline on top da bi uhvatio sve greske iz middleware koji su ispod 
+// Add custom middleware on top of pipeline da bi uhvatio sve greske iz middleware koji su ispod 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // CORS (Browser sequrity feature that restrics pages from making request to different domain that one that served the page). 
@@ -215,20 +221,11 @@ app.UseCookiePolicy(new CookiePolicyOptions
 }); // Jer RefreshToken Endpoint ovo zahteva. Ovo mora before UseAuthentication
 Ako ovo imam, onda u AccountController ne pisem Append i ne navodim one parametre.*/
 
-// Enable Authentication + Authorization
+// Enable Authentication - pogledaj Authentication middleware.txt
 app.UseAuthentication(); 
-/* UseAuthentication must come before UseAuthorization as it validates user identity when Login/Register.
-   UseAuthentication hvata Request, iz Request Authorization header ocita JWT (zbog SPA Security best practice JWT is in Auth header)
- ili cookie (ali cookie za AccessToken ne koristim), iz JWT ocita user info (Username i Password) tj Claims, od Claims napravi ClaimsIdentity, 
- od ClaimsIdentity napravi ClaimsPrincipal i upise ga u HttpContext.User.
-   ClaimsPrincipal je fakticki user koji moze imati vise ClaimsIdentity npr logovao sam se preko username/password (ClaimsIdentity1) i preko Google naloga(ClaimsIdentity2).
- */
+// Enable Authorization after Authentication - pogledaj Authorization middleware.txt 
 app.UseAuthorization();  
-/* Enforces access rules based on user (HttpContext.User koji je UseAuthentication popunio) identity.
-   Controller:ControllerBase, a ControllerBase ima User(HttpContext.User) polje koje omogucava stateless da ocitam user info bez gledanja u bazu.
-*/
-
-// Use Rate Limiter on desired Endpoints 
+// Enable using of Rate Limiter middleware on desired endpoints 
 app.UseRateLimiter();
 
 // Ubaci Controlers (+ Routing i Endpoint) middleware u pipeline. Za svaki [Http...("route..")] iznad Endpoint ASP.NET Core znace kako da ga mapira sa incoming request.

@@ -24,13 +24,13 @@ namespace Api.Mapper
         }
 
         // Extension method za CreateCommentRequestDTO, with calling parameter
-        public static Comment ToCommentFromCreateCommentRequestDTO(this CreateCommentRequestDTO createCommentRequestDTO, int stockId)
+        public static Comment ToCommentFromCreateCommentRequestDTO(this CreateCommentCommandModel command, int stockId)
         {
             return new Comment
             {
                 // Id se ne mapira iz DTO,jer DTO nema Id, jer to tabela sama dodeli prema OnModelCreating zbog ValueGeneratedOnAdd za custom CommentId type
-                Title = createCommentRequestDTO.Title,
-                Content = createCommentRequestDTO.Content,
+                Title = command.Title,
+                Content = command.Content,
                 StockId = stockId,
                 // CreatedOn polje nisam mapirao, jer ne postoji u CreateCommentRequestDTO, pa bice DateTime.Now by default 
                 /* Ne mapiram IsDelete, AppUser i Stock polja, jer nisu prisutna u CreateCommentRequestDTO, jer su u Comment to navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
@@ -39,12 +39,12 @@ namespace Api.Mapper
         }
 
         // Extension method za UpdateCommentRequestDTO, without calling parameters
-        public static Comment ToCommentFromUpdateCommentRequestDTO(this UpdateCommentRequestDTO updateCommentRequestDTO)
+        public static Comment ToCommentFromUpdateCommentRequestDTO(this UpdateCommentCommandModel command)
         {
             return new Comment
             {
-                Title = updateCommentRequestDTO.Title,
-                Content = updateCommentRequestDTO.Content,
+                Title = command.Title,
+                Content = command.Content,
                 // Ostala non navigational property ili Id polja nisam mapirao jer to ne treba za ovaj slucaj  + UpdateCommentRequestDTO samo ova 2 polja ima
                 /* Ne mapiram AppUser i Stock polja, jer nisu prisutna u UpdateCommentRequestDTO, jer su u Comment navigation property, koja, uz PK i FK polja u Comment/AppUser/Stock, sluze
                  da EF (ili ja u OnModelCreating) definsie PK-FK vezu za Comment-AppUser/Stock. */

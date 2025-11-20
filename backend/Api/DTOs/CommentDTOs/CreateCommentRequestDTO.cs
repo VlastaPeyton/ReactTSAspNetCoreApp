@@ -4,7 +4,7 @@ namespace Api.DTOs.CommentDTOs
 {   
     // Objasnjeno u StockDTO cemu sluzi DTO. 
 
-    // Mora imati annotations jer ovu klasu koristim za writing to DB Endpoint pa da ModelState moze da validira polja.
+    // Mora imati annotations jer ovu klasu koristim za writing to DB Endpoint pa da ModelState moze da validira polja pre nego sto mapiram u CreateCommentCommandModel
 
     public class CreateCommentRequestDTO
     {   

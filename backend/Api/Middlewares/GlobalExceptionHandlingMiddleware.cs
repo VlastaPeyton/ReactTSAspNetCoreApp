@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using Api.Exceptions;
 using Api.Exceptions_i_Result_pattern.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -9,17 +8,16 @@ namespace Api.Middlewares
     /* 
      U pocetku, moj kod je radio ovako: Middleware- > Controller -> Service -> Repository.
      U Repository nisam explicitno bacio greske jer tu se podrazumevaju implicitne built-in + neam try-catch.
-     U Service sam explicitno bacio greske + iz Repository implicitne su se propagirale u Service, ali neam try-catch. 
-     U Controller imam try-catch, pa ce sve greske iz Repository/Service da se propagiraju ovde i tu da se uhvate i da se klijentu posalje i odgovor i greska. 
-     Bolja solucija je GlobalExceptionHandlingMiddleware koji ce da hvata greske, pa nema vise potrebe za try-catch u Controller stoga 
-    klijentu iz Controller saljem samo odgovor, a gresku iz GlobalExceptionHandlingMiddleware.
+     U Service sam explicitno bacio greske + iz Repository implicitne su se propagirale u Service, ali neam try-catch u Service, pa se propagira u Controller.
+     U Controller imao sam try-catch, pa ce sve greske iz Repository/Service da se propagiraju ovde i tu da se uhvate i da se klijentu posalje i odgovor i greska. 
      
-     Pogledaj Middleware.txt i Exception driven error handling.txt
+     Bolja solucija je GlobalExceptionHandlingMiddleware koji ce da hvata greske, pa nema vise potrebe za try-catch nigde, stoga klijentu iz Controller saljem samo odgovor, 
+    a gresku mu saljem iz GlobalExceptionHandlingMiddleware.
      
-     Ovo isto radi za svaki controller.
+     Pogledaj Middleware.txt i Exception driven error handling.txt i Result pattern.txt
     */
 
-    // Ovo moze i cesto je, ali se tesko testira, pa necu da koristim => U Program.cs: app.UseMiddleware<GlobalExceptionHandlingMiddlewareBezInterface>();
+    // Ovo moze i cesto je, ali se tesko testira, pa necu da koristim => U Program.cs: app.UseMiddleware<GlobalExceptionHandlingMiddlewareBezInterface>(); i middleware automatski registruje kao AddSingleton
     public class GlobalExceptionHandlingMiddlewareBezInterface
     {
         private readonly RequestDelegate _next;
@@ -77,33 +75,31 @@ namespace Api.Middlewares
                 {   
                     // Account:
 
-                    // Register endpoint je za ove exceptions slao klijentu StatusCode 500 
+                    // Register endpoint 
                     UserCreatedException or RoleAssignmentException => StatusCodes.Status500InternalServerError,
 
-                    // Login endpoint je za ove exceptions slao klijentu StatusCode 401 
+                    // Login endpoint 
                     //WrongPasswordException or WrongUsernameException => StatusCodes.Status401Unauthorized, - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
 
-                    // ForgotPassword endpoint je za ovaj exception slao klijentu StatusCode 200
+                    // ForgotPassword endpoint 
                     ForgotPasswordException => StatusCodes.Status200OK,
 
-                    // ResetPassword endpoint je za ove exceptions slao klijentu StatusCode 200
+                    // ResetPassword endpoint 
                     ResetPasswordException => StatusCodes.Status200OK,
 
-                    // RefreshToken endpoint je za ovaj exception slao klijentu StatusCode 401 
+                    // RefreshToken endpoint  
                     RefreshTokenException => StatusCodes.Status401Unauthorized,
 
                     // Comment:
-
-                    // GetById endpoint 
-                    CommentNotFoundException => StatusCodes.Status404NotFound,
-                    // Delete endpoint 
-                    NotYourCommentException => StatusCodes.Status401Unauthorized,
-
+                    
                     // Stock:
+
+                    // Update endpoint
+                    StockNotFoundException => StatusCodes.Status404NotFound,
 
                     // Portfolio:
 
-                    // Svaki endpoint, u bilo kom controlleru, je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository 
+                    // Svaki endpoint, u bilo kom controlleru, je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository/cqrs
                     _ => StatusCodes.Status500InternalServerError
                 };
 
@@ -116,16 +112,14 @@ namespace Api.Middlewares
                         // Account: 
 
                         UserCreatedException or RoleAssignmentException => "Implicit internal server error u service/repository",
-                        // WrongPasswordException or WrongUsernameException => "Unauthorized", - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
                         ForgotPasswordException => "Saljem 200OK da zavaram trag i da si zamenio i da nisi password",
                         ResetPasswordException => "Saljem 200OK da zavaram trag i da si resetovao i da nisi password",
                         RefreshTokenException => "Unauthorized",
 
                         // Comment:
-                        CommentNotFoundException => "Comment not found",
-                        NotYourCommentException => "Ne mozes brisati tudji komentar",
 
                         // Stock:
+                        StockNotFoundException => "Stock not found",
 
                         // Portfolio: 
 

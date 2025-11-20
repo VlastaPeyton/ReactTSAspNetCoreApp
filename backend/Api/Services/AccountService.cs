@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.Services
 {
     // Pogledaj Services.txt
+
     public class AccountService : IAccountService
     {
         // Interface za sve klase zbog DI, dok u Program.cs registrujem da prepozna interface kao tu klasu + zbog testabilnosti - pogledaj Dependency Injection.txt
@@ -30,14 +31,13 @@ namespace Api.Services
             _logger = logger;
             _emailService = emailService;
         }
-        /* UserManager i SignInManager metode ne prihvataju cancellationToken i zato ga nema
-           Metode nemaju try-catch - pogledaj Services.txt
-           Servis prima DTO iz kontroler, mapira DTO->Entity, salje Entity u Repository, Repository vraca Entity, servis mapira Entity->DTO i salje DTO kontroleru
-           AKo koristim Service, ne koristim CQRS i obratno. Service proverava i baca excpetion/result pattern, dok Repository samo vraca null ako nije naso u bazi.
-         */
+        /* UserManager i SignInManager metode ne prihvataju cancellationToken i zato ga nema u endpoints ni ovde.
+           Metode nemaju try-catch, pa se exception propagira u Controller odakle se dalje propagira u GlobalExceptionHandlingMidleware - pogledaj Services.txt
+           Ako koristim Service, ne koristim CQRS i obratno. Service proverava i baca excpetion ili vraca result pattern, dok Repository samo vraca null ako nije naso u bazi.
+           Service prima/vraca DTO u controller, mapira DTO u Entity i obratno, a Repository prima/vraca Entity u Service !
+        */
         public async Task<NewUserDTO> RegisterAsync(RegisterDTO registerDTO)
         {
-            
             AppUser appUser = new AppUser
             {
                 UserName = registerDTO.UserName,
@@ -52,12 +52,10 @@ namespace Api.Services
             if (!createdUser.Succeeded)
                 throw new UserCreatedException($"User creation failed in _userManager: {createdUser.Errors}"); 
             
-
             var roleResult = await _userManager.AddToRoleAsync(appUser, "User"); // Mogu samo User ili Admin upisati za Role, jer samo te vrednosti su seedovane migracijom u OnModelCreating u AspNetRoles tabelu
             if (!roleResult.Succeeded)   
                 throw new RoleAssignmentException($"Role assignment failed in _userManager: {roleResult.Errors}");  
             
-
             var accessToken = _tokenService.CreateAccessToken(appUser);
             var refreshToken = _tokenService.CreateRefreshToken();
             var hashedRefreshToken = _tokenService.HashRefreshToken(refreshToken); // Hash, jer u DB samo hash refresh token stavljam
@@ -76,15 +74,15 @@ namespace Api.Services
         {   
             
             var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
-                                                                                    // appUser je ocitao sve kolone iz zeljene vrste AspNetUsers tabele, medju kojima je i ConcurrencyStamp koji sprecava race conditions
+                                                                                 // appUser je ocitao sve kolone iz zeljene vrste AspNetUsers tabele, medju kojima je i ConcurrencyStamp koji sprecava race conditions
             if (appUser is null)
-                //throw new WrongUsernameException($"Invalid username"); - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
+                //throw new WrongUsernameException($"Invalid username"); - umesto exception, koristim Result pattern jer nije neocekivana greska systema, vec biznis logika
                 return Result<NewUserDTO>.Fail("Invalid username");
 
             // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash zbog sigurnosti
             var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false);
             if (!result.Succeeded)
-                //throw new WrongPasswordException($"Invalid password"); - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
+                //throw new WrongPasswordException($"Invalid password"); - umesto exception, koristim Result pattern jer nije neocekivana greska systema, vec biznis logika
                 return Result<NewUserDTO>.Fail("Invalid password");
 
             var accessToken = _tokenService.CreateAccessToken(appUser);

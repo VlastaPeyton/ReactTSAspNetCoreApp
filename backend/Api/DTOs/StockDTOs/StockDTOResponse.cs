@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Api.DTOs.CommentDTOs;
+﻿using Api.DTOs.CommentDTOs;
 
 namespace Api.DTOs.StockDTO
 {
@@ -7,15 +6,15 @@ namespace Api.DTOs.StockDTO
     nikad direktno pristupam Entity klasi u API sloju (Endpoint). Takodje, DTO sluzi za Data Validation u slucaju writing to DB as Request object, jer se to ne radi u Entity klasi, 
     posto mora pre Entity klase da se validira dok je jos na ulazu u Endpoint kao Request DTO object.
 
-       Ne sadrzi Data Annotations jer StockDTO korisitm da Endpoint posalje podatke to FE. 
+       Ne sadrzi Data Annotations jer StockDTOResponse korisitm da Endpoint posalje podatke to FE. 
       
        DTO sadrzi samo proste tipove polja ! 
 
-      StockDTO nema Data Validation, jer se to odigra u Create/UpdateStockRequestDTO, dok StockDTO sluzi samo za prikaz svega iz Stock tj za slanje "Stock" to FE.
+      StockDTOResponse nema Data Validation, jer se to odigra u Create/UpdateStockRequestDTO, dok StockDTOResponse sluzi samo za prikaz svega iz Stock tj za slanje "Stock" to FE.
     
-      Koristim ovaj DTO  za Redis, jer nije dobro skladisitit entity klase u Redis.
+      Koristim ovaj DTO za Redis, jer nije dobro skladisitit entity klase u Redis.
      */
-    public class StockDTO
+    public class StockDTOResponse
     {
         public int Id { get; set; } // PK
         public string Symbol { get; set; } = string.Empty; // Ako ne unesem nista, u koloni Symbol bice prazan string 

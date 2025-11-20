@@ -8,14 +8,16 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Service
 {   
-    /* Metode su sync, jer nema potrebe da budu async posto metode ne pricaju sa bazom
+    /* 
+       Metode su sync, jer nema potrebe da budu async posto metode ne komuniciraju sa bazom.
        
        Creating Access Token(short-lived) tj CreateToken method, je stateless tj JWT se ne unosi u bazu za korisnika, zato sto user claims are encoded in JWT. 
        Creating Refres Token(long-lived) tj GenerateRefreshToken method, nije stateless tj Refres Token se unosi u bazu za korisnika. 
        HashRefreshTOken jer before persisting Refresh Token in DB for corresponding user, needs to be hashed. 
      */
-    public class TokenService : ITokenService // U Program.cs registrujem da ITokenService se odnosi na TokenService
+    public class TokenService : ITokenService 
     {   
+        // Interface za sve klase zbog DI, dok u Program.cs registrujem da prepozna interface kao tu klasu + zbog testabilnosti - pogledaj Dependency Injection.txt
         private readonly IConfiguration _configuration;    // Za pristup svemu iz appsettings. _configuration je isto kao builder.Configuration u Program.cs
         private readonly SymmetricSecurityKey _signingKey; // Symetric - jer ocu sa istim kljucem to Sign and Verify JWT. SHA256 moram zbog ovoga koristiti.
         public TokenService(IConfiguration configuration) 
