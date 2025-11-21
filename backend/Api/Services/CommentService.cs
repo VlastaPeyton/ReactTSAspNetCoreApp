@@ -27,7 +27,7 @@ namespace Api.Services
         }
 
         // Servis prima DTO iz kontroler ako je read endpoint
-        // Controller mapira DTO u command i salje servisu, ako je write endpoint, a onda servis mapira command u entity ako treba i salje u repository
+        // Controller mapira DTO u command i salje servisu, ako je write endpoint, a onda servis mapira command model u entity ako treba i salje u repository
         public async Task<List<CommentDTOResponse>> GetAllAsync(CommentQueryObject commentQueryObject, CancellationToken cancellationToken)
         {
             var comments = await _commentRepository.GetAllAsync(commentQueryObject, cancellationToken); // Iako Repository prima/vraca samo Entity objekte, CommentQueryObject nisam mogao mapirati u odgovarajuci Entity objekat

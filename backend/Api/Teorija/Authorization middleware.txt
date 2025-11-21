@@ -1,7 +1,18 @@
 
-Built-in middleware koji se koristi u Program.cs
+Built-in middleware koji se u Program.cs registruje pomocu app.UseAuthorization().
+Mora se registrovati nakon app.UseAuthentication() middleware u pipeline u Program.cs - pogledaj Authentication middleware.txt
 
-Mora se registrovati nakon Authentication middleware u pipeline u Program.cs - pogledaj Authentication middleware.txt
+UseAuthorization middleware:
+	- vidi ima li endpoint [Authorize]
+	- ako ima [Authrozire], poziva handler registrovan u Authentication middleware
 
-Enforces access rules based on user (HttpContext.User koji je UseAuthentication popunio - pogledaj Authentication middleware.txt) identity.
+Kada http request dodje u ovaj middleware, onda se aktivira handler (definisan u Authentication middleware) da uhvati Request (pogledaj HttpContext.txt), 
+pa iz Request Authorization header ocita JWT (zbog SPA Security best practice JWT is in Auth header) ili cookie (ali cookie za AccessToken ne koristim), 
+pa iz JWT ocita user info (Username i Password) tj Claims, pa od Claims napravi ClaimsIdentity, pa od ClaimsIdentity napravi ClaimsPrincipal i upise ga u HttpContext.User.
+ClaimsPrincipal je fakticki user koji moze imati vise ClaimsIdentity npr logovao sam se preko username/password (ClaimsIdentity1) i preko Google naloga(ClaimsIdentity2).
+
+Also, enforces access rules based on user (HttpContext.User) identity.
+
 Controller:ControllerBase, a ControllerBase pruza User(HttpContext.User) polje koje omogucava stateless da ocitam user info bez gledanja u bazu.
+
+

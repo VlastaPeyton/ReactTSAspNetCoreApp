@@ -1,6 +1,8 @@
 ﻿using Api.DTOs.Account;
+using Api.DTOs.AccountDTOs;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Api.Controllers
 {
@@ -54,9 +56,16 @@ namespace Api.Controllers
                 return BadRequest(ModelState);
                 // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa RegisterDTO poljima (EmailAddress, UserName i Password) u "errors" delu i bice auto JSON serializovan
 
+            // Write to DB endpoint, pa mapiram RegisterDTO u CommandModel - pogledaj Services.txt + DTO vs entity klase.txt
+            var command = new RegisterCommandModel
+            {
+                UserName = registerDTO.UserName,
+                EmailAddress = registerDTO.EmailAddress,
+                Password = registerDTO.Password,
+            };
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
-            var newUserDTO = await _accountService.RegisterAsync(registerDTO);
+            var newUserDTO = await _accountService.RegisterAsync(command);
 
             string refreshToken = newUserDTO.RefreshToken;
 
@@ -90,15 +99,21 @@ namespace Api.Controllers
             // ModelState pokrene validaiton iz LoginDTO tj za zeljena LoginDTO polja proverava na osnovu njihovih annotations.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) u "errors" delu poruke
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a ModelState objekat bice poslat u Response Body sa LoginDTO poljima (UserName i Password) u "errors" delu poruke
 
+            // Write to DB endpoint, pa mapiram LoginDTO u CommandModel - pogledaj Services.txt + DTO vs entity klase.txt
+            var command = new LoginCommandModel
+            {
+                UserName = loginDTO.UserName,
+                Password = loginDTO.Password,
+            };
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
-             
-            var result = await _accountService.LoginAsync(loginDTO); // result pattern 
+
+            var result = await _accountService.LoginAsync(command); // result pattern 
             if (result.IsFailure)
                 return Unauthorized(new { message = result.Error }); // Salje objekat da bi se automatski napravio u JSON jer response body uvek JSON treba biti
 
-            var appUser = result.Value;
+            var appUser = result.Value; // NewUserDTO
 
             string refreshToken = appUser.RefreshToken; 
 
@@ -132,6 +147,8 @@ namespace Api.Controllers
 
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
+            // Nema modifikacija baze, pa ne mapiram DTO u CommandModel klasu, jer je read endpoint
+
             await _accountService.ForgotPasswordAsync(forgotPasswordDTO);
 
             return Ok("Reset password link is sent to your email");
@@ -142,13 +159,20 @@ namespace Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-                // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ResetPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
+            // Frontendu ce biti poslato StatusCode=400 u Response Status Line, a polje EmailAddress iz ModelState tj iz ResetPasswordDTO ce biti prosledjeno u "errors" delu of Request sa objasnjenjem - u handleError smo uhvatili ovaj tip greske 
 
             // Always return success to prevent email enumeration attack ! But only actually reset if user exists
 
             // Odavde saljem dobre/lose odgovore vezane za Result pattern, a neocekivane greske se propagiraju u GlobalExceptionHandlingMiddleware odakle se salju klijentu
 
-            await _accountService.ResetPasswordAsync(resetPasswordDTO);
+            // Write to DB endpoint, pa mapiram ResetPasswordDTO u CommandModel - pogledaj Services.txt + DTO vs entity klase.txt
+            var command = new ResetPasswordCommandModel
+            {
+                NewPassword = resetPasswordDTO.NewPassword,
+                ResetPasswordToken = resetPasswordDTO.ResetPasswordToken,
+                EmailAddress = resetPasswordDTO.EmailAddress
+            }; 
+            await _accountService.ResetPasswordAsync(command);
             // Always return the same response regardless of whether user exists or reset succeeded as this prevents timing attacks and email enumeration
             return Ok("If the email exists in our system, the password has been reset.");
         }

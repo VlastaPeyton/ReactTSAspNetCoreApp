@@ -127,6 +127,7 @@ namespace Api.Middlewares
                         StockNotFoundException => "Stock not found",
 
                         // Portfolio: 
+                        UserNotFoundException => "User not found ",
 
                         _ => "Implicit internal server error u service/repository"
                     },

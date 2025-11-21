@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Encodings.Web;
 using Api.DTOs.Account;
+using Api.DTOs.AccountDTOs;
 using Api.Exceptions;
 using Api.Exceptions_i_Result_pattern;
 using Api.Interfaces;
@@ -36,16 +37,16 @@ namespace Api.Services
            Ako koristim Service, ne koristim CQRS i obratno. Service proverava i baca excpetion ili vraca result pattern, dok Repository samo vraca null ako nije naso u bazi.
            Service prima/vraca DTO u controller, mapira DTO u Entity i obratno, a Repository prima/vraca Entity u Service !
         */
-        public async Task<NewUserDTO> RegisterAsync(RegisterDTO registerDTO)
+        public async Task<NewUserDTO> RegisterAsync(RegisterCommandModel command)
         {
             AppUser appUser = new AppUser
             {
-                UserName = registerDTO.UserName,
-                Email = registerDTO.EmailAddress
+                UserName = command.UserName,
+                Email = command.EmailAddress
             };
 
-            var createdUser = await _userManager.CreateAsync(appUser, registerDTO.Password!); // Dodaje novog usera u AspNetUsers (IdentityUser) tabelu 
-            /* Dodaje AppUser polja (UserName i Email) i registerDTO.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
+            var createdUser = await _userManager.CreateAsync(appUser, command.Password!); // Dodaje novog usera u AspNetUsers (IdentityUser) tabelu 
+            /* Dodaje AppUser polja (UserName i Email) i command.Password (koga automatski hash-uje) u AspNetUsers tabelu tj kreira novi User u toj tabeli
                 CreateAsync sprecava kreiranje 2 usera sa istim UserName ili Email(za email sam morao u Program.cs da definisem rucno u AddIdentity)
                 CreateAsync behing the scenes attaches appUser to EF Core and populates every column of AspNetUsers table regarding ConcurrencyStamp column koja sprecava race conditions
             */
@@ -70,17 +71,17 @@ namespace Api.Services
             return new NewUserDTO { UserName = appUser.UserName, EmailAddress = appUser.Email, Token = accessToken, RefreshToken = refreshToken};  
         }
 
-        public async Task<Result<NewUserDTO>> LoginAsync(LoginDTO loginDTO)
+        public async Task<Result<NewUserDTO>> LoginAsync(LoginCommandModel command)
         {   
             
-            var appUser = await _userManager.FindByNameAsync(loginDTO.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
+            var appUser = await _userManager.FindByNameAsync(command.UserName); // Bolji i sigurniji nacin nego 2 linije iznad i takodje pretrazuje AspNetUsers tabelu da nadjemo AppUser by UserName
                                                                                  // appUser je ocitao sve kolone iz zeljene vrste AspNetUsers tabele, medju kojima je i ConcurrencyStamp koji sprecava race conditions
             if (appUser is null)
                 //throw new WrongUsernameException($"Invalid username"); - umesto exception, koristim Result pattern jer nije neocekivana greska systema, vec biznis logika
                 return Result<NewUserDTO>.Fail("Invalid username");
 
             // Ako UserName dobar, proverava password tj hashes it and compares it with PasswordHash column in AspNetUsers jer ne postoji Password kolona u AspNetUsers vec samo PasswordHash zbog sigurnosti
-            var result = await _signInManager.CheckPasswordSignInAsync(appUser, loginDTO.Password, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(appUser, command.Password, false);
             if (!result.Succeeded)
                 //throw new WrongPasswordException($"Invalid password"); - umesto exception, koristim Result pattern jer nije neocekivana greska systema, vec biznis logika
                 return Result<NewUserDTO>.Fail("Invalid password");
@@ -123,18 +124,17 @@ namespace Api.Services
             // Kada .NET sends reset password url, odma zaboravi kakav je token, jer token nije skladisten nigde osim u varijabli. Onda user klikne na link u mejlu, cime aktivira ResetPassword endpoint, a .NET ima mehanizam u ResetPasswordAsync, koji decodes token iz linka i vidi user credentials u tokenu
         }
 
-        public async Task ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO)
+        public async Task ResetPasswordAsync(ResetPasswordCommandModel command)
         {   
-            
             // Find user by email
-            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.EmailAddress); // Ocitane sve kolone ove vrste, pa i ConcurrencyStamp koja sprecava race conditions
+            var user = await _userManager.FindByEmailAsync(command.EmailAddress); // Ocitane sve kolone ove vrste, pa i ConcurrencyStamp koja sprecava race conditions
             if (user is null)
             {
                 _logger.LogError("User not found during password reset ali posalji 200 klijentu da zavara trag");
                 throw new ResetPasswordException("If the email exists in our system, the password has been reset");
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.ResetPasswordToken, resetPasswordDTO.NewPassword);
+            var result = await _userManager.ResetPasswordAsync(user, command.ResetPasswordToken, command.NewPassword);
             /* Kada user kliknuo Forgot Password, dobio je reset password link u email, a kad kliknuo na link on pokrenuo je ovaj endpoint.
                 ResetPasswordAsync ima mehanizam da decodes token i da izvadi sve iz njega i provedi da li je to isto kao kad je ForgotPassword endpoint encodovao token.
                 Proveri da l je za ovaj user generisan resetPasswordToken u ForgotPassword endpoint i da li NewPassword se slaze sa zahtevima u Program.cs
