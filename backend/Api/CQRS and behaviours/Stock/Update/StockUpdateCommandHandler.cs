@@ -21,7 +21,7 @@ namespace Api.CQRS_and_behaviours.Stock.Update
 
     public class StockUpdateCommandHandler : ICommandHandler<StockUpdateCommand, Result<StockUpdateResult>>
     {
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockUpdateCommandHandler(IStockRepository stockRepository) => _stockRepository  = stockRepository;
 
         public async Task<Result<StockUpdateResult>> Handle(StockUpdateCommand command, CancellationToken cancellationToken)

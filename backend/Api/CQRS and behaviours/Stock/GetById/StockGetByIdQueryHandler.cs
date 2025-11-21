@@ -11,7 +11,7 @@ namespace Api.CQRS_and_behaviours.Stock.GetById
 
     public class StockGetByIdQueryHandler : IQueryHandler<StockGetByIdQuery, Result<StockGetByIdResult>>
     {
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockGetByIdQueryHandler(IStockRepository stockRepository) => _stockRepository = stockRepository;
 
         public async Task<Result<StockGetByIdResult>> Handle(StockGetByIdQuery query, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ namespace Api.CQRS_and_behaviours.Stock.GetAll
     public record StockGetAllResult(List<StockDTOResponse> StockDTOResponses);
     public class StockGetAllQueryHandler : IQueryHandler<StockGetAllQuery, StockGetAllResult>
     {   
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockGetAllQueryHandler(IStockRepository stockRepository) => _stockRepository = stockRepository;
        
         public async Task<StockGetAllResult> Handle(StockGetAllQuery query, CancellationToken cancellationToken)

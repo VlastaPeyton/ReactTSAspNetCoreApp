@@ -20,7 +20,7 @@ namespace Api.CQRS_and_behaviours.Stock.Delete
 
     public class StockDeleteCommandHandler : ICommandHandler<StockDeleteCommand, StockDeleteResult> 
     {
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockDeleteCommandHandler(IStockRepository stockRepository) => _stockRepository = stockRepository;
 
         public async Task<StockDeleteResult> Handle(StockDeleteCommand command, CancellationToken cancellationToken)

@@ -48,7 +48,9 @@ namespace Api.CQRS_and_behaviours.Comment.Create
                     await _stockRepository.CreateAsync(stock, cancellationToken);
             }
             var appUser = await _userManager.FindByNameAsync(command.UserName);
-
+            if (appUser is null)
+                return Result<CommentCreateResult>.Fail("User not found in userManager");
+            
             var comment = command.CreateCommenCommandModel.ToCommentFromCreateCommentRequestDTO(stock.Id);
             comment.AppUserId = appUser.Id;
 

@@ -1,4 +1,7 @@
-﻿using Api.DTOs.Stock;
+﻿using System.Runtime.CompilerServices;
+using Api.DTOs.CommentDTOs;
+using Api.DTOs.PortfolioDTOs;
+using Api.DTOs.Stock;
 using Api.DTOs.StockDTO;
 using Api.DTOs.StockDTOs;
 using Api.Models;
@@ -25,7 +28,8 @@ namespace Api.Mapper
                 Dividend = stock.Dividend,
                 Industry = stock.Industry,
                 MarketCap = stock.MarketCap,
-                Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() // Ovako mapiram List type navigational property, jer polje DTO klase mora biti lista DTO tipa, a ne navigational property entity typa kao u entity klasi
+                //Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() // Ovako mapiram List type navigational property, jer polje DTO klase mora biti lista DTO tipa, a ne navigational property entity typa kao u entity klasi
+                Comments = stock.Comments.Select(c => c.ToCommentDTOResponse()).ToList() ?? new List<CommentDTOResponse>()
             };
         }
 
@@ -75,6 +79,26 @@ namespace Api.Mapper
                 MarketCap = financialModelingPrepStockDTO.mktCap
                 /* Ne mapiram Comments/Portfolios polja, jer nisu prisutna u FinancialModelingPrepStockDTO posto su collection navigation attribute u Stock pa imaju default polje, a nije ni logicno da postoje u UpdateStockRequestDTO
                  Ova polja, kao i FK PK polja u Stock/Comment/Portfolio sluze da EF (ili ja u OnModelCreating), moze da napravim FK-PK vezu Stock-Comment/Portfolio i zato se ne salju from FE. */
+            };
+        }
+        
+        // Extension method for Portfolio.cs
+        public static PortfolioDtoResponse ToPortfolioDtoResponse(this Portfolio portfolio)
+        {
+            return new PortfolioDtoResponse
+            {
+                StockId = portfolio.StockId,
+                AppUserId = portfolio.AppUserId,
+                Stock = portfolio.Stock.ToStockDtoResponse(),
+            };
+        }
+
+        // Exntension method for AppUser.cs 
+        public static AppUserDtoResponse ToAppUserDtoResponse(this AppUser appUser)
+        {
+            return new AppUserDtoResponse
+            {
+                Portfolios = appUser.Portfolios.Select(p => p.ToPortfolioDtoResponse()).ToList(),
             };
         }
     }

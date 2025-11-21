@@ -11,13 +11,11 @@ using Newtonsoft.Json; // Jer u Controllers endpoint koristim ovaj NuGet, pa ne 
 
 namespace Api.Repository
 {
-    // Pogledaj Redis, Proxy & Decorator patterns.txt  i JSON engine.txt
-    // Controller radi mapiranje entity klasa u DTO osim ako koristim CQRS, jer nije dobro da repository vrati DTO obzriom da on radi sa domain i treba samo za entity klase da zna
-
+    // Pogledaj Redis, Proxy & Decorator patterns.txt i JSON engine.txt
     public class CachedStockRepository : IStockRepository
     {
         private readonly IStockRepository _stockRepository;
-        // CachedStockRepository dodaje cache logiku on top of StockRepository with Decorator pattern, pa u StockControler poziva se CachedStockRepository => moram koristim StockRepository tj IStockRepository jer u Program.cs IStockRepository registrovan kao StockRepository
+        // CachedStockRepository dodaje cache logiku on top of StockRepository with Decorator pattern, pa u StockService/CQRS poziva se CachedStockRepository => moram koristim StockRepository tj IStockRepository jer u Program.cs IStockRepository registrovan kao StockRepository
         private readonly IDistributedCache _cache;
         // Program.cs with AddStackExchangeRedisCache konektujem Redis in Docker with IDistributedCache
         
@@ -37,7 +35,7 @@ namespace Api.Repository
             await _stockRepository.CreateAsync(stock, cancellationToken); // Ne treba mi povratna vrednost ove metode i zato nisam naveo
 
             // Drugo, upisemu Redis StockDTO, gde je value tipa string(JSON) jer samo ova metoda je built-in preko IDistributedCache
-            var stockDtoJson = JsonConvert.SerializeObject(stock.ToStockDTO(), new JsonSerializerSettings
+            var stockDtoJson = JsonConvert.SerializeObject(stock.ToStockDtoResponse(), new JsonSerializerSettings
             {   // Za razliku od endpoint circular reference u Program.cs, ovde moram navoditi explicitno uvek 
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // sprecava circular reference
             });
@@ -81,7 +79,7 @@ namespace Api.Repository
             // Ako ima u cache, onda vrati ga clientu
             if (!string.IsNullOrEmpty(cachedStockDtoJson))
             {
-                var stockDTO = JsonConvert.DeserializeObject<StockDTO>(cachedStockDtoJson)!; // Napravim StockDTO iz JSON jer u redis je JSON(StockDTO)
+                var stockDTO = JsonConvert.DeserializeObject<StockDTOResponse>(cachedStockDtoJson)!; // Napravim StockDTO iz JSON jer u redis je JSON(StockDTO)
                 var stock = new Stock
                 {
                     //Mapiram Id, jer je ovo read scenario, dok u write ne bih smeo jer baza sama generise Id vrednost
@@ -107,7 +105,7 @@ namespace Api.Repository
             }
             // Ako nema u cahce, uzmem iz baze, upisem u cache i vratim clientu
             var dbStock = await _stockRepository.GetByIdAsync(id, cancellationToken);
-            var stockDtoJson = JsonConvert.SerializeObject(dbStock.ToStockDTO(), new JsonSerializerSettings
+            var stockDtoJson = JsonConvert.SerializeObject(dbStock.ToStockDtoResponse(), new JsonSerializerSettings
             {
                 // Za razliku od endpoint circular reference u Program.cs, ovde moram navoditi explicitno uvek 
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore, // sprecava circular reference za Stock-Comment/Portfolio

@@ -13,7 +13,7 @@ namespace Api.Services
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _commentRepository;
-        private readonly IStockRepository _stockRepository; 
+        private readonly IStockRepository _stockRepository;  // Koristi CachedStockRepository, jer je on decorator on top of StockRepository
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinacialModelingPrepService _finacialModelingPrepService;
         
@@ -64,6 +64,9 @@ namespace Api.Services
             var appUser = await _userManager.FindByNameAsync(userName); // Pretrazi AspNetUser tabelu da nadje usera na osnovu userName
                                                                         // _userManager methods does not use cancellationToken
 
+            if (appUser is null)
+                return Result<CommentDTOResponse>.Fail("User not found in userManager"); 
+
             // Moram mapirati DTO(command) u Comment Entity jer Repository prima Entity kad god moze
             var comment = command.ToCommentFromCreateCommentRequestDTO(stock.Id);
             comment.AppUserId = appUser.Id;
@@ -86,6 +89,9 @@ namespace Api.Services
 
             // Pronadji trenutnog usera koji oce da obrise comment
             var appUser = await _userManager.FindByNameAsync(userName);
+
+            if (appUser is null)
+                return Result<CommentDTOResponse>.Fail("User not found in userManager");
 
             // User moze obrisati samo svoj komentar
             if (comment.AppUserId != appUser.Id) 

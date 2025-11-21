@@ -17,6 +17,6 @@ namespace Api.Interfaces
     {
         Task<List<Stock>> GetUserPortfoliosAsync(AppUser user, CancellationToken cancellationToken);
         Task<Portfolio> CreateAsync(Portfolio portfolio, CancellationToken cancellationToken);
-        Task<Portfolio?> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken); 
+        Task<Portfolio?> DeletePortfolioAsync(AppUser appUser, string symbol, CancellationToken cancellationToken); 
     }
 }

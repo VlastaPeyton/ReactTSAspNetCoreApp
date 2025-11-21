@@ -12,7 +12,7 @@ namespace Api.Services
     // Objasnjeno u CommentService
     public class StockService : IStockService
     {   
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockService(IStockRepository stockRepository) => _stockRepository = stockRepository;
 
         public async Task<List<StockDTOResponse>> GetAllAsync(StockQueryObject query, CancellationToken cancellationToken)

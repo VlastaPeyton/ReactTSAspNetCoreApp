@@ -1,4 +1,5 @@
 ﻿using Api.CQRS;
+using Api.CQRS_and_behaviours.Comment.Create;
 using Api.Exceptions;
 using Api.Exceptions_i_Result_pattern;
 using Api.Exceptions_i_Result_pattern.Exceptions;
@@ -44,6 +45,8 @@ namespace Api.CQRS_and_Validation.Comment.Delete
 
             // Pronadji trenutnog usera koji oce da obrise comment
             var appUser = await _userManager.FindByNameAsync(command.userName);
+            if (appUser is null)
+                return Result<CommentDeleteResult>.Fail("User not found in userManager");
 
             // User moze obrisati samo svoj komentar
             if (comment.AppUserId != appUser.Id)

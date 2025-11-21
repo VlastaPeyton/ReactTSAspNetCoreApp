@@ -75,29 +75,33 @@ namespace Api.Middlewares
                 {   
                     // Account:
 
-                    // Register endpoint 
+                        // Register endpoint 
                     UserCreatedException or RoleAssignmentException => StatusCodes.Status500InternalServerError,
 
-                    // Login endpoint 
+                        // Login endpoint 
                     //WrongPasswordException or WrongUsernameException => StatusCodes.Status401Unauthorized, - postalo Result pattern jer nije neocekivana greska systema, vec biznis logika
 
-                    // ForgotPassword endpoint 
+                        // ForgotPassword endpoint 
                     ForgotPasswordException => StatusCodes.Status200OK,
 
-                    // ResetPassword endpoint 
+                        // ResetPassword endpoint 
                     ResetPasswordException => StatusCodes.Status200OK,
 
-                    // RefreshToken endpoint  
+                        // RefreshToken endpoint  
                     RefreshTokenException => StatusCodes.Status401Unauthorized,
 
                     // Comment:
-                    
+                        // nema nistaa
+
                     // Stock:
 
-                    // Update endpoint
+                        // Update endpoint
                     StockNotFoundException => StatusCodes.Status404NotFound,
 
                     // Portfolio:
+
+                        // GetUserPortfolios endpoint 
+                    UserNotFoundException => StatusCodes.Status404NotFound,
 
                     // Svaki endpoint, u bilo kom controlleru, je slao klijentu StatusCode 500 ako se desio implicitni error u service/repository/cqrs
                     _ => StatusCodes.Status500InternalServerError
@@ -117,6 +121,7 @@ namespace Api.Middlewares
                         RefreshTokenException => "Unauthorized",
 
                         // Comment:
+                            // nema nistaa 
 
                         // Stock:
                         StockNotFoundException => "Stock not found",

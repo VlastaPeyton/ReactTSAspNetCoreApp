@@ -65,7 +65,7 @@ namespace tests.Repository
             await dbContext.SaveChangesAsync();
 
             // Act
-            var deleted = await repository.DeletePortfolio(user, "AAPL", CancellationToken.None);
+            var deleted = await repository.DeletePortfolioAsync(user, "AAPL", CancellationToken.None);
 
             // Assert
             deleted.Should().NotBeNull();

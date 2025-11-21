@@ -20,7 +20,7 @@ namespace Api.CQRS_and_behaviours.Stock.Create
 
     public class StockCreateCommandHandler : ICommandHandler<StockCreateCommand, StockCreateResult>
     {
-        private readonly IStockRepository _stockRepository;
+        private readonly IStockRepository _stockRepository; // Koristice CachedStockRepository, jer je on decorator on top of StockRepository 
         public StockCreateCommandHandler(IStockRepository stockRepository) => _stockRepository = stockRepository;
         
         public async Task<StockCreateResult> Handle(StockCreateCommand command, CancellationToken cancellationToken)

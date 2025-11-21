@@ -30,13 +30,15 @@ namespace Api.Repository
             return portfolio; 
         }
 
-        public async Task<Portfolio?> DeletePortfolio(AppUser appUser, string symbol, CancellationToken cancellationToken)
+        public async Task<Portfolio?> DeletePortfolioAsync(AppUser appUser, string symbol, CancellationToken cancellationToken)
         {   
             var portfolio = await _dbContext.Portfolios.FirstOrDefaultAsync(p => p.AppUserId == appUser.Id && p.Stock.Symbol.ToLower() == symbol.ToLower(), cancellationToken); 
             // EF start tracking changes in portfolio object. Ne smem AsNoTracking, jer Remove(portfolio) ne moze za untracked entity objects. 
             // U OnModelCreating objasnjeno zasto sam Stock.Symbol Indexirao.
+
+            // FirstOrDefaultAsync moze vratiti null, ali mi ova provera treba zbog Remove 
             if (portfolio == null)
-                return null; // Zbog ovoga, stvim Task<Portfolio?> da se VS ne buni.
+                return null;
 
             _dbContext.Portfolios.Remove(portfolio); // EF stop tracking portfolio and set its tracking to Detached
             await _dbContext.SaveChangesAsync(cancellationToken);
